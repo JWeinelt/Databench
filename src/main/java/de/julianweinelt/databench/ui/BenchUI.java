@@ -1,10 +1,10 @@
-package de.julianweinelt.tobbql.ui;
+package de.julianweinelt.databench.ui;
 
 import com.formdev.flatlaf.FlatDarkLaf;
-import de.julianweinelt.tobbql.data.ConfigManager;
-import de.julianweinelt.tobbql.data.Configuration;
-import de.julianweinelt.tobbql.data.Project;
-import de.julianweinelt.tobbql.parser.Connection;
+import de.julianweinelt.databench.api.Connection;
+import de.julianweinelt.databench.data.ConfigManager;
+import de.julianweinelt.databench.data.Configuration;
+import de.julianweinelt.databench.data.Project;
 import lombok.Getter;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
@@ -18,10 +18,12 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.HashMap;
 
 @Getter
-public class TobbeUI {
+public class BenchUI {
     private final HashMap<Project, Connection> connections = new HashMap<>();
 
     private JFrame frame;
@@ -34,8 +36,8 @@ public class TobbeUI {
 
         frame = new JFrame();
         frame.setBounds(50, 50, 1600, 900);
-        frame.setName("TobbeBench");
-        frame.setTitle("TobbeBench");
+        frame.setName("DataBench");
+        frame.setTitle("DataBench");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(new FlowLayout());
 
@@ -49,13 +51,13 @@ public class TobbeUI {
     public void connect(Project project) {
         Connection connection = new Connection(project);
         connections.put(project, connection);
-        if (connection.testConnection()) {
-            JOptionPane.showMessageDialog(frame, "Connection successful", "Connection", JOptionPane.INFORMATION_MESSAGE);
-        } else {
+        connection.connect().thenAccept(conn -> {
+            createNewConnectionTab(connection, this);
+        }).exceptionally(ex -> {
             JOptionPane.showMessageDialog(frame, "No connection could be established.", "Failure", JOptionPane.ERROR_MESSAGE);
             connections.remove(project);
-        }
-        createNewConnectionTab(connection);
+            return null;
+        });
     }
 
     private void createStartPage() {
@@ -168,10 +170,11 @@ public class TobbeUI {
         mainPanel.add(cards);
         addClosableTab(tabbedPane, "Home", mainPanel);
     }
-    private void createNewConnectionTab(Connection connection) {
+    private void createNewConnectionTab(Connection connection, BenchUI ui) {
         JPanel panel = new JPanel(new BorderLayout());
 
         JTabbedPane workTabs = new JTabbedPane();
+        connection.setWorkTabs(workTabs);
         panel.setPreferredSize(new Dimension(frame.getSize().width - 50, frame.getSize().height - 100));
 
         JToolBar toolBar = new JToolBar();
@@ -179,14 +182,33 @@ public class TobbeUI {
         toolBar.add(new JButton("Connect"));
         JButton btnNewQuery = new JButton("New Query");
         btnNewQuery.addActionListener(e -> {
-            addCreateTableEditorTab(workTabs, "New query");
+            addEditorTab(workTabs, "New query");
         });
         toolBar.add(btnNewQuery);
         toolBar.add(new JButton("Refresh"));
 
         DefaultMutableTreeNode root = new DefaultMutableTreeNode(connection.getProject().getName());
+        connection.getProjectTree(root);
 
         JTree tree = new JTree(root);
+        tree.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (SwingUtilities.isRightMouseButton(e)) {
+                    int row = tree.getRowForLocation(e.getX(), e.getY());
+                    if (row == -1) return;
+
+                    tree.setSelectionRow(row);
+                    DefaultMutableTreeNode node =
+                            (DefaultMutableTreeNode) tree.getPathForRow(row).getLastPathComponent();
+
+                    JPopupMenu menu = connection.createContextMenu(node, ui);
+                    if (menu != null && menu.getComponentCount() > 0) {
+                        menu.show(tree, e.getX(), e.getY());
+                    }
+                }
+            }
+        });
         JScrollPane treeScroll = new JScrollPane(tree);
         treeScroll.setPreferredSize(new Dimension(250, 600));
         workTabs.addTab("Welcome", new JLabel("Workspace for " + connection.getProject().getName()));
@@ -199,6 +221,7 @@ public class TobbeUI {
         panel.add(splitPane, BorderLayout.CENTER);
 
         addClosableTab(tabbedPane, connection.getProject().getName(), panel);
+        tabbedPane.setSelectedIndex(1);
     }
 
 
@@ -250,7 +273,7 @@ public class TobbeUI {
         tabbedPane.setTabComponentAt(index, tabPanel);
     }
 
-    private void addEditorTab(JTabbedPane workTabs, String title) {
+    public void addEditorTab(JTabbedPane workTabs, String title) {
         JPanel editorPanel = new JPanel(new BorderLayout());
 
         JToolBar editorToolBar = new JToolBar();
@@ -276,22 +299,22 @@ public class TobbeUI {
         workTabs.setSelectedComponent(editorPanel);
     }
 
-    private void addCreateTableEditorTab(JTabbedPane workTabs, String title) {
+    public void addCreateTableEditorTab(JTabbedPane workTabs, String title) {
         JPanel editorPanel = new JPanel(new BorderLayout());
 
         JToolBar toolBar = new JToolBar();
         toolBar.setFloatable(false);
-        JButton saveButton = new JButton("💾 Anwenden");
-        JButton cancelButton = new JButton("❌ Abbrechen");
+        JButton saveButton = new JButton("💾 Create");
+        JButton cancelButton = new JButton("❌ Cancel");
         toolBar.add(saveButton);
         toolBar.add(cancelButton);
 
         JPanel namePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        namePanel.add(new JLabel("Tabellenname:"));
+        namePanel.add(new JLabel("Table name:"));
         JTextField tableNameField = new JTextField(20);
         namePanel.add(tableNameField);
 
-        String[] columnNames = {"Spaltenname", "Datentyp", "Länge", "PK", "NN", "AI"};
+        String[] columnNames = {"Column Name", "Data Type", "Size", "Primary Key", "Not Null", "Auto I"};
         Object[][] data = {
                 {"id", "INT", 11, true, true, true},
                 {"name", "VARCHAR", 255, false, false, false}

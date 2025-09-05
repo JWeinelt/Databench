@@ -1,28 +1,28 @@
-package de.julianweinelt.tobbql;
+package de.julianweinelt.databench;
 
-import de.julianweinelt.tobbql.data.ConfigManager;
-import de.julianweinelt.tobbql.ui.TobbeUI;
+import de.julianweinelt.databench.data.ConfigManager;
+import de.julianweinelt.databench.ui.BenchUI;
 import lombok.Getter;
 
-public class TobbeBench {
+public class DataBench {
     @Getter
-    private TobbeUI ui;
+    private BenchUI ui;
 
     @Getter
-    private static TobbeBench instance;
+    private static DataBench instance;
 
     @Getter
     private ConfigManager configManager;
 
     public static void main(String[] args) {
-        instance = new TobbeBench();
+        instance = new DataBench();
         instance.start();
     }
 
     public void start() {
         configManager = new ConfigManager();
         configManager.loadConfig();
-        ui = new TobbeUI();
+        ui = new BenchUI();
         ui.start();
     }
 }

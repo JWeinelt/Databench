@@ -1,6 +1,6 @@
-package de.julianweinelt.tobbql.data;
+package de.julianweinelt.databench.data;
 
-import de.julianweinelt.tobbql.TobbeBench;
+import de.julianweinelt.databench.DataBench;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,6 +18,6 @@ public class Configuration {
     }
 
     public static Configuration getConfiguration() {
-        return TobbeBench.getInstance().getConfigManager().getConfiguration();
+        return DataBench.getInstance().getConfigManager().getConfiguration();
     }
 }

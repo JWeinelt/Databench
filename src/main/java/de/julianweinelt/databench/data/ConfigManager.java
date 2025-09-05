@@ -1,9 +1,9 @@
-package de.julianweinelt.tobbql.data;
+package de.julianweinelt.databench.data;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import de.julianweinelt.tobbql.TobbeBench;
+import de.julianweinelt.databench.DataBench;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,7 +18,7 @@ public class ConfigManager {
     private Configuration configuration = new Configuration();
 
     public static ConfigManager getInstance() {
-        return TobbeBench.getInstance().getConfigManager();
+        return DataBench.getInstance().getConfigManager();
     }
 
     public void loadConfig() {

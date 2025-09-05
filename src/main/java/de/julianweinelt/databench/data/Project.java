@@ -1,6 +1,6 @@
-package de.julianweinelt.tobbql.data;
+package de.julianweinelt.databench.data;
 
-import de.julianweinelt.tobbql.ui.TobbeUI;
+import de.julianweinelt.databench.ui.BenchUI;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,6 +14,7 @@ public class Project {
     private String server;
     private String username;
     private String password;
+    private String defaultDatabase = "";
 
     public Project(String name, String server, String username, String password) {
         this.name = name;
@@ -22,7 +23,7 @@ public class Project {
         this.password = password;
     }
 
-    public JPanel createCard(TobbeUI ui) {
+    public JPanel createCard(BenchUI ui) {
         JPanel card = new JPanel();
         card.setMaximumSize(new Dimension((ui.getFrame().getSize().width - 200) / 5, (ui.getFrame().getSize().height - 400) / 2));
         card.setBorder(BorderFactory.createLineBorder(Color.BLACK));
