@@ -1,7 +1,7 @@
 package de.julianweinelt.databench.ui;
 
 import com.formdev.flatlaf.FlatDarkLaf;
-import de.julianweinelt.databench.api.Connection;
+import de.julianweinelt.databench.api.DConnection;
 import de.julianweinelt.databench.data.ConfigManager;
 import de.julianweinelt.databench.data.Configuration;
 import de.julianweinelt.databench.data.Project;
@@ -24,7 +24,7 @@ import java.util.HashMap;
 
 @Getter
 public class BenchUI {
-    private final HashMap<Project, Connection> connections = new HashMap<>();
+    private final HashMap<Project, DConnection> connections = new HashMap<>();
 
     private JFrame frame;
     private JPanel currentPanel;
@@ -49,13 +49,14 @@ public class BenchUI {
     }
 
     public void connect(Project project) {
-        Connection connection = new Connection(project);
+        DConnection connection = new DConnection(project);
         connections.put(project, connection);
         connection.connect().thenAccept(conn -> {
             createNewConnectionTab(connection, this);
         }).exceptionally(ex -> {
             JOptionPane.showMessageDialog(frame, "No connection could be established.", "Failure", JOptionPane.ERROR_MESSAGE);
             connections.remove(project);
+            createNewConnectionTab(connection, this);
             return null;
         });
     }
@@ -152,7 +153,7 @@ public class BenchUI {
                         connectToField.getText() + ":" + portField.getText(),
                         usernameField.getText(),
                         new String(passwordField.getPassword()));
-                if (new Connection(testProject).testConnection()) {
+                if (new DConnection(testProject).testConnection()) {
                     resultLabel.setText("Test connection successful");
                     resultLabel.setForeground(Color.GREEN);
                 } else {
@@ -170,7 +171,7 @@ public class BenchUI {
         mainPanel.add(cards);
         addClosableTab(tabbedPane, "Home", mainPanel);
     }
-    private void createNewConnectionTab(Connection connection, BenchUI ui) {
+    private void createNewConnectionTab(DConnection connection, BenchUI ui) {
         JPanel panel = new JPanel(new BorderLayout());
 
         JTabbedPane workTabs = new JTabbedPane();

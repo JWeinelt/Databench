@@ -8,29 +8,26 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Getter
-public class Connection {
+public class DConnection {
     private final Project project;
-    private java.sql.Connection conn;
+    private Connection conn;
     @Setter
     private JTabbedPane workTabs;
 
-    public Connection(Project project) {
+    public DConnection(Project project) {
         this.project = project;
     }
 
 
-    public CompletableFuture<java.sql.Connection> connect() {
-        CompletableFuture<java.sql.Connection> future = new CompletableFuture<>();
+    public CompletableFuture<Connection> connect() {
+        CompletableFuture<Connection> future = new CompletableFuture<>();
         final String DB_NAME = "jdbc:mysql://"+project.getServer()+"/"+project.getDefaultDatabase()+"?useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&autoReconnect=true";
 
         try {
@@ -128,14 +125,12 @@ public class Connection {
             menu.add(newDB);
         }
 
-        // Datenbank
         else if (node.getParent() != null &&
                 ((DefaultMutableTreeNode) node.getParent()).getUserObject().equals("Databases")) {
             JMenuItem drop = new JMenuItem("Drop Database");
             menu.add(drop);
         }
 
-        // Tables-Ordner
         else if (name.equals("Tables")) {
             JMenuItem create = new JMenuItem("Create new Table");
             create.addActionListener(e -> {
