@@ -66,7 +66,7 @@ public class BenchUI {
         //mainPanel.setLayout(new FlowLayout());
         mainPanel.setPreferredSize(frame.getSize());
 
-        JLabel title = new JLabel("TobbeBench");
+        JLabel title = new JLabel("DataBench");
         Font originalFont = title.getFont();
         Font resizedFont = originalFont.deriveFont(Font.BOLD, 24f);
         title.setFont(resizedFont);
@@ -259,12 +259,10 @@ public class BenchUI {
         closeButton.setFocusable(false);
         closeButton.setContentAreaFilled(false);
 
-        closeButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                int i = tabbedPane.indexOfComponent(content);
-                if (i != -1) {
-                    tabbedPane.remove(i);
-                }
+        closeButton.addActionListener(e -> {
+            int i = tabbedPane.indexOfComponent(content);
+            if (i != -1) {
+                tabbedPane.remove(i);
             }
         });
 
@@ -275,6 +273,10 @@ public class BenchUI {
     }
 
     public void addEditorTab(JTabbedPane workTabs, String title) {
+        addEditorTab(workTabs, title, "");
+    }
+
+    public void addEditorTab(JTabbedPane workTabs, String title, String content) {
         JPanel editorPanel = new JPanel(new BorderLayout());
 
         JToolBar editorToolBar = new JToolBar();
@@ -291,6 +293,10 @@ public class BenchUI {
         editorArea.setAnimateBracketMatching(true);
         editorArea.setCodeFoldingEnabled(true);
         editorArea.setHighlightCurrentLine(true);
+        editorArea.setText(content);
+        editorArea.setMarkOccurrences(true);
+        editorArea.setAutoIndentEnabled(true);
+        editorArea.setAntiAliasingEnabled(true);
 
         RTextScrollPane sp = new RTextScrollPane(editorArea);
         editorPanel.add(editorToolBar);

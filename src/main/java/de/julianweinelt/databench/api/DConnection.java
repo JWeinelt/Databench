@@ -28,7 +28,8 @@ public class DConnection {
 
     public CompletableFuture<Connection> connect() {
         CompletableFuture<Connection> future = new CompletableFuture<>();
-        final String DB_NAME = "jdbc:mysql://"+project.getServer()+"/"+project.getDefaultDatabase()+"?useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&autoReconnect=true";
+        final String DB_NAME = "jdbc:mysql://"+project.getServer()+"/"+project.getDefaultDatabase()+
+                "?useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&autoReconnect=true";
 
         try {
             // Load MySQL JDBC driver class
@@ -47,7 +48,19 @@ public class DConnection {
     }
 
     public boolean testConnection() {
-        return true;
+        try {
+            return !connect().get().isClosed();
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    public boolean checkConnection() {
+        try {
+            return conn != null && !conn.isClosed();
+        } catch (SQLException ignored) {
+            return false;
+        }
     }
 
     public List<String> getDatabases() {
@@ -87,6 +100,7 @@ public class DConnection {
     public void getProjectTree(DefaultMutableTreeNode root) {
         DefaultMutableTreeNode databases = new DefaultMutableTreeNode("Databases");
         root.add(databases);
+        if (!checkConnection()) return;
         for (String s : getDatabases()) {
             DefaultMutableTreeNode db = new DefaultMutableTreeNode(s);
             databases.add(db);
@@ -121,6 +135,9 @@ public class DConnection {
 
             });
             JMenuItem newDB = new JMenuItem("New Database");
+            newDB.addActionListener(e -> {
+                ui.addEditorTab(workTabs, "New Database", "CREATE DATABASE <name>;");
+            });
             menu.add(refresh);
             menu.add(newDB);
         }
