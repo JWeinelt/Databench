@@ -1,17 +1,24 @@
 package de.julianweinelt.databench.data;
 
 import de.julianweinelt.databench.ui.BenchUI;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import java.util.UUID;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public class Project {
+    private UUID uuid = UUID.randomUUID();
     private String name;
     private String server;
     private String username;
@@ -40,34 +47,74 @@ public class Project {
                 BorderFactory.createEmptyBorder(10, 10, 10, 10)
         ));
         card.setBackground(new Color(64, 64, 64));
+        card.setLayout(new BorderLayout());
 
         JLabel titleLabel = new JLabel(name);
-        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 16f));
-        card.add(titleLabel);
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setOpaque(false);
+        topPanel.add(titleLabel, BorderLayout.WEST);
 
-        card.add(Box.createVerticalGlue());
+        JButton menuButton = new JButton("⋮");
+        menuButton.setMargin(new Insets(0, 5, 0, 5));
+        menuButton.setBorder(BorderFactory.createEmptyBorder());
+        menuButton.setContentAreaFilled(false);
+        menuButton.setFocusPainted(false);
 
-        JButton connectButton = new JButton("Connect");
-        connectButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        connectButton.addActionListener(e -> ui.connect(this));
-        card.add(connectButton);
+        JPopupMenu popupMenu = new JPopupMenu();
+        JMenuItem editItem = new JMenuItem("Edit");
+        editItem.addActionListener(e -> ProjectManager.instance().showEditProjectPopup(this, ui));
+        JMenuItem exportItem = new JMenuItem("Export");
+        exportItem.addActionListener(e -> ProjectManager.instance().showExportPopup(ui, this));
+        JMenuItem deleteItem = new JMenuItem("Delete");
+        //deleteItem.addActionListener(e -> ui.deleteProject(this));
+
+        JMenuItem copyConnectionString = new JMenuItem("Copy Connection String");
+        copyConnectionString.addActionListener(e -> {
+            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(username + "@" + server), null);
+        });
+        JMenuItem copyJDBC = new JMenuItem("Copy JDBC URL");
+        copyJDBC.addActionListener(e -> {
+            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection("jdbc:mysql://" + server + "/?user=" + username), null);
+        });
+        JMenuItem open = new JMenuItem("Open Project");
+        open.addActionListener(e -> {
+            ui.connect(this);
+        });
+        popupMenu.add(open);
+        popupMenu.add(editItem);
+        popupMenu.add(exportItem);
+        popupMenu.add(deleteItem);
+        popupMenu.addSeparator();
+        popupMenu.add(copyJDBC);
+        popupMenu.add(copyConnectionString);
+
+        menuButton.addActionListener(e -> popupMenu.show(menuButton, 0, menuButton.getHeight()));
+
+        topPanel.add(menuButton, BorderLayout.EAST);
+        card.add(topPanel, BorderLayout.NORTH);
 
         card.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent evt) {
                 card.setBackground(new Color(80, 80, 80));
             }
+
             @Override
             public void mouseExited(MouseEvent evt) {
                 card.setBackground(new Color(64, 64, 64));
             }
-        });
-        card.addMouseListener(new MouseAdapter() {
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (SwingUtilities.isRightMouseButton(e)) {
+                    popupMenu.show(card, e.getX(), e.getY());
+                }
+            }
+
             @Override
             public void mouseClicked(MouseEvent e) {
-                super.mouseClicked(e);
                 if (e.getClickCount() == 2) {
                     ui.connect(Project.this);
                 }
@@ -76,4 +123,13 @@ public class Project {
 
         return card;
     }
+
+    public static Project loadFromFile(File file, String password) {
+        try {
+            return ProjectEncryptionUtil.decryptProject(file, password, Project.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
 }
