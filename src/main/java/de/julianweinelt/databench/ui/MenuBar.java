@@ -5,6 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
 import java.util.HashMap;
 
 @Slf4j
@@ -48,11 +52,11 @@ public class MenuBar {
         createFileCategory(!categoryEnabled.getOrDefault("file", false));
         createEditCategory(!categoryEnabled.getOrDefault("edit", false));
         createSQLCategory(!categoryEnabled.getOrDefault("sql", false));
+        createHelpCategory(!categoryEnabled.getOrDefault("help", false));
     }
 
     public void createFileCategory(boolean disable) {
         if (!menus.containsKey("file")) {
-            log.info("Creating file category");
             JMenu fileMenu = new JMenu("File");
             JMenuItem openButton = new JMenuItem("Open");
             openButton.addActionListener(e -> {
@@ -144,6 +148,58 @@ public class MenuBar {
             updateMenuBar();
         } else {
             JMenu sqlMenu = menus.get("sql");
+            for (int i = 0; i < sqlMenu.getItemCount(); i++) {
+                JMenuItem item = sqlMenu.getItem(i);
+                if (item != null) {
+                    item.setEnabled(!disable);
+                }
+            }
+            updateMenuBar();
+        }
+    }
+
+    public void createHelpCategory(boolean disable) {
+        if (!menus.containsKey("help")) {
+            JMenu sqlMenu = new JMenu("Help");
+            JMenuItem helpIndex = new JMenuItem("Help Index");
+            helpIndex.addActionListener(e -> {
+                if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                    try {
+                        Desktop.getDesktop().browse(URI.create("https://dev.mysql.com/doc/refman/8.0/en/"));
+                    } catch (IOException ex) {
+                        log.error(ex.getMessage(), ex);
+                    }
+                }
+            });
+            JMenuItem licenseInfo = new JMenuItem("License Info");
+            licenseInfo.addActionListener(e -> ui.showLicenseInfo());
+            JMenuItem reportBug = new JMenuItem("Report a Bug");
+            reportBug.addActionListener(e -> {
+                if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                    try {
+                        Desktop.getDesktop().browse(URI.create("https://github.com/JWeinelt/databench/issues/new/choose"));
+                    } catch (IOException ex) {
+                        log.error(ex.getMessage(), ex);
+                    }
+                }
+            });
+            JMenuItem locateLogs = new JMenuItem("Locate Log Files");
+
+            locateLogs.addActionListener(e -> {
+                if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE_FILE_DIR)) {
+                    Desktop.getDesktop().browseFileDirectory(new File("."));
+                }
+            });
+            sqlMenu.add(helpIndex);
+            sqlMenu.addSeparator();
+            sqlMenu.add(licenseInfo);
+            sqlMenu.add(reportBug);
+            sqlMenu.add(locateLogs);
+            bar.add(sqlMenu);
+            menus.put("help", sqlMenu);
+            updateMenuBar();
+        } else {
+            JMenu sqlMenu = menus.get("help");
             for (int i = 0; i < sqlMenu.getItemCount(); i++) {
                 JMenuItem item = sqlMenu.getItem(i);
                 if (item != null) {
