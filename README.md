@@ -29,3 +29,10 @@ Download the appropriate version for your operating system (Windows, macOS, or L
 2. Set up an encryption password for securing your database connections.
 3. Add a new database connection by providing the necessary details (host, port, username, password, database name).
 4. Start managing and analyzing your databases using the intuitive interface.
+
+## 🖼 Screenshots
+![DataBench Home Screen](screenshots/mainmenu.png)
+![DataBench Home Screen](screenshots/create_tables.png)
+![DataBench Home Screen](screenshots/alter_table.png)
+![DataBench Home Screen](screenshots/welcome_page.png)
+![DataBench Home Screen](screenshots/editor_1.png)
