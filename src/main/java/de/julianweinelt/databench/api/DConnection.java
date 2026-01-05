@@ -2,16 +2,15 @@ package de.julianweinelt.databench.api;
 
 import de.julianweinelt.databench.data.Project;
 import de.julianweinelt.databench.ui.BenchUI;
-import de.julianweinelt.databench.ui.editor.CreateTableTab;
-import de.julianweinelt.databench.ui.editor.EditorTab;
-import de.julianweinelt.databench.ui.editor.IEditorTab;
-import de.julianweinelt.databench.ui.editor.WelcomeTab;
+import de.julianweinelt.databench.ui.editor.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -25,7 +24,6 @@ import java.util.regex.Pattern;
 @Slf4j
 @Getter
 public class DConnection {
-
     private final Pattern PLACEHOLDER_PATTERN =
         Pattern.compile("\\$\\{([a-zA-Z0-9_]+)}");
     private final Project project;
@@ -36,6 +34,8 @@ public class DConnection {
 
     @Setter
     private DefaultMutableTreeNode treeRoot;
+    @Setter
+    private JTree tree;
 
     public DConnection(Project project) {
         this.project = project;
@@ -70,6 +70,7 @@ public class DConnection {
 
         DefaultMutableTreeNode root = new DefaultMutableTreeNode(getProject().getName());
         setTreeRoot(root);
+        setTree(new JTree(root));
         getProjectTree();
 
         JButton refreshBtn = new JButton("Refresh");
@@ -78,26 +79,37 @@ public class DConnection {
             getProjectTree();
         });
         toolBar.add(refreshBtn);
-
-        JTree tree = new JTree(root);
         tree.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
                 if (SwingUtilities.isRightMouseButton(e)) {
-                    int row = tree.getRowForLocation(e.getX(), e.getY());
-                    if (row == -1) return;
-
-                    tree.setSelectionRow(row);
-                    DefaultMutableTreeNode node =
-                            (DefaultMutableTreeNode) tree.getPathForRow(row).getLastPathComponent();
-
-                    JPopupMenu menu = createContextMenu(node, ui);
-                    if (menu != null && menu.getComponentCount() > 0) {
-                        menu.show(tree, e.getX(), e.getY());
+                    TreePath path = tree.getPathForLocation(e.getX(), e.getY());
+                    if (path != null) {
+                        tree.setSelectionPath(path);
+                        DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+                        showPopup(e, node);
+                    } else {
+                        showPopup(e, null);
                     }
                 }
             }
+
+            private void showPopup(MouseEvent e, DefaultMutableTreeNode node) {
+                JPopupMenu menu;
+                if (node != null) {
+                    menu = createContextMenu(node, ui);
+                } else {
+                    menu = new JPopupMenu();
+                    JMenuItem newDB = new JMenuItem("Create new Database");
+                    newDB.addActionListener(a -> addEditorTab("CREATE DATABASE ${name};"));
+                    menu.add(newDB);
+                }
+                if (menu != null && menu.getComponentCount() > 0) {
+                    menu.show(tree, e.getX(), e.getY());
+                }
+            }
         });
+
         JScrollPane treeScroll = new JScrollPane(tree);
 
         JSplitPane splitPane =
@@ -118,7 +130,11 @@ public class DConnection {
     }
 
     public void addCreateTableTab() {
-        addTab(new CreateTableTab());
+        addTab(new CreateTableTab(this).newTable());
+    }
+
+    public void addCreateTableTab(String db, String table) {
+        addTab(new CreateTableTab(this).ofRealTable(db, table));
     }
 
     public void addEditorTab() {
@@ -231,7 +247,12 @@ public class DConnection {
         List<String> databases = new ArrayList<>();
         try (PreparedStatement pS = conn.prepareStatement("SHOW DATABASES;")) {
             ResultSet rs = pS.executeQuery();
-            while (rs.next()) databases.add(rs.getString(1));
+            while (rs.next()) {
+                if (rs.getString(1).equalsIgnoreCase("information_schema")) continue;
+                if (rs.getString(1).equalsIgnoreCase("performance_schema")) continue;
+                if (rs.getString(1).equalsIgnoreCase("mysql")) continue;
+                databases.add(rs.getString(1));
+            }
         } catch (SQLException e) {
             log.error(e.getMessage());
         }
@@ -241,7 +262,7 @@ public class DConnection {
     public List<String> getTables(String database) {
         List<String> tables = new ArrayList<>();
         try (PreparedStatement pS = conn.prepareStatement("USE " + database)) {pS.execute();} catch (SQLException e) {}
-        try (PreparedStatement pS = conn.prepareStatement("SHOW TABLES;")) {
+        try (PreparedStatement pS = conn.prepareStatement("SHOW FULL TABLES IN " + database + " WHERE TABLE_TYPE = 'BASE TABLE'")) {
             ResultSet rs = pS.executeQuery();
             while (rs.next()) tables.add(rs.getString(1));
         } catch (SQLException e) {
@@ -264,7 +285,7 @@ public class DConnection {
 
     public List<String> getViews(String database) {
         List<String> views = new ArrayList<>();
-        try (PreparedStatement pS = conn.prepareStatement("SHOW FULL TABLES IN " + database + " WHERE TABLE_TYPE LIKE 'VIEW';")) {
+        try (PreparedStatement pS = conn.prepareStatement("SHOW FULL TABLES IN " + database + " WHERE TABLE_TYPE = 'VIEW';")) {
             ResultSet rs = pS.executeQuery();
             while (rs.next()) views.add(rs.getString(1));
         } catch (SQLException e) {
@@ -274,10 +295,13 @@ public class DConnection {
     }
 
     public void getProjectTree() {
+        log.info("Refreshing project tree for {}", getProject().getName());
+        treeRoot.removeAllChildren();
         DefaultMutableTreeNode databases = new DefaultMutableTreeNode("Databases");
         treeRoot.add(databases);
         if (!checkConnection()) return;
         for (String s : getDatabases()) {
+            log.info("Adding database {}", s);
             DefaultMutableTreeNode db = new DefaultMutableTreeNode(s);
             databases.add(db);
 
@@ -296,6 +320,9 @@ public class DConnection {
             db.add(views);
             db.add(procedures);
         }
+        DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
+        model.reload();
+        tree.expandPath(new TreePath(databases.getPath()));
     }
 
     public JPopupMenu createContextMenu(DefaultMutableTreeNode node, BenchUI ui) {
@@ -304,11 +331,10 @@ public class DConnection {
 
         JPopupMenu menu = new JPopupMenu();
 
-        // Root
         if (name.equals("Databases")) {
             JMenuItem refresh = new JMenuItem("Refresh");
             refresh.addActionListener(e -> {
-
+                getProjectTree();
             });
             JMenuItem newDB = new JMenuItem("New Database");
             newDB.addActionListener(e -> {
@@ -324,7 +350,8 @@ public class DConnection {
             drop.addActionListener(e -> {
                 String dbName = node.getUserObject().toString();
                 EditorTab t = addEditorTab("DROP DATABASE `" + dbName + "`;");
-                t.execute();
+                int result = JOptionPane.showConfirmDialog(ui.getFrame(), "Do you really want to drop (delete) this schema? This cannot be undone!");
+                if (result == JOptionPane.YES_OPTION) t.execute();
             });
             menu.add(drop);
             JMenuItem createTable = new JMenuItem("Create new Table");
@@ -347,7 +374,7 @@ public class DConnection {
         else if (node.getParent() != null &&
                 ((DefaultMutableTreeNode) node.getParent()).getUserObject().equals("Tables")) {
             JMenuItem edit = new JMenuItem("Edit Table");
-            JMenuItem select = new JMenuItem("Select data");
+            JMenuItem select = new JMenuItem("Select Rows");
             select.addActionListener(e -> {
                 String tableName = node.getUserObject().toString();
                 String db = ((DefaultMutableTreeNode) node.getParent().getParent()).getUserObject().toString();
@@ -359,7 +386,27 @@ public class DConnection {
                 t.execute();
             });
             JMenuItem drop = new JMenuItem("Drop Table ");
-            JMenuItem rename = new JMenuItem("Rename Table ");
+            drop.addActionListener(e -> {
+                String tableName = node.getUserObject().toString();
+                String db = ((DefaultMutableTreeNode) node.getParent().getParent()).getUserObject().toString();
+                EditorTab t = addEditorTab("DROP TABLE `" + db + "." + tableName + "`;");
+                int result = JOptionPane.showConfirmDialog(ui.getFrame(), "Do you really want to drop (delete) this table? This cannot be undone!");
+                if (result == JOptionPane.YES_OPTION) t.execute();
+            });
+            JMenuItem truncate = new JMenuItem("Truncate Table ");
+            truncate.addActionListener(e -> {
+                String tableName = node.getUserObject().toString();
+                String db = ((DefaultMutableTreeNode) node.getParent().getParent()).getUserObject().toString();
+                EditorTab t = addEditorTab("TRUNCATE TABLE `" + db + "." + tableName + "`;");
+                int result = JOptionPane.showConfirmDialog(ui.getFrame(), "Do you really want to truncate this table? This cannot be undone!");
+                if (result == JOptionPane.YES_OPTION) t.execute();
+            });
+            JMenuItem alter = new JMenuItem("Alter Table ");
+            alter.addActionListener(e -> {
+                String tableName = node.getUserObject().toString();
+                String db = ((DefaultMutableTreeNode) node.getParent().getParent()).getUserObject().toString();
+                addCreateTableTab(db, tableName);
+            });
             JMenu generatorMenu = new JMenu("SQL Generator");
             JMenuItem genCreate = new JMenuItem("Generate CREATE Statement");
             genCreate.addActionListener(e -> {
@@ -374,7 +421,8 @@ public class DConnection {
             menu.add(edit);
             menu.add(select);
             menu.add(drop);
-            menu.add(rename);
+            menu.add(truncate);
+            menu.add(alter);
             menu.add(generatorMenu);
         }
 
@@ -383,7 +431,6 @@ public class DConnection {
             menu.add(create);
         }
 
-        // Konkrete View
         else if (node.getParent() != null &&
                 ((DefaultMutableTreeNode) node.getParent()).getUserObject().equals("Views")) {
             JMenuItem browse = new JMenuItem("Edit View ");
@@ -394,7 +441,6 @@ public class DConnection {
             menu.add(drop);
         }
 
-        // Procedures-Ordner
         else if (name.equals("Procedures")) {
             JMenuItem create = new JMenuItem("Create new Procedure");
             menu.add(create);
@@ -402,6 +448,62 @@ public class DConnection {
 
         return menu;
     }
+
+    public TableDefinition getTableDefinition(String database, String table) {
+
+        TableDefinition def = new TableDefinition();
+        def.setTableName(table);
+
+        String sql = "SHOW FULL COLUMNS FROM `" + database + "`.`" + table + "`;";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+
+                String name = rs.getString("Field");
+                String typeRaw = rs.getString("Type");
+                String key = rs.getString("Key");
+                String extra = rs.getString("Extra");
+                String nullable = rs.getString("Null");
+
+                String type;
+                Integer length = null;
+
+                int idx = typeRaw.indexOf('(');
+                if (idx > 0) {
+                    type = typeRaw.substring(0, idx).toUpperCase();
+                    length = Integer.parseInt(
+                            typeRaw.substring(idx + 1, typeRaw.indexOf(')', idx))
+                    );
+                } else {
+                    type = typeRaw.toUpperCase();
+                }
+
+                boolean primaryKey = "PRI".equalsIgnoreCase(key);
+                boolean notNull = "NO".equalsIgnoreCase(nullable);
+                boolean autoIncrement = extra != null && extra.toLowerCase().contains("auto_increment");
+
+                TableColumn column = new TableColumn(
+                        name,
+                        type,
+                        length,
+                        primaryKey,
+                        notNull,
+                        autoIncrement
+                );
+
+                def.addColumn(column);
+            }
+
+        } catch (SQLException e) {
+            log.error("Failed to load table structure for {}.{}",
+                    database, table, e);
+        }
+
+        return def;
+    }
+
 
     private String getCreateStatement(String db, String tableName) {
         String createStatement = "";
