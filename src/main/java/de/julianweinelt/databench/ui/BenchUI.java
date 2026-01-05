@@ -2,9 +2,9 @@ package de.julianweinelt.databench.ui;
 
 import com.formdev.flatlaf.FlatDarkLaf;
 import de.julianweinelt.databench.api.DConnection;
-import de.julianweinelt.databench.data.ConfigManager;
 import de.julianweinelt.databench.data.Configuration;
 import de.julianweinelt.databench.data.Project;
+import de.julianweinelt.databench.data.ProjectManager;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,6 +12,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.util.HashMap;
 
 @Slf4j
@@ -25,16 +26,19 @@ public class BenchUI {
 
     private MenuBar menuBar;
 
+    private JPanel cardsContainer;
+
     public void start() {
         Image icon = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/icon.png"));
         FlatDarkLaf.setup();
+
         tabbedPane = new JTabbedPane();
 
         frame = new JFrame();
         frame.setIconImage(icon);
         frame.setBounds(50, 50, 1600, 900);
         frame.setName("DataBench");
-        frame.setTitle("DataBench");
+        frame.setTitle("DataBench v" + Configuration.getConfiguration().getClientVersion());
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(new BorderLayout());
 
@@ -61,30 +65,49 @@ public class BenchUI {
         });
     }
 
+    public void updateProjectCards() {
+        cardsContainer = new JPanel();
+        cardsContainer.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        cardsContainer.setOpaque(false);
+
+        for (Project p : ProjectManager.instance().getProjects()) {
+            JPanel card = p.createCard(this);
+            cardsContainer.add(card);
+        }
+    }
+
     private void createStartPage() {
         JPanel mainPanel = new JPanel(new BorderLayout(20, 20));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // ===== Top: Titel + Add Profile =====
         JPanel topPanel = new JPanel(new BorderLayout(10, 0));
         topPanel.setOpaque(false);
 
         JLabel title = new JLabel("DataBench");
         title.setFont(title.getFont().deriveFont(Font.BOLD, 28f));
 
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        buttonPanel.setOpaque(false);
+
         JButton createProfile = new JButton("➕ Add Profile");
         createProfile.addActionListener(e -> showAddProfilePopup());
 
+        JButton importProfile = new JButton("📂 Import Profile");
+        importProfile.addActionListener(e -> showImportProfilePopup());
+
+        buttonPanel.add(createProfile);
+        buttonPanel.add(importProfile);
+
         topPanel.add(title, BorderLayout.WEST);
-        topPanel.add(createProfile, BorderLayout.EAST);
+        topPanel.add(buttonPanel, BorderLayout.EAST);
 
         mainPanel.add(topPanel, BorderLayout.NORTH);
 
-        JPanel cardsContainer = new JPanel();
-        cardsContainer.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 10)); // Karten nebeneinander, Abstand 10px
+        cardsContainer = new JPanel();
+        cardsContainer.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 10));
         cardsContainer.setOpaque(false);
 
-        for (Project p : Configuration.getConfiguration().getProjects()) {
+        for (Project p : ProjectManager.instance().getProjects()) {
             JPanel card = p.createCard(this);
             cardsContainer.add(card);
         }
@@ -114,9 +137,9 @@ public class BenchUI {
         addNonClosableTab(tabbedPane, "Home", mainPanel);
     }
 
+
     private void showAddProfilePopup() {
-        // Popup-Fenster
-        JFrame popup = new JFrame("Add Profile");
+        JDialog popup = new JDialog(frame, "Add Profile", true);
         popup.setResizable(false);
         popup.setSize(500, 300);
         popup.setLayout(new GridBagLayout());
@@ -126,7 +149,7 @@ public class BenchUI {
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // ===== Eingabefelder =====
+
         JLabel nameLabel = new JLabel("Profile Name:");
         JTextField nameField = new JTextField();
 
@@ -147,11 +170,11 @@ public class BenchUI {
         JLabel resultLabel = new JLabel("");
         resultLabel.setForeground(Color.RED);
 
-        // ===== Buttons =====
+
         JButton createButton = new JButton("Create");
         JButton testButton = new JButton("Test Connection");
 
-        // ===== Layout hinzufügen =====
+
         int row = 0;
 
         gbc.gridx = 0;
@@ -240,8 +263,17 @@ public class BenchUI {
                     defaultDB
             );
 
-            Configuration.getConfiguration().addProject(project);
-            ConfigManager.getInstance().saveConfig();
+            try {
+                ProjectManager.instance().addProject(project, Configuration.getConfiguration().getEncryptionPassword());
+                ProjectManager.instance().saveProjectFile(project, Configuration.getConfiguration().getEncryptionPassword());
+
+                JPanel card = project.createCard(this);
+                cardsContainer.add(card);
+                cardsContainer.revalidate();
+                cardsContainer.repaint();
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
+            }
             popup.dispose();
         });
 
@@ -401,6 +433,121 @@ public class BenchUI {
 
         button.addActionListener(e -> action.run());
         return button;
+    }
+
+    private void showImportProfilePopup() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Import Project");
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
+                "DataBench Project Files (*.dbproj)", "dbproj"));
+        fileChooser.setAcceptAllFileFilterUsed(false);
+
+        int result = fileChooser.showOpenDialog(frame);
+        if (result != JFileChooser.APPROVE_OPTION) return;
+
+        File selectedFile = fileChooser.getSelectedFile();
+        if (selectedFile == null || !selectedFile.exists()) return;
+
+        JPanel passwordPanel = new JPanel(new BorderLayout(5, 5));
+        JLabel label = new JLabel("Enter encryption password (if any):");
+        JPasswordField passField = new JPasswordField();
+        passwordPanel.add(label, BorderLayout.NORTH);
+        passwordPanel.add(passField, BorderLayout.CENTER);
+
+        int option = JOptionPane.showConfirmDialog(frame, passwordPanel,
+                "Project Password", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+        if (option != JOptionPane.OK_OPTION) return;
+
+        String password = new String(passField.getPassword());
+
+        try {
+            Project project = Project.loadFromFile(selectedFile, password);
+            if (project == null) {
+                JOptionPane.showMessageDialog(frame,
+                        "Failed to import project. Make sure you entered the correct password.",
+                        "Import Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (ProjectManager.instance().projectExists(project.getName())) {
+                JOptionPane.showMessageDialog(frame,
+                        "A project with the same name already exists. Please choose a different name.",
+                        "Project Import", JOptionPane.WARNING_MESSAGE);
+                project.setName(project.getName() + "_1");
+            }
+            ProjectManager.instance().addProject(project, password);
+            ProjectManager.instance().saveProjectFile(project, password);
+
+            JPanel card = project.createCard(this);
+            cardsContainer.add(card);
+            cardsContainer.revalidate();
+            cardsContainer.repaint();
+
+            JOptionPane.showMessageDialog(frame,
+                    "Project imported successfully: " + project.getName(),
+                    "Import Successful", JOptionPane.INFORMATION_MESSAGE);
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(frame,
+                    "Failed to import project: " + ex.getMessage(),
+                    "Import Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    public void showLicenseInfo() {
+        JDialog dialog = new JDialog(frame, "License Information", true);
+        dialog.setResizable(false);
+        dialog.setSize(600, 400);
+        dialog.setLayout(new BorderLayout());
+        dialog.setLocationRelativeTo(frame);
+
+        String licenseText = """
+        This software is licensed under the GPLv3.
+
+        Libraries used:
+
+        rsyntaxtextarea 3.3.3 - BSD-3-Clause
+        https://bobbylight.github.io/RSTALanguageSupport/
+
+        autocomplete 3.3.2 - BSD-3-Clause
+        https://bobbylight.github.io/RSTALanguageSupport/
+
+        Logback Classic 1.5.19 - EPL-1.0
+        https://logback.qos.ch/
+
+        Jackson Databind 2.20.1 - Apache License 2.0
+        https://github.com/FasterXML/jackson-databind
+
+        Gson 2.13.1 - Apache License 2.0
+        https://github.com/google/gson
+
+        Lombok 1.18.38 - MIT
+        https://projectlombok.org/
+
+        FlatLaf 3.6 - Apache License 2.0
+        https://www.formdev.com/flatlaf/
+
+        MySQL Connector/J 9.4.0 - GPLv2 with FOSS License Exception
+        https://dev.mysql.com/downloads/connector/j/
+        """;
+
+        JTextArea textArea = new JTextArea(licenseText);
+        textArea.setEditable(false);
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+        textArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        dialog.add(scrollPane, BorderLayout.CENTER);
+
+        JButton okButton = new JButton("OK");
+        okButton.addActionListener(e -> dialog.dispose());
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(okButton);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+
+        dialog.setVisible(true);
     }
 
 
