@@ -1,10 +1,15 @@
 package de.julianweinelt.databench;
 
+import com.formdev.flatlaf.FlatDarkLaf;
 import de.julianweinelt.databench.data.ConfigManager;
+import de.julianweinelt.databench.data.Configuration;
+import de.julianweinelt.databench.data.ProjectManager;
 import de.julianweinelt.databench.ui.BenchUI;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
@@ -23,7 +28,9 @@ public class DataBench {
     private static DataBench instance;
 
     @Getter
-    private ConfigManager configManager;
+    private ConfigManager configManager = null;
+    @Getter
+    private ProjectManager projectManager;
 
     public static void main(String[] args) {
         // Prüfen, ob schon eine Instanz läuft
@@ -40,8 +47,16 @@ public class DataBench {
         log.info("Starting DataBench");
         log.info("Preparing to load configurations...");
 
-        configManager = new ConfigManager();
+        if (!new File("databench.config").exists()) {
+            prepare();
+            return;
+        }
+
+        if (configManager == null) configManager = new ConfigManager();
         configManager.loadConfig();
+
+        projectManager = new ProjectManager();
+        projectManager.loadAllProjects(configManager.getConfiguration().getEncryptionPassword());
 
         log.info("Initializing UI...");
         ui = new BenchUI();
@@ -60,6 +75,60 @@ public class DataBench {
         }
 
         startSocketListener();
+    }
+
+    private void prepare() {
+        Image icon = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/icon.png"));
+        FlatDarkLaf.setup();
+        JFrame frame = new JFrame("Welcome!");
+        frame.setIconImage(icon);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(400, 200);
+        frame.setLocationRelativeTo(null);
+
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        JLabel welcomeLabel = new JLabel("Welcome to DataBench! Please enter a strong encryption password to continue:");
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        panel.add(welcomeLabel, gbc);
+
+        JPasswordField passwordField = new JPasswordField();
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        panel.add(passwordField, gbc);
+
+        JButton okButton = new JButton("Save");
+        gbc.gridy = 2;
+        gbc.gridwidth = 1;
+        panel.add(okButton, gbc);
+
+        JButton cancelButton = new JButton("Cancel");
+        gbc.gridx = 1;
+        panel.add(cancelButton, gbc);
+
+        okButton.addActionListener(e -> {
+            String password = new String(passwordField.getPassword());
+            Configuration configuration = new Configuration();
+            configuration.setLocale("en_us");
+            configuration.setEncryptionPassword(password);
+            configuration.setSelectedTheme("dark");
+            configManager = new ConfigManager(configuration);
+            configManager.saveConfig();
+            start(new String[0]);
+            frame.dispose();
+        });
+
+        cancelButton.addActionListener(e -> System.exit(0));
+
+        frame.add(panel);
+        frame.setVisible(true);
+
     }
 
     private static boolean isAnotherInstanceRunning(String[] args) {
