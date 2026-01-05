@@ -12,10 +12,16 @@ import java.lang.reflect.Type;
 
 @Slf4j
 public class ConfigManager {
-    private final File configFile = new File("config.json");
+    private final File configFile = new File("databench.config");
 
     @Getter
     private Configuration configuration = new Configuration();
+
+    public ConfigManager(Configuration configuration) {
+        this.configuration = configuration;
+    }
+
+    public ConfigManager() {}
 
     public static ConfigManager getInstance() {
         return DataBench.getInstance().getConfigManager();
