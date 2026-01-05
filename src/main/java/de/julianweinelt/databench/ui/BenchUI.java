@@ -6,22 +6,15 @@ import de.julianweinelt.databench.data.ConfigManager;
 import de.julianweinelt.databench.data.Configuration;
 import de.julianweinelt.databench.data.Project;
 import lombok.Getter;
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
-import org.fife.ui.rtextarea.RTextScrollPane;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
 
+@Slf4j
 @Getter
 public class BenchUI {
     private final HashMap<Project, DConnection> connections = new HashMap<>();
@@ -30,209 +23,265 @@ public class BenchUI {
     private JPanel currentPanel;
     private JTabbedPane tabbedPane;
 
+    private MenuBar menuBar;
+
     public void start() {
+        Image icon = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/icon.png"));
         FlatDarkLaf.setup();
         tabbedPane = new JTabbedPane();
 
         frame = new JFrame();
+        frame.setIconImage(icon);
         frame.setBounds(50, 50, 1600, 900);
         frame.setName("DataBench");
         frame.setTitle("DataBench");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setLayout(new FlowLayout());
+        frame.setLayout(new BorderLayout());
 
         createMenuBar();
         createStartPage();
-        frame.add(tabbedPane);
+        frame.add(tabbedPane, BorderLayout.CENTER);
 
         frame.setVisible(true);
     }
 
     public void connect(Project project) {
+        frame.setCursor(Cursor.WAIT_CURSOR);
         DConnection connection = new DConnection(project);
         connections.put(project, connection);
         connection.connect().thenAccept(conn -> {
-            createNewConnectionTab(connection, this);
+            connection.createNewConnectionTab(this);
+            frame.setCursor(Cursor.getDefaultCursor());
         }).exceptionally(ex -> {
             JOptionPane.showMessageDialog(frame, "No connection could be established.", "Failure", JOptionPane.ERROR_MESSAGE);
             connections.remove(project);
-            createNewConnectionTab(connection, this);
+            connection.createNewConnectionTab(this);
+            frame.setCursor(Cursor.getDefaultCursor());
             return null;
         });
     }
 
     private void createStartPage() {
-        JPanel mainPanel = new JPanel();
-        //mainPanel.setLayout(new FlowLayout());
-        mainPanel.setPreferredSize(frame.getSize());
+        JPanel mainPanel = new JPanel(new BorderLayout(20, 20));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        // ===== Top: Titel + Add Profile =====
+        JPanel topPanel = new JPanel(new BorderLayout(10, 0));
+        topPanel.setOpaque(false);
 
         JLabel title = new JLabel("DataBench");
-        Font originalFont = title.getFont();
-        Font resizedFont = originalFont.deriveFont(Font.BOLD, 24f);
-        title.setFont(resizedFont);
-        mainPanel.add(title);
+        title.setFont(title.getFont().deriveFont(Font.BOLD, 28f));
 
-        JPanel cards = new JPanel();
-        GridLayout l = new GridLayout();
-        l.setColumns(5);
-        l.setRows(2);
-        cards.setLayout(l);
-        cards.setPreferredSize(new Dimension(frame.getSize().width - 200, frame.getSize().height - 400));
+        JButton createProfile = new JButton("➕ Add Profile");
+        createProfile.addActionListener(e -> showAddProfilePopup());
 
-        for (Project p : Configuration.getConfiguration().getProjects()) cards.add(p.createCard(this));
+        topPanel.add(title, BorderLayout.WEST);
+        topPanel.add(createProfile, BorderLayout.EAST);
 
-        JButton createProfile = new JButton("Add profile");
-        createProfile.addActionListener(e -> {
-            JTextField nameField = new JTextField(10);
-            JTextField connectToField = new JTextField(10);
-            JTextField portField = new JTextField(5);
-            JTextField usernameField = new JTextField();
-            JPasswordField passwordField = new JPasswordField();
+        mainPanel.add(topPanel, BorderLayout.NORTH);
 
-            JFrame popup = new JFrame("Add profile");
-            popup.setResizable(false);
-            popup.setLocation(frame.getX() + frame.getWidth() / 2 - 300, frame.getY() + frame.getHeight() / 2 - 60);
-            popup.setSize(600, 120);
-            popup.setLayout(new FlowLayout());
+        JPanel cardsContainer = new JPanel();
+        cardsContainer.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 10)); // Karten nebeneinander, Abstand 10px
+        cardsContainer.setOpaque(false);
 
-            popup.add(new JLabel("Name: "));
-            popup.add(nameField);
+        for (Project p : Configuration.getConfiguration().getProjects()) {
+            JPanel card = p.createCard(this);
+            cardsContainer.add(card);
+        }
 
-            popup.add(new JLabel("Connect to: "));
-            popup.add(connectToField);
+        JScrollPane cardsScroll = new JScrollPane(cardsContainer);
+        cardsScroll.setBorder(BorderFactory.createEmptyBorder());
+        cardsScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        cardsScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 
-            popup.add(new JLabel("Port: "));
-            popup.add(portField);
+        mainPanel.add(cardsScroll, BorderLayout.CENTER);
 
-            popup.add(new JLabel("Username: "));
-            popup.add(usernameField);
+        JPanel tipsPanel = new JPanel();
+        tipsPanel.setLayout(new BoxLayout(tipsPanel, BoxLayout.Y_AXIS));
+        tipsPanel.setBorder(BorderFactory.createTitledBorder("Next Steps & Documentation"));
+        tipsPanel.setOpaque(false);
 
-            popup.add(new JLabel("Password: "));
-            popup.add(passwordField);
-            JLabel resultLabel = new JLabel("");
+        JLabel tip1 = new JLabel("• Create a new query by clicking on a project.");
+        JLabel tip2 = new JLabel("• Explore your tables and schemas.");
+        JLabel tip3 = new JLabel("<html>• Check <a href='https://github.com/JWeinelt/DataBench/wiki'>documentation</a> for SQL tips.</html>");
 
-            JButton create = new JButton("Create");
-            create.addActionListener(ev -> {
-                if (nameField.getText().isBlank()) {
-                    resultLabel.setText("Please enter a valid name");
-                    resultLabel.setForeground(Color.RED);
-                    return;
-                }
-                if (connectToField.getText().isBlank() || portField.getText().isBlank() || !isInt(portField.getText())) {
-                    resultLabel.setText("Please enter a valid address and port");
-                    resultLabel.setForeground(Color.RED);
-                    return;
-                }
-                if (usernameField.getText().isBlank()) {
-                    resultLabel.setText("Please enter a valid username");
-                    resultLabel.setForeground(Color.RED);
-                    return;
-                }
-                if (passwordField.getPassword().length == 0) {
-                    resultLabel.setText("Please enter a valid username");
-                    resultLabel.setForeground(Color.RED);
-                    return;
-                }
-                Configuration.getConfiguration().addProject(new Project(
-                        nameField.getText(),
-                        connectToField.getText() + ":" + portField.getText(),
-                        usernameField.getText(),
-                        new String(passwordField.getPassword())
-                        ));
-                ConfigManager.getInstance().saveConfig();
-                popup.dispose();
-            });
-            JLabel escape = new JLabel("");
-            escape.setSize(600, 20);
-            popup.add(escape);
-            popup.add(create);
-            JButton testConn = new JButton("Test connection");
-            testConn.addActionListener(ev -> {
-                Project testProject = new Project(
-                        nameField.getText(),
-                        connectToField.getText() + ":" + portField.getText(),
-                        usernameField.getText(),
-                        new String(passwordField.getPassword()));
-                if (new DConnection(testProject).testConnection()) {
-                    resultLabel.setText("Test connection successful");
-                    resultLabel.setForeground(Color.GREEN);
-                } else {
-                    resultLabel.setText("Test connection failed");
-                    resultLabel.setForeground(Color.RED);
-                }
-            });
-            popup.add(testConn);
-            popup.add(resultLabel);
+        tipsPanel.add(tip1);
+        tipsPanel.add(tip2);
+        tipsPanel.add(tip3);
 
-            popup.setVisible(true);
-        });
-        mainPanel.add(createProfile);
+        mainPanel.add(tipsPanel, BorderLayout.SOUTH);
 
-        mainPanel.add(cards);
-        addClosableTab(tabbedPane, "Home", mainPanel);
+        addNonClosableTab(tabbedPane, "Home", mainPanel);
     }
-    private void createNewConnectionTab(DConnection connection, BenchUI ui) {
-        JPanel panel = new JPanel(new BorderLayout());
 
-        JTabbedPane workTabs = new JTabbedPane();
-        connection.setWorkTabs(workTabs);
-        panel.setPreferredSize(new Dimension(frame.getSize().width - 50, frame.getSize().height - 100));
+    private void showAddProfilePopup() {
+        // Popup-Fenster
+        JFrame popup = new JFrame("Add Profile");
+        popup.setResizable(false);
+        popup.setSize(500, 300);
+        popup.setLayout(new GridBagLayout());
+        popup.setLocationRelativeTo(frame);
 
-        JToolBar toolBar = new JToolBar();
-        toolBar.setFloatable(false);
-        toolBar.add(new JButton("Connect"));
-        JButton btnNewQuery = new JButton("New Query");
-        btnNewQuery.addActionListener(e -> {
-            addEditorTab(workTabs, "New query");
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        // ===== Eingabefelder =====
+        JLabel nameLabel = new JLabel("Profile Name:");
+        JTextField nameField = new JTextField();
+
+        JLabel hostLabel = new JLabel("Server (host:port):");
+        JTextField hostField = new JTextField();
+
+        JLabel userLabel = new JLabel("Username:");
+        JTextField userField = new JTextField();
+
+        JLabel passwordLabel = new JLabel("Password:");
+        JPasswordField passwordField = new JPasswordField();
+
+        JCheckBox sslCheck = new JCheckBox("Use SSL");
+
+        JLabel dbLabel = new JLabel("Default Database:");
+        JTextField dbField = new JTextField();
+
+        JLabel resultLabel = new JLabel("");
+        resultLabel.setForeground(Color.RED);
+
+        // ===== Buttons =====
+        JButton createButton = new JButton("Create");
+        JButton testButton = new JButton("Test Connection");
+
+        // ===== Layout hinzufügen =====
+        int row = 0;
+
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        popup.add(nameLabel, gbc);
+        gbc.gridx = 1;
+        popup.add(nameField, gbc);
+
+        row++;
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        popup.add(hostLabel, gbc);
+        gbc.gridx = 1;
+        popup.add(hostField, gbc);
+
+        row++;
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        popup.add(userLabel, gbc);
+        gbc.gridx = 1;
+        popup.add(userField, gbc);
+
+        row++;
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        popup.add(passwordLabel, gbc);
+        gbc.gridx = 1;
+        popup.add(passwordField, gbc);
+
+        row++;
+        gbc.gridx = 1;
+        gbc.gridy = row;
+        popup.add(sslCheck, gbc);
+
+        row++;
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        popup.add(dbLabel, gbc);
+        gbc.gridx = 1;
+        popup.add(dbField, gbc);
+
+        row++;
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        gbc.gridwidth = 2;
+        popup.add(resultLabel, gbc);
+
+        row++;
+        gbc.gridy = row;
+        gbc.gridwidth = 1;
+        popup.add(createButton, gbc);
+        gbc.gridx = 1;
+        popup.add(testButton, gbc);
+
+        // ===== Button Actions =====
+        createButton.addActionListener(e -> {
+            if (nameField.getText().isBlank()) {
+                resultLabel.setText("Please enter a valid profile name.");
+                return;
+            }
+            if (hostField.getText().isBlank()) {
+                resultLabel.setText("Please enter server host and port.");
+                return;
+            }
+            if (userField.getText().isBlank()) {
+                resultLabel.setText("Please enter a username.");
+                return;
+            }
+            if (passwordField.getPassword().length == 0) {
+                resultLabel.setText("Please enter a password.");
+                return;
+            }
+
+            String hostPort = hostField.getText();
+            String username = userField.getText();
+            String password = new String(passwordField.getPassword());
+            boolean useSSL = sslCheck.isSelected();
+            String defaultDB = dbField.getText().isBlank() ? null : dbField.getText();
+
+            Project project = new Project(
+                    nameField.getText(),
+                    hostPort,
+                    username,
+                    password,
+                    useSSL,
+                    defaultDB
+            );
+
+            Configuration.getConfiguration().addProject(project);
+            ConfigManager.getInstance().saveConfig();
+            popup.dispose();
         });
-        toolBar.add(btnNewQuery);
-        toolBar.add(new JButton("Refresh"));
 
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode(connection.getProject().getName());
-        connection.getProjectTree(root);
+        testButton.addActionListener(e -> {
+            String hostPort = hostField.getText();
+            String username = userField.getText();
+            String password = new String(passwordField.getPassword());
+            boolean useSSL = sslCheck.isSelected();
+            String defaultDB = dbField.getText().isBlank() ? null : dbField.getText();
 
-        JTree tree = new JTree(root);
-        tree.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                if (SwingUtilities.isRightMouseButton(e)) {
-                    int row = tree.getRowForLocation(e.getX(), e.getY());
-                    if (row == -1) return;
+            Project testProject = new Project(
+                    nameField.getText(),
+                    hostPort,
+                    username,
+                    password,
+                    useSSL,
+                    defaultDB
+            );
 
-                    tree.setSelectionRow(row);
-                    DefaultMutableTreeNode node =
-                            (DefaultMutableTreeNode) tree.getPathForRow(row).getLastPathComponent();
-
-                    JPopupMenu menu = connection.createContextMenu(node, ui);
-                    if (menu != null && menu.getComponentCount() > 0) {
-                        menu.show(tree, e.getX(), e.getY());
-                    }
-                }
+            boolean success = new DConnection(testProject).testConnection();
+            if (success) {
+                resultLabel.setForeground(Color.GREEN);
+                resultLabel.setText("Test connection successful!");
+            } else {
+                resultLabel.setForeground(Color.RED);
+                resultLabel.setText("Test connection failed.");
             }
         });
-        JScrollPane treeScroll = new JScrollPane(tree);
-        treeScroll.setPreferredSize(new Dimension(250, 600));
-        workTabs.addTab("Welcome", new JLabel("Workspace for " + connection.getProject().getName()));
 
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, treeScroll, workTabs);
-        splitPane.setDividerLocation(250);
-        splitPane.setResizeWeight(0);
-
-        panel.add(toolBar, BorderLayout.NORTH);
-        panel.add(splitPane, BorderLayout.CENTER);
-
-        addClosableTab(tabbedPane, connection.getProject().getName(), panel);
-        tabbedPane.setSelectedIndex(1);
+        popup.setVisible(true);
     }
 
 
 
     private void createMenuBar() {
-        JMenuBar bar = new JMenuBar();
-        JMenu fileMenu = new JMenu("File");
-        fileMenu.add("Open");
-        bar.add(fileMenu);
-        frame.setJMenuBar(bar);
+        menuBar = new MenuBar(frame, this);
+        menuBar.updateAll();
+        menuBar.disable("file")
+                .disable("edit")
+                .disable("sql");
     }
 
     private boolean isInt(String input) {
@@ -244,12 +293,11 @@ public class BenchUI {
         }
     }
 
-    private void addClosableTab(JTabbedPane tabbedPane, String title, Component content) {
+    public void addClosableTab(JTabbedPane tabbedPane, String title, Component content) {
         tabbedPane.add(content);
-
         int index = tabbedPane.indexOfComponent(content);
 
-        JPanel tabPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        JPanel tabPanel = new JPanel(new BorderLayout());
         tabPanel.setOpaque(false);
 
         JLabel label = new JLabel(title + " ");
@@ -261,141 +309,99 @@ public class BenchUI {
 
         closeButton.addActionListener(e -> {
             int i = tabbedPane.indexOfComponent(content);
-            if (i != -1) {
-                tabbedPane.remove(i);
-            }
+            if (i != -1) tabbedPane.remove(i);
         });
 
-        tabPanel.add(label);
-        tabPanel.add(closeButton);
+        tabPanel.add(label, BorderLayout.CENTER);
+        tabPanel.add(closeButton, BorderLayout.EAST);
+
+        MouseAdapter mouseAdapter = new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int i = tabbedPane.indexOfTabComponent(tabPanel);
+                if (SwingUtilities.isMiddleMouseButton(e)) {
+                    if (i != -1) tabbedPane.remove(i);
+                } else if (SwingUtilities.isLeftMouseButton(e)) {
+                    if (i != -1) tabbedPane.setSelectedIndex(i);
+                }
+            }
+        };
+
+        tabPanel.addMouseListener(mouseAdapter);
+        label.addMouseListener(mouseAdapter);
 
         tabbedPane.setTabComponentAt(index, tabPanel);
     }
 
-    public void addEditorTab(JTabbedPane workTabs, String title) {
-        addEditorTab(workTabs, title, "");
+
+    private void addNonClosableTab(JTabbedPane tabbedPane, String title, Component content) {
+        tabbedPane.add(content);
+
+        int index = tabbedPane.indexOfComponent(content);
+
+        JPanel tabPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        tabPanel.setOpaque(false);
+
+        JLabel label = new JLabel(title + " ");
+
+        tabPanel.add(label);
+
+        tabbedPane.setTabComponentAt(index, tabPanel);
     }
 
-    public void addEditorTab(JTabbedPane workTabs, String title, String content) {
-        JPanel editorPanel = new JPanel(new BorderLayout());
+    private JPanel createWelcomePanel(DConnection connection, BenchUI ui) {
+        JPanel root = new JPanel(new BorderLayout());
+        root.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
 
-        JToolBar editorToolBar = new JToolBar();
-        editorToolBar.setFloatable(false);
-        JButton runButton = new JButton("▶ Execute (CTRL+ENTER)");
-        JButton saveButton = new JButton("💾 Save (CTRL+S)");
-        JButton formatButton = new JButton("✨ Format (CTRL+SHIFT+F)");
-        editorToolBar.add(runButton);
-        editorToolBar.add(saveButton);
-        editorToolBar.add(formatButton);
+        // ===== Header =====
+        JLabel title = new JLabel("Workspace of " + connection.getProject().getName());
+        title.setFont(title.getFont().deriveFont(Font.BOLD, 26f));
 
-        RSyntaxTextArea editorArea = new RSyntaxTextArea(18, 60);
-        editorArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_SQL);
-        editorArea.setAnimateBracketMatching(true);
-        editorArea.setCodeFoldingEnabled(true);
-        editorArea.setHighlightCurrentLine(true);
-        editorArea.setText(content);
-        editorArea.setMarkOccurrences(true);
-        editorArea.setAutoIndentEnabled(true);
-        editorArea.setAntiAliasingEnabled(true);
+        JLabel subtitle = new JLabel("Get started by choosing one of the following actions.");
+        subtitle.setFont(subtitle.getFont().deriveFont(14f));
+        subtitle.setForeground(Color.GRAY);
 
-        RTextScrollPane sp = new RTextScrollPane(editorArea);
-        editorPanel.add(editorToolBar);
-        editorPanel.add(sp, BorderLayout.CENTER);
+        JPanel header = new JPanel();
+        header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
+        header.setOpaque(false);
+        header.add(title);
+        header.add(Box.createVerticalStrut(8));
+        header.add(subtitle);
 
-        workTabs.addTab(title, editorPanel);
-        workTabs.setSelectedComponent(editorPanel);
+        root.add(header, BorderLayout.NORTH);
+
+        // ===== Actions =====
+        JPanel actions = new JPanel();
+        actions.setLayout(new BoxLayout(actions, BoxLayout.Y_AXIS));
+        actions.setOpaque(false);
+
+        actions.add(createActionButton("➕ New Query", connection::addEditorTab));
+
+        actions.add(Box.createVerticalStrut(10));
+
+        actions.add(createActionButton("🧱 Create Table", connection::addCreateTableTab));
+
+        actions.add(Box.createVerticalStrut(10));
+
+        actions.add(createActionButton("🔄 Refresh Schema", () -> {
+
+        }));
+
+        root.add(actions, BorderLayout.CENTER);
+
+        return root;
     }
 
-    public void addCreateTableEditorTab(JTabbedPane workTabs, String title) {
-        JPanel editorPanel = new JPanel(new BorderLayout());
+    private JButton createActionButton(String text, Runnable action) {
+        JButton button = new JButton(text);
+        button.setHorizontalAlignment(SwingConstants.LEFT);
+        button.setFont(button.getFont().deriveFont(Font.PLAIN, 15f));
+        button.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        button.setFocusPainted(false);
 
-        JToolBar toolBar = new JToolBar();
-        toolBar.setFloatable(false);
-        JButton saveButton = new JButton("💾 Create");
-        JButton cancelButton = new JButton("❌ Cancel");
-        toolBar.add(saveButton);
-        toolBar.add(cancelButton);
-
-        JPanel namePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        namePanel.add(new JLabel("Table name:"));
-        JTextField tableNameField = new JTextField(20);
-        namePanel.add(tableNameField);
-
-        String[] columnNames = {"Column Name", "Data Type", "Size", "Primary Key", "Not Null", "Auto I"};
-        Object[][] data = {
-                {"id", "INT", 11, true, true, true},
-                {"name", "VARCHAR", 255, false, false, false}
-        };
-
-        DefaultTableModel model = new DefaultTableModel(data, columnNames) {
-            @Override
-            public Class<?> getColumnClass(int columnIndex) {
-                if (columnIndex >= 3) return Boolean.class;
-                return super.getColumnClass(columnIndex);
-            }
-        };
-        JTable columnTable = new JTable(model);
-        JScrollPane tableScroll = new JScrollPane(columnTable);
-
-        JTextArea sqlPreview = new JTextArea(5, 60);
-        sqlPreview.setFont(new Font("Consolas", Font.PLAIN, 13));
-        sqlPreview.setEditable(false);
-        JScrollPane sqlScroll = new JScrollPane(sqlPreview);
-
-        Runnable updateSQL = () -> {
-            StringBuilder sb = new StringBuilder();
-            sb.append("CREATE TABLE ").append(tableNameField.getText()).append(" (\n");
-            for (int i = 0; i < model.getRowCount(); i++) {
-                String colName = model.getValueAt(i, 0).toString();
-                String type = model.getValueAt(i, 1).toString();
-                String length = model.getValueAt(i, 2).toString();
-                boolean pk = (Boolean) model.getValueAt(i, 3);
-                boolean nn = (Boolean) model.getValueAt(i, 4);
-                boolean ai = (Boolean) model.getValueAt(i, 5);
-
-                sb.append("  ").append(colName).append(" ").append(type);
-                if (!length.isEmpty()) sb.append("(").append(length).append(")");
-                if (nn) sb.append(" NOT NULL");
-                if (ai) sb.append(" AUTO_INCREMENT");
-                sb.append(",\n");
-
-                if (pk) {
-                    sb.append("  PRIMARY KEY (").append(colName).append("),\n");
-                }
-            }
-            int lastComma = sb.lastIndexOf(",");
-            if (lastComma != -1) sb.deleteCharAt(lastComma);
-            sb.append("\n);");
-            sqlPreview.setText(sb.toString());
-        };
-
-        tableNameField.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-                updateSQL.run();
-            }
-        });
-        model.addTableModelListener(e -> updateSQL.run());
-
-        updateSQL.run();
-
-        editorPanel.add(toolBar, BorderLayout.NORTH);
-        editorPanel.add(namePanel, BorderLayout.BEFORE_FIRST_LINE);
-        editorPanel.add(tableScroll, BorderLayout.CENTER);
-        editorPanel.add(sqlScroll, BorderLayout.SOUTH);
-
-        workTabs.addTab(title, editorPanel);
-        workTabs.setSelectedComponent(editorPanel);
+        button.addActionListener(e -> action.run());
+        return button;
     }
+
 
 }
