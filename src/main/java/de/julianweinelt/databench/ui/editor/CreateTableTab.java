@@ -8,122 +8,136 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CreateTableTab implements IEditorTab {
+
+    private TableDefinition table;
+    private TableDefinition originalTable;
+
+    private Object[][] tableData;
+
+    private final DConnection connection;
+    private boolean existingTable = false;
+    private String tableName = null;
+
+    public CreateTableTab(DConnection connection) {
+        this.connection = connection;
+    }
+
+    public CreateTableTab ofRealTable(String database, String tableName) {
+        this.tableName = tableName;
+
+        this.table = connection.getTableDefinition(database, tableName);
+        this.originalTable = deepCopy(this.table);
+
+        this.tableData = toTableData(this.table.getColumns());
+        this.existingTable = true;
+        return this;
+    }
+
+    public CreateTableTab newTable() {
+        this.table = new TableDefinition();
+        this.table.setTableName("");
+
+        table.addColumn(new TableColumn("id", "INT", 11, true, true, true));
+        table.addColumn(new TableColumn("name", "VARCHAR", 255, false, false, false));
+
+        this.tableData = toTableData(table.getColumns());
+        this.existingTable = false;
+        return this;
+    }
+
     @Override
     public JPanel getTabComponent(BenchUI ui, DConnection connection) {
 
-
         JPanel editorPanel = new JPanel(new BorderLayout());
 
-        // ===== Toolbar =====
         JToolBar toolBar = new JToolBar();
         toolBar.setFloatable(false);
 
-        JButton createButton = new JButton("💾 Create & Execute");
-        JButton cancelButton = new JButton("❌ Cancel");
-        toolBar.add(createButton);
-        toolBar.add(cancelButton);
+        JButton applyButton = new JButton("💾 " + (existingTable ? "Apply" : "Create"));
+        JButton revertButton = new JButton("❌ Revert");
 
-        // ===== Table Name Panel =====
+        toolBar.add(applyButton);
+        toolBar.add(revertButton);
+
         JPanel namePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         namePanel.add(new JLabel("Table name:"));
+
         JTextField tableNameField = new JTextField(20);
+        if (tableName != null) tableNameField.setText(tableName);
         namePanel.add(tableNameField);
 
-        // ===== Column Table =====
-        String[] columnNames = {"Column Name", "Data Type", "Size", "Primary Key", "Not Null", "Auto I"};
-        Object[][] data = {
-                {"id", "INT", 11, true, true, true},
-                {"name", "VARCHAR", 255, false, false, false}
+        String[] columnNames = {
+                "Column Name", "Data Type", "Size",
+                "Primary Key", "Not Null", "Auto I"
         };
 
-        DefaultTableModel model = new DefaultTableModel(data, columnNames) {
+        DefaultTableModel model = new DefaultTableModel(tableData, columnNames) {
             @Override
             public Class<?> getColumnClass(int columnIndex) {
-                if (columnIndex >= 3) return Boolean.class;
-                return super.getColumnClass(columnIndex);
+                return columnIndex >= 3 ? Boolean.class : String.class;
             }
         };
+
         JTable columnTable = new JTable(model);
         JScrollPane tableScroll = new JScrollPane(columnTable);
 
-        // ===== SQL Preview =====
-        JTextArea sqlPreview = new JTextArea(5, 60);
+        JTextArea sqlPreview = new JTextArea(6, 60);
         sqlPreview.setFont(new Font("Consolas", Font.PLAIN, 13));
         sqlPreview.setEditable(false);
+
         JScrollPane sqlScroll = new JScrollPane(sqlPreview);
 
-        // ===== SQL Builder =====
         Runnable updateSQL = () -> {
-            StringBuilder sb = new StringBuilder();
-            sb.append("CREATE TABLE ").append(tableNameField.getText()).append(" (\n");
-            for (int i = 0; i < model.getRowCount(); i++) {
-                String colName = model.getValueAt(i, 0).toString();
-                String type = model.getValueAt(i, 1).toString();
-                String length = model.getValueAt(i, 2).toString();
-                boolean pk = (Boolean) model.getValueAt(i, 3);
-                boolean nn = (Boolean) model.getValueAt(i, 4);
-                boolean ai = (Boolean) model.getValueAt(i, 5);
+            table.setTableName(tableNameField.getText());
+            table.getColumns().clear();
+            table.getColumns().addAll(fromTableModel(model));
 
-                sb.append("  ").append(colName).append(" ").append(type);
-                if (!length.isEmpty()) sb.append("(").append(length).append(")");
-                if (nn) sb.append(" NOT NULL");
-                if (ai) sb.append(" AUTO_INCREMENT");
-                sb.append(",\n");
+            String txt;
+            if (existingTable) txt = SQLBuilder.buildAlter(originalTable, table);
+            else txt = SQLBuilder.buildCreateOrAlter(table, existingTable);
 
-                if (pk) sb.append("  PRIMARY KEY (").append(colName).append("),\n");
-            }
-            int lastComma = sb.lastIndexOf(",");
-            if (lastComma != -1) sb.deleteCharAt(lastComma);
-            sb.append("\n);");
-            sqlPreview.setText(sb.toString());
+            sqlPreview.setText(txt);
         };
 
-        // ===== Listener für Änderungen =====
         tableNameField.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
             public void insertUpdate(DocumentEvent e) { updateSQL.run(); }
-            @Override
             public void removeUpdate(DocumentEvent e) { updateSQL.run(); }
-            @Override
             public void changedUpdate(DocumentEvent e) { updateSQL.run(); }
         });
+
         model.addTableModelListener(e -> updateSQL.run());
         updateSQL.run();
 
-        createButton.addActionListener(e -> {
-            String sql = sqlPreview.getText();
+        // ===== APPLY =====
+        applyButton.addActionListener(e -> {
             try {
-                if (connection != null) {
-                    DConnection.SQLAnswer answer = connection.executeSQL(sql);
-                    if (answer.success()) {
-                        JOptionPane.showMessageDialog(editorPanel,
-                                "Table created successfully!",
-                                "Success",
-                                JOptionPane.INFORMATION_MESSAGE);
-                    } else {
-                        JOptionPane.showMessageDialog(editorPanel,
-                                "Failed to create table: " + answer.message(),
-                                "Error",
-                                JOptionPane.ERROR_MESSAGE);
-                    }
+                DConnection.SQLAnswer answer =
+                        connection.executeSQL(sqlPreview.getText());
+
+                if (answer.success()) {
+                    JOptionPane.showMessageDialog(editorPanel,
+                            "Operation successful",
+                            "Success",
+                            JOptionPane.INFORMATION_MESSAGE);
                 } else {
                     JOptionPane.showMessageDialog(editorPanel,
-                            "No connection available to execute SQL.",
-                            "Error",
+                            answer.message(),
+                            "SQL Error",
                             JOptionPane.ERROR_MESSAGE);
                 }
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(editorPanel,
-                        "Failed to execute SQL: " + ex.getMessage(),
-                        "Error",
+                        ex.getMessage(),
+                        "Exception",
                         JOptionPane.ERROR_MESSAGE);
             }
         });
 
-        // ===== Layout =====
-        // ===== NORTH PANEL =====
+        // ===== LAYOUT =====
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
         topPanel.add(toolBar);
@@ -132,11 +146,59 @@ public class CreateTableTab implements IEditorTab {
         editorPanel.add(topPanel, BorderLayout.NORTH);
         editorPanel.add(tableScroll, BorderLayout.CENTER);
         editorPanel.add(sqlScroll, BorderLayout.SOUTH);
+
         return editorPanel;
     }
 
     @Override
     public String getTitle() {
-        return "New Table";
+        return tableName == null ? "New Table" : tableName;
+    }
+
+    // ===== HELPERS =====
+
+    private TableDefinition deepCopy(TableDefinition src) {
+        TableDefinition copy = new TableDefinition();
+        copy.setTableName(src.getTableName());
+        for (TableColumn c : src.getColumns()) {
+            copy.addColumn(new TableColumn(
+                    c.getName(), c.getType(), c.getSize(),
+                    c.isPrimaryKey(), c.isNotNull(), c.isAutoIncrement()
+            ));
+        }
+        return copy;
+    }
+
+    private Object[][] toTableData(List<TableColumn> columns) {
+        Object[][] data = new Object[columns.size()][6];
+        for (int i = 0; i < columns.size(); i++) {
+            TableColumn c = columns.get(i);
+            data[i] = new Object[]{
+                    c.getName(),
+                    c.getType(),
+                    c.getSize() != null ? c.getSize() : "",
+                    c.isPrimaryKey(),
+                    c.isNotNull(),
+                    c.isAutoIncrement()
+            };
+        }
+        return data;
+    }
+
+    private List<TableColumn> fromTableModel(DefaultTableModel model) {
+        List<TableColumn> columns = new ArrayList<>();
+        for (int i = 0; i < model.getRowCount(); i++) {
+            columns.add(new TableColumn(
+                    model.getValueAt(i, 0).toString(),
+                    model.getValueAt(i, 1).toString(),
+                    model.getValueAt(i, 2).toString().isEmpty()
+                            ? null
+                            : Integer.parseInt(model.getValueAt(i, 2).toString()),
+                    (Boolean) model.getValueAt(i, 3),
+                    (Boolean) model.getValueAt(i, 4),
+                    (Boolean) model.getValueAt(i, 5)
+            ));
+        }
+        return columns;
     }
 }
