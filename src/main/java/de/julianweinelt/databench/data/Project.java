@@ -1,5 +1,6 @@
 package de.julianweinelt.databench.data;
 
+import de.julianweinelt.databench.api.ImagePanel;
 import de.julianweinelt.databench.ui.BenchUI;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -38,16 +39,18 @@ public class Project {
     }
 
     public JPanel createCard(BenchUI ui) {
-        JPanel card = new JPanel();
+        Image img = new ImageIcon(getClass().getResource("/icons/engine/mysql.png")).getImage();
+        JPanel card = new ImagePanel(img);
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
         card.setPreferredSize(new Dimension(180, 120));
         card.setMaximumSize(new Dimension(180, 120));
         card.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Color.DARK_GRAY),
+                BorderFactory.createLineBorder(new Color(125, 125, 125)),
                 BorderFactory.createEmptyBorder(10, 10, 10, 10)
         ));
         card.setBackground(new Color(64, 64, 64));
         card.setLayout(new BorderLayout());
+
 
         JLabel titleLabel = new JLabel(name);
         titleLabel.setForeground(Color.WHITE);
@@ -68,7 +71,13 @@ public class Project {
         JMenuItem exportItem = new JMenuItem("Export");
         exportItem.addActionListener(e -> ProjectManager.instance().showExportPopup(ui, this));
         JMenuItem deleteItem = new JMenuItem("Delete");
-        //deleteItem.addActionListener(e -> ui.deleteProject(this));
+        deleteItem.addActionListener(e -> {
+            int val = JOptionPane.showConfirmDialog(ui.getFrame(), "Are you sure you want to delete this project?\nThis cannot be undone!");
+            if (val == JOptionPane.YES_OPTION) {
+                ProjectManager.instance().deleteProjectFile(this, ui);
+                ui.updateProjectCards();
+            }
+        });
 
         JMenuItem copyConnectionString = new JMenuItem("Copy Connection String");
         copyConnectionString.addActionListener(e -> {
