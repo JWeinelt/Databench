@@ -1,15 +1,22 @@
 package de.julianweinelt.databench.ui;
 
+import de.julianweinelt.databench.ui.admin.AdministrationDialog;
+import de.julianweinelt.databench.ui.driver.DriverDownloadDialog;
+import de.julianweinelt.databench.ui.driver.DriverManagerDialog;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
-import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.Map;
+
+import static de.julianweinelt.databench.ui.LanguageManager.translate;
 
 @Slf4j
 public class MenuBar {
@@ -57,8 +64,11 @@ public class MenuBar {
 
     public void createFileCategory(boolean disable) {
         if (!menus.containsKey("file")) {
-            JMenu fileMenu = new JMenu("File");
-            JMenuItem openButton = new JMenuItem("Open");
+            JMenu fileMenu = new JMenu(translate("menu.cat.file"));
+            JMenuItem openButton = new JMenuItem(translate("menu.cat.file.open"));
+            openButton.setAccelerator(
+                    KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK)
+            );
             openButton.addActionListener(e -> {
                 JFileChooser fileChooser = new JFileChooser();
                 fileChooser.setDialogTitle("Open File");
@@ -73,9 +83,16 @@ public class MenuBar {
                     JOptionPane.showMessageDialog(frame, "Opened: " + fileChooser.getSelectedFile().getAbsolutePath());
                 }
             });
-            JMenuItem saveButton = new JMenuItem("Save");
+            JMenuItem saveButton = new JMenuItem(translate("menu.cat.file.save"));
+            saveButton.setAccelerator(
+                    KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK)
+            );
             saveButton.setEnabled(!disable);
-            JMenuItem saveAsButton = new JMenuItem("Save As");
+            JMenuItem saveAsButton = new JMenuItem(translate("menu.cat.file.saveAs"));
+            saveAsButton.setAccelerator(
+                    KeyStroke.getKeyStroke(KeyEvent.VK_S,
+                            InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK)
+            );
             saveAsButton.setEnabled(!disable);
             fileMenu.add(openButton);
             fileMenu.add(saveButton);
@@ -97,16 +114,31 @@ public class MenuBar {
 
     public void createEditCategory(boolean disable) {
         if (!menus.containsKey("edit")) {
-            JMenu editMenu = new JMenu("Edit");
-            JMenuItem undoButton = new JMenuItem("Undo");
+            JMenu editMenu = new JMenu(translate("menu.cat.edit"));
+            JMenuItem undoButton = new JMenuItem(translate("menu.cat.edit.undo"));
+            undoButton.setAccelerator(
+                    KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK)
+            );
             undoButton.setEnabled(!disable);
-            JMenuItem redoButton = new JMenuItem("Redo");
+            JMenuItem redoButton = new JMenuItem(translate("menu.cat.edit.redo"));
+            redoButton.setAccelerator(
+                    KeyStroke.getKeyStroke(KeyEvent.VK_Y, InputEvent.CTRL_DOWN_MASK)
+            );
             redoButton.setEnabled(!disable);
-            JMenuItem cutButton = new JMenuItem("Cut");
+            JMenuItem cutButton = new JMenuItem(translate("menu.cat.edit.cut"));
+            cutButton.setAccelerator(
+                    KeyStroke.getKeyStroke(KeyEvent.VK_X, InputEvent.CTRL_DOWN_MASK)
+            );
             cutButton.setEnabled(!disable);
+            JMenuItem preferencesButton = new JMenuItem(translate("menu.cat.edit.preferences"));
+            preferencesButton.setAccelerator(
+                    KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.CTRL_DOWN_MASK)
+            );
+            preferencesButton.addActionListener(e -> new SettingsDialog(frame).setVisible(true));
             editMenu.add(undoButton);
             editMenu.add(redoButton);
             editMenu.add(cutButton);
+            editMenu.add(preferencesButton);
             bar.add(editMenu);
             menus.put("edit", editMenu);
             updateMenuBar();
@@ -135,8 +167,28 @@ public class MenuBar {
             newProcedureButton.setEnabled(!disable);
             JMenuItem backupButton = new JMenuItem("Backups");
             backupButton.setEnabled(!disable);
+            backupButton.setAccelerator(
+                    KeyStroke.getKeyStroke(KeyEvent.VK_B, InputEvent.ALT_DOWN_MASK)
+            );
             JMenuItem adminButton = new JMenuItem("Administration");
+            adminButton.addActionListener(e -> new AdministrationDialog(frame).setVisible(true));
             adminButton.setEnabled(!disable);
+            adminButton.setAccelerator(
+                    KeyStroke.getKeyStroke(KeyEvent.VK_A, InputEvent.ALT_DOWN_MASK)
+            );
+
+            JMenu drivers = new JMenu("Drivers");
+            JMenuItem downloadDriverButton = new JMenuItem("Download Drivers");
+            downloadDriverButton.addActionListener(e -> new DriverDownloadDialog(frame, false).setVisible(true));
+            JMenuItem manageDriverButton = new JMenuItem("Manage Drivers");
+
+            manageDriverButton.setAccelerator(
+                    KeyStroke.getKeyStroke(KeyEvent.VK_M, InputEvent.ALT_DOWN_MASK)
+            );
+            manageDriverButton.addActionListener(e -> new DriverManagerDialog(frame).setVisible(true));
+            drivers.add(downloadDriverButton);
+            drivers.add(manageDriverButton);
+            sqlMenu.add(drivers);
             sqlMenu.add(newQueryButton);
             sqlMenu.add(newTableButton);
             sqlMenu.add(newViewButton);
@@ -171,6 +223,9 @@ public class MenuBar {
                     }
                 }
             });
+            helpIndex.setAccelerator(
+                    KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0)
+            );
             JMenuItem licenseInfo = new JMenuItem("License Info");
             licenseInfo.addActionListener(e -> ui.showLicenseInfo());
             JMenuItem reportBug = new JMenuItem("Report a Bug");
