@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
@@ -31,19 +32,23 @@ public class DConnection {
     private java.sql.Connection conn;
     @Setter
     private JTabbedPane workTabs;
+    private final List<IEditorTab> editorTabs = new ArrayList<>();
 
     @Setter
     private DefaultMutableTreeNode treeRoot;
     @Setter
     private JTree tree;
 
-    public DConnection(Project project) {
+    private final boolean lightEdit = false;
+
+    public DConnection(Project project, BenchUI benchUI) {
+        this.benchUI = benchUI;
         this.project = project;
     }
 
-    public void createNewConnectionTab(BenchUI ui) {
-        this.benchUI = ui;
+    public void createNewConnectionTab() {
         JPanel panel = new JPanel(new BorderLayout());
+        benchUI.getFrame().setCursor(Cursor.getDefaultCursor());
 
         workTabs = new JTabbedPane();
 
@@ -54,6 +59,7 @@ public class DConnection {
                     int tabIndex = workTabs.indexAtLocation(e.getX(), e.getY());
                     if (tabIndex >= 1) {
                         workTabs.removeTabAt(tabIndex);
+                        editorTabs.remove(tabIndex);
                     }
                 }
             }
@@ -61,14 +67,15 @@ public class DConnection {
 
         JToolBar toolBar = new JToolBar();
         toolBar.setFloatable(false);
-        toolBar.add(new JButton("Connect"));
+        //toolBar.add(new JButton("Connect"));
         JButton btnNewQuery = new JButton("New Query");
         btnNewQuery.addActionListener(e -> {
             addEditorTab("/* Your query goes here */");
         });
         toolBar.add(btnNewQuery);
 
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode(getProject().getName());
+        DefaultMutableTreeNode root = new DefaultMutableTreeNode("Project: " + getProject().getName() + " (" +
+                ((checkConnection()) ? "Connected" : "Disconnected") + ")");
         setTreeRoot(root);
         setTree(new JTree(root));
         getProjectTree();
@@ -97,7 +104,7 @@ public class DConnection {
             private void showPopup(MouseEvent e, DefaultMutableTreeNode node) {
                 JPopupMenu menu;
                 if (node != null) {
-                    menu = createContextMenu(node, ui);
+                    menu = createContextMenu(node, benchUI);
                 } else {
                     menu = new JPopupMenu();
                     JMenuItem newDB = new JMenuItem("Create new Database");
@@ -120,13 +127,15 @@ public class DConnection {
         panel.add(toolBar, BorderLayout.NORTH);
         panel.add(splitPane, BorderLayout.CENTER);
 
-        ui.addClosableTab(ui.getTabbedPane(), getProject().getName(), panel);
-        ui.getTabbedPane().setSelectedIndex(1);
-        ui.getMenuBar().enable("file")
+        benchUI.addClosableTab(benchUI.getTabbedPane(), getProject().getName(), panel);
+        benchUI.getTabbedPane().setSelectedIndex(1);
+        benchUI.getMenuBar().enable("file")
                 .enable("edit")
                 .enable("sql").updateAll();
 
         addTab(new WelcomeTab());
+
+        FileManager.instance().getProjectData(project, benchUI).forEach(this::addTab);
     }
 
     public void addCreateTableTab() {
@@ -193,6 +202,7 @@ public class DConnection {
             Component c = workTabs.getComponentAt(i);
             if (c.equals(tab.getTabComponent(benchUI, this))) {
                 workTabs.remove(i);
+                editorTabs.remove(i);
                 break;
             }
         }
@@ -200,29 +210,76 @@ public class DConnection {
 
     public void addTab(IEditorTab tab) {
         JPanel p = tab.getTabComponent(benchUI, this);
+        editorTabs.add(tab);
         workTabs.addTab(tab.getTitle(), p);
         workTabs.setSelectedIndex(workTabs.getTabCount() - 1);
     }
 
+    public void handleWindowClosing(JFrame frame) {
+        FileManager.instance().save(editorTabs, project);
+        boolean unsaved = hasUnsavedChanges();
+        if (!unsaved) {
+            frame.dispose();
+            return;
+        }
+
+        for (IEditorTab tab : editorTabs) {
+            if (!(tab instanceof EditorTab e)) {
+                removeTab(tab);
+                continue;
+            }
+            if (e.isFileSaved()) {
+                removeTab(tab);
+                continue;
+            }
+
+            int option = JOptionPane.showConfirmDialog(
+                    frame,
+                    "There are unsaved changes in " + e.getTitle() + ". Do you want to save it?",
+                    "Unsaved Changes",
+                    JOptionPane.YES_NO_CANCEL_OPTION,
+                    JOptionPane.WARNING_MESSAGE
+            );
+            if (option == JOptionPane.YES_OPTION) {
+                e.saveFile();
+            } else if (option == JOptionPane.CANCEL_OPTION) {
+                return;
+            } else if (option == JOptionPane.NO_OPTION) {
+                removeTab(tab);
+            }
+        }
+        frame.dispose();
+    }
+
+    public boolean hasUnsavedChanges() {
+        boolean unsavedChanges = false;
+
+        for (IEditorTab tab : editorTabs) {
+            if (tab instanceof EditorTab e && !e.isFileSaved()) unsavedChanges = true;
+        }
+        return unsavedChanges;
+    }
 
     public CompletableFuture<Connection> connect() {
+        Thread current = Thread.currentThread();
+        ClassLoader previous = current.getContextClassLoader();
+        current.setContextClassLoader(DriverManagerService.instance().getDriverLoader());
+
         CompletableFuture<Connection> future = new CompletableFuture<>();
         final String DB_NAME = "jdbc:mysql://"+project.getServer() +"/"+project.getDefaultDatabase()+
                 "?useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&autoReconnect=true"
                 + (project.isUseSSL() ? "&useSSL=true&requireSSL=true" : "&useSSL=false");
 
         try {
-            // Load MySQL JDBC driver class
-            Class.forName("com.mysql.cj.jdbc.Driver");
-
             // Establish a connection using the provided connection details
             conn = DriverManager.getConnection(DB_NAME, project.getUsername(), project.getPassword());
             future.complete(conn);
-        } catch (Exception ex) {
+        } catch (SQLException ex) {
             // Log any exception that occurs during the connection process
             log.warn("MySQL connection failed: {}", ex.getMessage());
-            ex.printStackTrace();
             future.completeExceptionally(ex);
+        } finally {
+            current.setContextClassLoader(previous);
         }
         return future;
     }
@@ -295,6 +352,7 @@ public class DConnection {
     }
 
     public void getProjectTree() {
+        benchUI.getFrame().setCursor(Cursor.WAIT_CURSOR);
         log.info("Refreshing project tree for {}", getProject().getName());
         treeRoot.removeAllChildren();
         DefaultMutableTreeNode databases = new DefaultMutableTreeNode("Databases");
@@ -320,9 +378,62 @@ public class DConnection {
             db.add(views);
             db.add(procedures);
         }
+
+
+        DefaultMutableTreeNode jobAgent = new DefaultMutableTreeNode("SQL Agent");
+        DefaultMutableTreeNode jobs = new DefaultMutableTreeNode("Jobs");
+        DefaultMutableTreeNode protocols = new DefaultMutableTreeNode("Protocol");
+        DefaultMutableTreeNode errors = new DefaultMutableTreeNode("Errors");
+        DefaultMutableTreeNode timetables = new DefaultMutableTreeNode("Time Tables");
+        jobAgent.add(jobs);
+        jobAgent.add(protocols);
+        jobAgent.add(errors);
+        jobAgent.add(timetables);
+        treeRoot.add(jobAgent);
+
+        tree.setCellRenderer(new DefaultTreeCellRenderer() {
+            @Override
+            public Component getTreeCellRendererComponent(JTree tree, Object value,
+                                                          boolean selected, boolean expanded,
+                                                          boolean leaf, int row, boolean hasFocus) {
+                super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
+
+                if (value instanceof DefaultMutableTreeNode node) {
+                    Object userObject = node.getUserObject();
+                    if ("SQL Agent".equals(userObject)) {
+                        setIcon(new ImageIcon(getClass().getResource("/icons/app/agent.png")));
+                    } else if ("Tables".equals(userObject)) {
+                        setIcon(new ImageIcon(getClass().getResource("/icons/app/folder.png")));
+                    } else if ("Views".equals(userObject)) {
+                        setIcon(new ImageIcon(getClass().getResource("/icons/app/folder.png")));
+                    } else if ("Procedures".equals(userObject)) {
+                        setIcon(new ImageIcon(getClass().getResource("/icons/app/folder.png")));
+                    } else if ("Databases".equals(userObject)) {
+                        setIcon(new ImageIcon(getClass().getResource("/icons/app/folder.png")));
+                    }
+                    DefaultMutableTreeNode parent = (DefaultMutableTreeNode) node.getParent();
+                    if (parent != null) {
+                        Object parentObject = parent.getUserObject();
+                        if ("Databases".equals(parentObject.toString())) {
+                            setIcon(new ImageIcon(getClass().getResource("/icons/app/schema.png")));
+                        } else if ("Tables".equals(parentObject.toString())) {
+                            setIcon(new ImageIcon(getClass().getResource("/icons/app/table.png")));
+                        } else if ("Views".equals(parentObject.toString())) {
+                            setIcon(new ImageIcon(getClass().getResource("/icons/app/view.png")));
+                        } else if ("SQL Agent".equals(parentObject.toString())) {
+                            setIcon(new ImageIcon(getClass().getResource("/icons/app/folder.png")));
+                        }
+                    }
+                }
+
+                return this;
+            }
+        });
+
         DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
         model.reload();
         tree.expandPath(new TreePath(databases.getPath()));
+        benchUI.getFrame().setCursor(Cursor.DEFAULT_CURSOR);
     }
 
     public JPopupMenu createContextMenu(DefaultMutableTreeNode node, BenchUI ui) {
@@ -349,9 +460,11 @@ public class DConnection {
             JMenuItem drop = new JMenuItem("Drop Database");
             drop.addActionListener(e -> {
                 String dbName = node.getUserObject().toString();
-                EditorTab t = addEditorTab("DROP DATABASE `" + dbName + "`;");
                 int result = JOptionPane.showConfirmDialog(ui.getFrame(), "Do you really want to drop (delete) this schema? This cannot be undone!");
-                if (result == JOptionPane.YES_OPTION) t.execute();
+                if (result == JOptionPane.YES_OPTION) {
+                    EditorTab t = addEditorTab("DROP DATABASE `" + dbName + "`;");
+                    t.execute();
+                }
             });
             menu.add(drop);
             JMenuItem createTable = new JMenuItem("Create new Table");
