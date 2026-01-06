@@ -1,10 +1,14 @@
 package de.julianweinelt.databench;
 
 import com.formdev.flatlaf.FlatDarkLaf;
+import de.julianweinelt.databench.api.DriverManagerService;
+import de.julianweinelt.databench.api.DriverShim;
+import de.julianweinelt.databench.api.FileManager;
 import de.julianweinelt.databench.data.ConfigManager;
 import de.julianweinelt.databench.data.Configuration;
 import de.julianweinelt.databench.data.ProjectManager;
 import de.julianweinelt.databench.ui.BenchUI;
+import de.julianweinelt.databench.ui.LanguageManager;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,9 +16,13 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.PrintWriter;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.lang.reflect.InvocationTargetException;
+import java.net.*;
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.Scanner;
+import java.util.concurrent.CountDownLatch;
 
 @Slf4j
 public class DataBench {
@@ -28,9 +36,18 @@ public class DataBench {
     private static DataBench instance;
 
     @Getter
+    private DriverManagerService driverManagerService;
+
+    @Getter
+    private LanguageManager languageManager;
+    @Getter
     private ConfigManager configManager = null;
     @Getter
     private ProjectManager projectManager;
+    @Getter
+    private FileManager fileManager;
+
+    private CountDownLatch latch = new CountDownLatch(1);
 
     public static void main(String[] args) {
         // Prüfen, ob schon eine Instanz läuft
@@ -44,6 +61,14 @@ public class DataBench {
     }
 
     public void start(String[] filesToOpen) {
+        driverManagerService = new DriverManagerService();
+        try {
+            driverManagerService.preloadDrivers();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "DataBench failed to load some Database drivers.\n\n" +
+                    "Message reported by system: \n" + e.getMessage(), "Error", JOptionPane.WARNING_MESSAGE);
+        }
+
         log.info("Starting DataBench");
         log.info("Preparing to load configurations...");
 
@@ -53,25 +78,40 @@ public class DataBench {
         }
 
         if (configManager == null) configManager = new ConfigManager();
+        log.info("Loading configuration...");
         configManager.loadConfig();
 
+        log.info("Loading project data...");
         projectManager = new ProjectManager();
         projectManager.loadAllProjects(configManager.getConfiguration().getEncryptionPassword());
 
-        log.info("Initializing UI...");
-        ui = new BenchUI();
-        ui.start();
+        fileManager = new FileManager();
+        languageManager = new LanguageManager();
+        log.info("Loading language data...");
+        languageManager.preload().thenAccept(v -> {
+            latch.countDown();
+        });
 
-        if (filesToOpen != null) {
-            for (String path : filesToOpen) {
-                File f = new File(path);
-                if (f.exists() && ui != null) {
-                    final File fileToOpen = f;
-                    javax.swing.SwingUtilities.invokeLater(() -> {
-                        //TODO: Open file in UI
-                    });
+        try {
+            latch.await();
+
+            log.info("Initializing UI...");
+            ui = new BenchUI();
+            ui.start();
+
+            if (filesToOpen != null) {
+                for (String path : filesToOpen) {
+                    File f = new File(path);
+                    if (f.exists() && ui != null) {
+                        final File fileToOpen = f;
+                        javax.swing.SwingUtilities.invokeLater(() -> {
+                            //TODO: Open file in UI
+                        });
+                    }
                 }
             }
+        } catch (InterruptedException e) {
+            log.error(e.getMessage(), e);
         }
 
         startSocketListener();
