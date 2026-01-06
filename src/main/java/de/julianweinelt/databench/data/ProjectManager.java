@@ -30,10 +30,25 @@ public class ProjectManager {
         projects.add(project);
         saveProjectFile(project, password);
     }
+    public void removeProject(Project project) {
+        projects.remove(project);
+
+    }
 
     public void saveProjectFile(Project project, String password) throws Exception {
         File file = new File(projectsDir, project.getName() + ".dbproj");
         ProjectEncryptionUtil.encryptProject(project, file, password);
+    }
+
+    public void deleteProjectFile(Project project, BenchUI ui) {
+        File file = new File(projectsDir, project.getName() + ".dbproj");
+        if (file.delete()) {
+            JOptionPane.showMessageDialog(ui.getFrame(), "The project \""
+                    + project.getName() + "\" has been deleted.", "Information", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(ui.getFrame(), "Failed to delete the project \"" + project.getName()
+                    + "\".\n\nPlease check if you have the permission to do that.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     public void loadAllProjects(String defaultPassword) {
