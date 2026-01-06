@@ -2,6 +2,7 @@ package de.julianweinelt.databench.ui.editor;
 
 import de.julianweinelt.databench.api.DConnection;
 import de.julianweinelt.databench.ui.BenchUI;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.fife.ui.autocomplete.*;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
@@ -25,7 +26,10 @@ public class EditorTab implements IEditorTab {
     private RSyntaxTextArea editorArea;
     private JPanel editorPanel;
 
+    @Getter
     private File saveFile = null;
+    @Getter
+    private boolean fileSaved = false;
 
     private JButton runButton;
 
@@ -34,8 +38,19 @@ public class EditorTab implements IEditorTab {
         this.ui = ui;
     }
 
+    public EditorTab(String content, BenchUI ui, File saveFile) {
+        this.content = content;
+        this.ui = ui;
+        this.saveFile = saveFile;
+        fileSaved = true;
+    }
+
     public void execute() {
         runButton.doClick();
+    }
+
+    public String getEditorContent() {
+        return editorArea.getText();
     }
 
     @Override
@@ -205,10 +220,19 @@ public class EditorTab implements IEditorTab {
 
     @Override
     public String getTitle() {
-        return "New Query *";
+        return (saveFile == null) ? "New Query" : saveFile.getName() + ((fileSaved) ? " *" : "");
     }
 
-    private void saveFile() {
+    public void saveFile() {
+        if (saveFile != null) {
+            try (FileWriter w = new FileWriter(saveFile)) {
+                w.write(editorArea.getText());
+            } catch (IOException e) {
+                log.error(e.getMessage(), e);
+            }
+            return;
+        }
+
         JFileChooser chooser = new JFileChooser(".");
         chooser.setDialogTitle("Save SQL File");
         chooser.setDialogType(JFileChooser.SAVE_DIALOG);
@@ -224,6 +248,7 @@ public class EditorTab implements IEditorTab {
                     w.write(editorArea.getText());
 
                     editorPanel.setName(saveFile.getName());
+                    fileSaved = true;
                 } catch (IOException e) {
                     log.error(e.getMessage());
                     JOptionPane.showMessageDialog(ui.getFrame(), "Error saving SQL File: " + e.getMessage(),
@@ -236,6 +261,7 @@ public class EditorTab implements IEditorTab {
                     editorPanel.setName(saveFile.getName());
                     JOptionPane.showMessageDialog(ui.getFrame(), "You may save SQL files with the .sql extension" +
                             " for better compatibility.", "Warning", JOptionPane.WARNING_MESSAGE);
+                    fileSaved = true;
                 } catch (IOException e) {
                     log.error(e.getMessage());
                     JOptionPane.showMessageDialog(ui.getFrame(), "Error saving SQL File: " + e.getMessage(),
