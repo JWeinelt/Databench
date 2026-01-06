@@ -1,7 +1,13 @@
 package de.julianweinelt.databench.ui;
 
+import com.formdev.flatlaf.FlatDarculaLaf;
 import com.formdev.flatlaf.FlatDarkLaf;
+import com.formdev.flatlaf.FlatIntelliJLaf;
+import com.formdev.flatlaf.FlatLightLaf;
+import com.formdev.flatlaf.themes.FlatMacDarkLaf;
+import com.formdev.flatlaf.themes.FlatMacLightLaf;
 import de.julianweinelt.databench.api.DConnection;
+import de.julianweinelt.databench.api.DriverShim;
 import de.julianweinelt.databench.data.Configuration;
 import de.julianweinelt.databench.data.Project;
 import de.julianweinelt.databench.data.ProjectManager;
@@ -10,9 +16,14 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.io.File;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.net.UnknownHostException;
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.sql.SQLNonTransientConnectionException;
 import java.util.HashMap;
 
 @Slf4j
@@ -30,7 +41,14 @@ public class BenchUI {
 
     public void start() {
         Image icon = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/icon.png"));
-        FlatDarkLaf.setup();
+        switch (Configuration.getConfiguration().getSelectedTheme().toLowerCase()) {
+            case "light" -> FlatLightLaf.setup();
+            case "intellij" -> FlatIntelliJLaf.setup();
+            case "darcula" -> FlatDarculaLaf.setup();
+            case "darkmac" -> FlatMacDarkLaf.setup();
+            case "lightmac" -> FlatMacLightLaf.setup();
+            default -> FlatDarkLaf.setup();
+        }
 
         tabbedPane = new JTabbedPane();
 
@@ -39,8 +57,24 @@ public class BenchUI {
         frame.setBounds(50, 50, 1600, 900);
         frame.setName("DataBench");
         frame.setTitle("DataBench v" + Configuration.getConfiguration().getClientVersion());
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(new BorderLayout());
+
+        registerShortcuts(frame);
+
+        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                if (connections.isEmpty()) {
+                    frame.dispose();
+                    return;
+                }
+                for (Project project : connections.keySet()) {
+                    DConnection connection = connections.get(project);
+                    connection.handleWindowClosing(frame);
+                }
+            }
+        });
 
         createMenuBar();
         createStartPage();
@@ -49,18 +83,54 @@ public class BenchUI {
         frame.setVisible(true);
     }
 
+    private void registerShortcuts(JFrame frame) {
+        KeyStroke newShortcut = KeyStroke.getKeyStroke(
+                KeyEvent.VK_N,
+                Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() // Ctrl (Win/Linux), Cmd (macOS)
+        );
+
+        frame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                .put(newShortcut, "create-object");
+
+        frame.getRootPane().getActionMap()
+                .put("create-object", new AbstractAction() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        if (tabbedPane.getSelectedIndex() == 0) {
+                            showAddProfilePopup();
+                            return;
+                        }
+
+                        CreateObjectDialog dialog = new CreateObjectDialog(frame);
+                        dialog.setVisible(true);
+
+                        var type = dialog.getSelectedType();
+                        if (type != null) {
+                            //handleCreate(type);
+                        }
+                    }
+                });
+    }
+
+
     public void connect(Project project) {
+        log.info("Opening project " + project.getUuid());
         frame.setCursor(Cursor.WAIT_CURSOR);
-        DConnection connection = new DConnection(project);
+        DConnection connection = new DConnection(project, this);
         connections.put(project, connection);
         connection.connect().thenAccept(conn -> {
-            connection.createNewConnectionTab(this);
+            connection.createNewConnectionTab();
             frame.setCursor(Cursor.getDefaultCursor());
         }).exceptionally(ex -> {
-            JOptionPane.showMessageDialog(frame, "No connection could be established.", "Failure", JOptionPane.ERROR_MESSAGE);
-            connections.remove(project);
-            connection.createNewConnectionTab(this);
             frame.setCursor(Cursor.getDefaultCursor());
+            if (ex.getCause() instanceof UnknownHostException || ex instanceof SQLNonTransientConnectionException)
+                JOptionPane.showMessageDialog(frame, "Could not contact database server.\nUnknown Host", "Failure", JOptionPane.ERROR_MESSAGE);
+            else
+                JOptionPane.showMessageDialog(frame, "No connection could be established.", "Failure", JOptionPane.ERROR_MESSAGE);
+            connections.remove(project);
+            if (ex instanceof ClassNotFoundException) return null;
+            connection.createNewConnectionTab();
+            log.error(ex.getMessage(), ex);
             return null;
         });
     }
@@ -293,7 +363,7 @@ public class BenchUI {
                     defaultDB
             );
 
-            boolean success = new DConnection(testProject).testConnection();
+            boolean success = new DConnection(testProject, this).testConnection();
             if (success) {
                 resultLabel.setForeground(Color.GREEN);
                 resultLabel.setText("Test connection successful!");
