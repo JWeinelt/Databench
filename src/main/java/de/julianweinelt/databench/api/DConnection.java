@@ -22,6 +22,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static de.julianweinelt.databench.ui.LanguageManager.translate;
+
 @Slf4j
 @Getter
 public class DConnection {
@@ -38,16 +40,25 @@ public class DConnection {
     private DefaultMutableTreeNode treeRoot;
     @Setter
     private JTree tree;
+    @Getter
+    private JPanel panel;
 
-    private final boolean lightEdit = false;
+    private final boolean lightEdit;
 
     public DConnection(Project project, BenchUI benchUI) {
+        this.lightEdit = false;
+        this.benchUI = benchUI;
+        this.project = project;
+    }
+
+    public DConnection(Project project, BenchUI benchUI, boolean lightEdit) {
+        this.lightEdit = lightEdit;
         this.benchUI = benchUI;
         this.project = project;
     }
 
     public void createNewConnectionTab() {
-        JPanel panel = new JPanel(new BorderLayout());
+        panel = new JPanel(new BorderLayout());
         benchUI.getFrame().setCursor(Cursor.getDefaultCursor());
 
         workTabs = new JTabbedPane();
@@ -74,48 +85,50 @@ public class DConnection {
         });
         toolBar.add(btnNewQuery);
 
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode("Project: " + getProject().getName() + " (" +
-                ((checkConnection()) ? "Connected" : "Disconnected") + ")");
+        DefaultMutableTreeNode root = new DefaultMutableTreeNode(translate("connection.tree.title") + getProject().getName() + " (" +
+                ((checkConnection()) ? translate("connection.status.connected") : translate("connection.status.disconnected")) + ")");
         setTreeRoot(root);
         setTree(new JTree(root));
-        getProjectTree();
-
-        JButton refreshBtn = new JButton("Refresh");
-        refreshBtn.addActionListener(e -> {
-            log.info("Refreshing project tree for {}", getProject().getName());
+        if (!lightEdit) {
             getProjectTree();
-        });
-        toolBar.add(refreshBtn);
-        tree.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                if (SwingUtilities.isRightMouseButton(e)) {
-                    TreePath path = tree.getPathForLocation(e.getX(), e.getY());
-                    if (path != null) {
-                        tree.setSelectionPath(path);
-                        DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
-                        showPopup(e, node);
-                    } else {
-                        showPopup(e, null);
+
+            JButton refreshBtn = new JButton(translate("connection.button.refresh"));
+            refreshBtn.addActionListener(e -> {
+                log.info("Refreshing project tree for {}", getProject().getName());
+                getProjectTree();
+            });
+            toolBar.add(refreshBtn);
+            tree.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mousePressed(MouseEvent e) {
+                    if (SwingUtilities.isRightMouseButton(e)) {
+                        TreePath path = tree.getPathForLocation(e.getX(), e.getY());
+                        if (path != null) {
+                            tree.setSelectionPath(path);
+                            DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+                            showPopup(e, node);
+                        } else {
+                            showPopup(e, null);
+                        }
                     }
                 }
-            }
 
-            private void showPopup(MouseEvent e, DefaultMutableTreeNode node) {
-                JPopupMenu menu;
-                if (node != null) {
-                    menu = createContextMenu(node, benchUI);
-                } else {
-                    menu = new JPopupMenu();
-                    JMenuItem newDB = new JMenuItem("Create new Database");
-                    newDB.addActionListener(a -> addEditorTab("CREATE DATABASE ${name};"));
-                    menu.add(newDB);
+                private void showPopup(MouseEvent e, DefaultMutableTreeNode node) {
+                    JPopupMenu menu;
+                    if (node != null) {
+                        menu = createContextMenu(node, benchUI);
+                    } else {
+                        menu = new JPopupMenu();
+                        JMenuItem newDB = new JMenuItem(translate("connection.tree.node.database.create"));
+                        newDB.addActionListener(a -> addEditorTab("CREATE DATABASE ${name};"));
+                        menu.add(newDB);
+                    }
+                    if (menu != null && menu.getComponentCount() > 0) {
+                        menu.show(tree, e.getX(), e.getY());
+                    }
                 }
-                if (menu != null && menu.getComponentCount() > 0) {
-                    menu.show(tree, e.getX(), e.getY());
-                }
-            }
-        });
+            });
+        }
 
         JScrollPane treeScroll = new JScrollPane(tree);
 
@@ -261,6 +274,7 @@ public class DConnection {
     }
 
     public CompletableFuture<Connection> connect() {
+        if (lightEdit) return CompletableFuture.completedFuture(null);
         Thread current = Thread.currentThread();
         ClassLoader previous = current.getContextClassLoader();
         current.setContextClassLoader(DriverManagerService.instance().getDriverLoader());
@@ -332,10 +346,10 @@ public class DConnection {
         SQLAnswer answer = null;
         try (PreparedStatement pS = conn.prepareStatement(sql)) {
             pS.execute();
-            answer = new SQLAnswer(true, pS.getResultSet(), pS.getUpdateCount(), "Query executed successfully.");
+            answer = new SQLAnswer(true, pS.getResultSet(), pS.getUpdateCount(), "Query executed successfully.", -1);
         } catch (SQLException e) {
             log.error(e.getMessage());
-            answer = new SQLAnswer(false, null, -1, e.getMessage());
+            answer = new SQLAnswer(false, null, -1, e.getMessage(), -1);
         }
         return answer;
     }
@@ -355,7 +369,7 @@ public class DConnection {
         benchUI.getFrame().setCursor(Cursor.WAIT_CURSOR);
         log.info("Refreshing project tree for {}", getProject().getName());
         treeRoot.removeAllChildren();
-        DefaultMutableTreeNode databases = new DefaultMutableTreeNode("Databases");
+        DefaultMutableTreeNode databases = new DefaultMutableTreeNode(translate("connection.tree.node.database.title"));
         treeRoot.add(databases);
         if (!checkConnection()) return;
         for (String s : getDatabases()) {
@@ -363,9 +377,9 @@ public class DConnection {
             DefaultMutableTreeNode db = new DefaultMutableTreeNode(s);
             databases.add(db);
 
-            DefaultMutableTreeNode tb = new DefaultMutableTreeNode("Tables");
-            DefaultMutableTreeNode views = new DefaultMutableTreeNode("Views");
-            DefaultMutableTreeNode procedures = new DefaultMutableTreeNode("Procedures");
+            DefaultMutableTreeNode tb = new DefaultMutableTreeNode(translate("connection.tree.node.tables.title"));
+            DefaultMutableTreeNode views = new DefaultMutableTreeNode("connection.tree.node.views.title");
+            DefaultMutableTreeNode procedures = new DefaultMutableTreeNode("connection.tree.node.procedures.title");
             db.add(tb);
             for (String t : getTables(s)) {
                 DefaultMutableTreeNode table = new DefaultMutableTreeNode(t);
@@ -402,23 +416,23 @@ public class DConnection {
                     Object userObject = node.getUserObject();
                     if ("SQL Agent".equals(userObject)) {
                         setIcon(new ImageIcon(getClass().getResource("/icons/app/agent.png")));
-                    } else if ("Tables".equals(userObject)) {
+                    } else if (translate("connection.tree.node.tables.title").equals(userObject)) {
                         setIcon(new ImageIcon(getClass().getResource("/icons/app/folder.png")));
-                    } else if ("Views".equals(userObject)) {
+                    } else if (translate("connection.tree.node.views.title").equals(userObject)) {
                         setIcon(new ImageIcon(getClass().getResource("/icons/app/folder.png")));
-                    } else if ("Procedures".equals(userObject)) {
+                    } else if (translate("connection.tree.node.procedures.title").equals(userObject)) {
                         setIcon(new ImageIcon(getClass().getResource("/icons/app/folder.png")));
-                    } else if ("Databases".equals(userObject)) {
+                    } else if (translate("connection.tree.node.database.title").equals(userObject)) {
                         setIcon(new ImageIcon(getClass().getResource("/icons/app/folder.png")));
                     }
                     DefaultMutableTreeNode parent = (DefaultMutableTreeNode) node.getParent();
                     if (parent != null) {
                         Object parentObject = parent.getUserObject();
-                        if ("Databases".equals(parentObject.toString())) {
+                        if (translate("connection.tree.node.database.title").equals(parentObject.toString())) {
                             setIcon(new ImageIcon(getClass().getResource("/icons/app/schema.png")));
-                        } else if ("Tables".equals(parentObject.toString())) {
+                        } else if (translate("connection.tree.node.tables.title").equals(parentObject.toString())) {
                             setIcon(new ImageIcon(getClass().getResource("/icons/app/table.png")));
-                        } else if ("Views".equals(parentObject.toString())) {
+                        } else if (translate("connection.tree.node.views.title").equals(parentObject.toString())) {
                             setIcon(new ImageIcon(getClass().getResource("/icons/app/view.png")));
                         } else if ("SQL Agent".equals(parentObject.toString())) {
                             setIcon(new ImageIcon(getClass().getResource("/icons/app/folder.png")));
@@ -684,7 +698,7 @@ public class DConnection {
         }
     }
 
-    public record SQLAnswer(boolean success, ResultSet resultSet, int updateCount, String message) {
+    public record SQLAnswer(boolean success, ResultSet resultSet, int updateCount, String message, long executionTimeMs) {
 
     }
 }

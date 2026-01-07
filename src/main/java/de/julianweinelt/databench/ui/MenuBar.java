@@ -1,5 +1,6 @@
 package de.julianweinelt.databench.ui;
 
+import de.julianweinelt.databench.data.Configuration;
 import de.julianweinelt.databench.ui.admin.AdministrationDialog;
 import de.julianweinelt.databench.ui.driver.DriverDownloadDialog;
 import de.julianweinelt.databench.ui.driver.DriverManagerDialog;
@@ -67,7 +68,10 @@ public class MenuBar {
             JMenu fileMenu = new JMenu(translate("menu.cat.file"));
             JMenuItem openButton = new JMenuItem(translate("menu.cat.file.open"));
             openButton.setAccelerator(
-                    KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK)
+                    Configuration.getConfiguration().getShortcut(
+                            ShortcutAction.OPEN_FILE.name(),
+                            ShortcutAction.OPEN_FILE.getDefaultKey()
+                    )
             );
             openButton.addActionListener(e -> {
                 JFileChooser fileChooser = new JFileChooser();
@@ -85,18 +89,30 @@ public class MenuBar {
             });
             JMenuItem saveButton = new JMenuItem(translate("menu.cat.file.save"));
             saveButton.setAccelerator(
-                    KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK)
+                    Configuration.getConfiguration().getShortcut(
+                            ShortcutAction.SAVE_FILE.name(),
+                            ShortcutAction.SAVE_FILE.getDefaultKey()
+                    )
             );
             saveButton.setEnabled(!disable);
             JMenuItem saveAsButton = new JMenuItem(translate("menu.cat.file.saveAs"));
             saveAsButton.setAccelerator(
-                    KeyStroke.getKeyStroke(KeyEvent.VK_S,
-                            InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK)
+                    Configuration.getConfiguration().getShortcut(
+                            ShortcutAction.SAVE_FILE_AS.name(),
+                            ShortcutAction.SAVE_FILE_AS.getDefaultKey()
+                    )
             );
             saveAsButton.setEnabled(!disable);
+
+            JMenuItem lightEditButton = new JMenuItem(translate("menu.cat.file.lightEdit"));
+            lightEditButton.addActionListener(e -> {
+                ui.createLightEdit();
+                lightEditButton.setEnabled(!ui.hasLightEdit());
+            });
             fileMenu.add(openButton);
             fileMenu.add(saveButton);
             fileMenu.add(saveAsButton);
+            fileMenu.add(lightEditButton);
             bar.add(fileMenu);
             menus.put("file", fileMenu);
             updateMenuBar();
@@ -117,12 +133,18 @@ public class MenuBar {
             JMenu editMenu = new JMenu(translate("menu.cat.edit"));
             JMenuItem undoButton = new JMenuItem(translate("menu.cat.edit.undo"));
             undoButton.setAccelerator(
-                    KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK)
+                    Configuration.getConfiguration().getShortcut(
+                            ShortcutAction.UNDO.name(),
+                            ShortcutAction.UNDO.getDefaultKey()
+                    )
             );
             undoButton.setEnabled(!disable);
             JMenuItem redoButton = new JMenuItem(translate("menu.cat.edit.redo"));
             redoButton.setAccelerator(
-                    KeyStroke.getKeyStroke(KeyEvent.VK_Y, InputEvent.CTRL_DOWN_MASK)
+                    Configuration.getConfiguration().getShortcut(
+                            ShortcutAction.REDO.name(),
+                            ShortcutAction.REDO.getDefaultKey()
+                    )
             );
             redoButton.setEnabled(!disable);
             JMenuItem cutButton = new JMenuItem(translate("menu.cat.edit.cut"));
@@ -132,7 +154,10 @@ public class MenuBar {
             cutButton.setEnabled(!disable);
             JMenuItem preferencesButton = new JMenuItem(translate("menu.cat.edit.preferences"));
             preferencesButton.setAccelerator(
-                    KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.CTRL_DOWN_MASK)
+                    Configuration.getConfiguration().getShortcut(
+                            ShortcutAction.PREFERENCES.name(),
+                            ShortcutAction.PREFERENCES.getDefaultKey()
+                    )
             );
             preferencesButton.addActionListener(e -> new SettingsDialog(frame).setVisible(true));
             editMenu.add(undoButton);
@@ -157,33 +182,42 @@ public class MenuBar {
     public void createSQLCategory(boolean disable) {
         if (!menus.containsKey("sql")) {
             JMenu sqlMenu = new JMenu("SQL");
-            JMenuItem newQueryButton = new JMenuItem("New Query");
+            JMenuItem newQueryButton = new JMenuItem(translate("menu.cat.sql.new.query"));
             newQueryButton.setEnabled(!disable);
-            JMenuItem newTableButton = new JMenuItem("New Table");
+            JMenuItem newTableButton = new JMenuItem(translate("menu.cat.sql.new.table"));
             newTableButton.setEnabled(!disable);
-            JMenuItem newViewButton = new JMenuItem("New View");
+            JMenuItem newViewButton = new JMenuItem(translate("menu.cat.sql.new.view"));
             newViewButton.setEnabled(!disable);
-            JMenuItem newProcedureButton = new JMenuItem("New Procedure");
+            JMenuItem newProcedureButton = new JMenuItem(translate("menu.cat.sql.new.procedure"));
             newProcedureButton.setEnabled(!disable);
-            JMenuItem backupButton = new JMenuItem("Backups");
+            JMenuItem backupButton = new JMenuItem(translate("menu.cat.sql.backups"));
             backupButton.setEnabled(!disable);
             backupButton.setAccelerator(
-                    KeyStroke.getKeyStroke(KeyEvent.VK_B, InputEvent.ALT_DOWN_MASK)
+                    Configuration.getConfiguration().getShortcut(
+                            ShortcutAction.BACKUPS.name(),
+                            ShortcutAction.BACKUPS.getDefaultKey()
+                    )
             );
-            JMenuItem adminButton = new JMenuItem("Administration");
+            JMenuItem adminButton = new JMenuItem(translate("menu.cat.sql.administration"));
             adminButton.addActionListener(e -> new AdministrationDialog(frame).setVisible(true));
             adminButton.setEnabled(!disable);
             adminButton.setAccelerator(
-                    KeyStroke.getKeyStroke(KeyEvent.VK_A, InputEvent.ALT_DOWN_MASK)
+                    Configuration.getConfiguration().getShortcut(
+                            ShortcutAction.ADMINISTRATION.name(),
+                            ShortcutAction.ADMINISTRATION.getDefaultKey()
+                    )
             );
 
-            JMenu drivers = new JMenu("Drivers");
-            JMenuItem downloadDriverButton = new JMenuItem("Download Drivers");
+            JMenu drivers = new JMenu(translate("menu.cat.sql.drivers"));
+            JMenuItem downloadDriverButton = new JMenuItem(translate("menu.cat.sql.drivers.download"));
             downloadDriverButton.addActionListener(e -> new DriverDownloadDialog(frame, false).setVisible(true));
-            JMenuItem manageDriverButton = new JMenuItem("Manage Drivers");
+            JMenuItem manageDriverButton = new JMenuItem(translate("menu.cat.sql.drivers.manage"));
 
             manageDriverButton.setAccelerator(
-                    KeyStroke.getKeyStroke(KeyEvent.VK_M, InputEvent.ALT_DOWN_MASK)
+                    Configuration.getConfiguration().getShortcut(
+                            ShortcutAction.MANAGE_DRIVERS.name(),
+                            ShortcutAction.MANAGE_DRIVERS.getDefaultKey()
+                    )
             );
             manageDriverButton.addActionListener(e -> new DriverManagerDialog(frame).setVisible(true));
             drivers.add(downloadDriverButton);

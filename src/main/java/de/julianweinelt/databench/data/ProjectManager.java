@@ -10,6 +10,7 @@ import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Getter
@@ -17,6 +18,9 @@ public class ProjectManager {
 
     private final List<Project> projects = new ArrayList<>();
     private final File projectsDir = new File("projects");
+
+    public static Project LIGHT_EDIT_PROJECT = new Project(UUID.fromString("94534fe5-771e-430e-97fe-58b78d4c79af")
+            , "Light Edit", "", "", "", "", false);
 
     public ProjectManager() {
         projectsDir.mkdirs();
