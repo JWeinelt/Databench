@@ -48,7 +48,16 @@ public class SettingsDialog extends JDialog {
 
         c.gridx = 1;
         c.weightx = 1;
-        panel.add(new JComboBox<>(LanguageManager.instance().getFriendlyNames().toArray()), c);
+        JComboBox<Object> comp = new JComboBox<>(LanguageManager.instance().getFriendlyNames().toArray());
+        comp.addActionListener(e -> {
+            String selected = (String) comp.getSelectedItem();
+
+            String langID = LanguageManager.instance().fromFriendlyName(selected);
+            log.info("Selected language: {}", langID);
+            Configuration.getConfiguration().setLocale(langID);
+            ConfigManager.getInstance().saveConfig();
+        });
+        panel.add(comp, c);
 
         c.gridx = 0;
         c.gridy++;
