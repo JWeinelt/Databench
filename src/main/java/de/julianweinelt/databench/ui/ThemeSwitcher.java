@@ -18,4 +18,11 @@ public class ThemeSwitcher {
             e.printStackTrace();
         }
     }
+
+    public static void updateAllWindows() {
+        for (Window window : Window.getWindows()) {
+            SwingUtilities.updateComponentTreeUI(window);
+            window.pack();
+        }
+    }
 }
