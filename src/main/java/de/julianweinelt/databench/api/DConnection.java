@@ -177,6 +177,18 @@ public class DConnection {
         return tab;
     }
 
+    public void disconnect() {
+        log.info("Disconnecting from {}", getProject().getName());
+        if (conn != null) {
+            try {
+                conn.close();
+                log.info("Successfully disconnected from {}", getProject().getName());
+            } catch (SQLException e) {
+                log.error(e.getMessage());
+            }
+        }
+    }
+
     private Map<String, String> resolvePlaceholders(String content) {
         Matcher matcher = PLACEHOLDER_PATTERN.matcher(content);
 
@@ -280,7 +292,7 @@ public class DConnection {
         current.setContextClassLoader(DriverManagerService.instance().getDriverLoader());
 
         CompletableFuture<Connection> future = new CompletableFuture<>();
-        final String DB_NAME = "jdbc:mysql://"+project.getServer() +"/"+project.getDefaultDatabase()+
+        final String DB_NAME = "jdbc:" + project.getDatabaseType().jdbcString + "://"+project.getServer() +"/"+project.getDefaultDatabase()+
                 "?useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&autoReconnect=true"
                 + (project.isUseSSL() ? "&useSSL=true&requireSSL=true" : "&useSSL=false");
 
@@ -367,19 +379,19 @@ public class DConnection {
 
     public void getProjectTree() {
         benchUI.getFrame().setCursor(Cursor.WAIT_CURSOR);
-        log.info("Refreshing project tree for {}", getProject().getName());
+        log.debug("Refreshing project tree for {}", getProject().getName());
         treeRoot.removeAllChildren();
         DefaultMutableTreeNode databases = new DefaultMutableTreeNode(translate("connection.tree.node.database.title"));
         treeRoot.add(databases);
         if (!checkConnection()) return;
         for (String s : getDatabases()) {
-            log.info("Adding database {}", s);
+            log.debug("Adding database {}", s);
             DefaultMutableTreeNode db = new DefaultMutableTreeNode(s);
             databases.add(db);
 
             DefaultMutableTreeNode tb = new DefaultMutableTreeNode(translate("connection.tree.node.tables.title"));
-            DefaultMutableTreeNode views = new DefaultMutableTreeNode("connection.tree.node.views.title");
-            DefaultMutableTreeNode procedures = new DefaultMutableTreeNode("connection.tree.node.procedures.title");
+            DefaultMutableTreeNode views = new DefaultMutableTreeNode(translate("connection.tree.node.views.title"));
+            DefaultMutableTreeNode procedures = new DefaultMutableTreeNode(translate("connection.tree.node.procedures.title"));
             db.add(tb);
             for (String t : getTables(s)) {
                 DefaultMutableTreeNode table = new DefaultMutableTreeNode(t);
@@ -456,12 +468,12 @@ public class DConnection {
 
         JPopupMenu menu = new JPopupMenu();
 
-        if (name.equals("Databases")) {
-            JMenuItem refresh = new JMenuItem("Refresh");
+        if (name.equals(translate("connection.tree.node.database.title"))) {
+            JMenuItem refresh = new JMenuItem(translate("connection.button.refresh"));
             refresh.addActionListener(e -> {
                 getProjectTree();
             });
-            JMenuItem newDB = new JMenuItem("New Database");
+            JMenuItem newDB = new JMenuItem(translate("connection.tree.node.database.create"));
             newDB.addActionListener(e -> {
                 addEditorTab("CREATE DATABASE ${name};");
             });
@@ -470,7 +482,7 @@ public class DConnection {
         }
 
         else if (node.getParent() != null &&
-                ((DefaultMutableTreeNode) node.getParent()).getUserObject().equals("Databases")) {
+                ((DefaultMutableTreeNode) node.getParent()).getUserObject().equals(translate("connection.tree.node.database.title"))) {
             JMenuItem drop = new JMenuItem("Drop Database");
             drop.addActionListener(e -> {
                 String dbName = node.getUserObject().toString();
@@ -489,17 +501,17 @@ public class DConnection {
             menu.add(createProcedure);
         }
 
-        else if (name.equals("Tables")) {
+        else if (name.equals(translate("connection.tree.node.tables.title"))) {
             JMenuItem create = new JMenuItem("Create new Table");
             create.addActionListener(e -> addCreateTableTab());
             menu.add(create);
-            JMenuItem refresh = new JMenuItem("Refresh");
+            JMenuItem refresh = new JMenuItem(translate("connection.button.refresh"));
             refresh.addActionListener(e -> getProjectTree());
             menu.add(refresh);
         }
 
         else if (node.getParent() != null &&
-                ((DefaultMutableTreeNode) node.getParent()).getUserObject().equals("Tables")) {
+                ((DefaultMutableTreeNode) node.getParent()).getUserObject().equals(translate("connection.tree.node.tables.title"))) {
             JMenuItem edit = new JMenuItem("Edit Table");
             JMenuItem select = new JMenuItem("Select Rows");
             select.addActionListener(e -> {
@@ -553,13 +565,13 @@ public class DConnection {
             menu.add(generatorMenu);
         }
 
-        else if (name.equals("Views")) {
+        else if (name.equals(translate("connection.tree.node.views.title"))) {
             JMenuItem create = new JMenuItem("Create new View");
             menu.add(create);
         }
 
         else if (node.getParent() != null &&
-                ((DefaultMutableTreeNode) node.getParent()).getUserObject().equals("Views")) {
+                ((DefaultMutableTreeNode) node.getParent()).getUserObject().equals(translate("connection.tree.node.views.title"))) {
             JMenuItem browse = new JMenuItem("Edit View ");
             JMenuItem select = new JMenuItem("Select data");
             JMenuItem drop = new JMenuItem("Drop View ");
@@ -568,7 +580,7 @@ public class DConnection {
             menu.add(drop);
         }
 
-        else if (name.equals("Procedures")) {
+        else if (name.equals(translate("connection.tree.node.procedures.title"))) {
             JMenuItem create = new JMenuItem("Create new Procedure");
             menu.add(create);
         }
