@@ -63,6 +63,12 @@
             <artifactId>autocomplete</artifactId>
             <version>3.3.2</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>1.25.0</version>
+        </dependency>
+
 
     </dependencies>
 
