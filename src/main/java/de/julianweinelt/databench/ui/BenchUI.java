@@ -1,13 +1,11 @@
 package de.julianweinelt.databench.ui;
 
-import com.formdev.flatlaf.FlatDarculaLaf;
-import com.formdev.flatlaf.FlatDarkLaf;
-import com.formdev.flatlaf.FlatIntelliJLaf;
-import com.formdev.flatlaf.FlatLightLaf;
+import com.formdev.flatlaf.*;
 import com.formdev.flatlaf.themes.FlatMacDarkLaf;
 import com.formdev.flatlaf.themes.FlatMacLightLaf;
 import de.julianweinelt.databench.api.DConnection;
 import de.julianweinelt.databench.api.DriverShim;
+import de.julianweinelt.databench.data.ConfigManager;
 import de.julianweinelt.databench.data.Configuration;
 import de.julianweinelt.databench.data.Project;
 import de.julianweinelt.databench.data.ProjectManager;
@@ -25,6 +23,9 @@ import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLNonTransientConnectionException;
 import java.util.HashMap;
+import java.util.Map;
+
+import static de.julianweinelt.databench.ui.LanguageManager.translate;
 
 @Slf4j
 @Getter
@@ -41,20 +42,25 @@ public class BenchUI {
 
     public void start() {
         Image icon = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/icon.png"));
-        switch (Configuration.getConfiguration().getSelectedTheme().toLowerCase()) {
-            case "light" -> FlatLightLaf.setup();
-            case "intellij" -> FlatIntelliJLaf.setup();
-            case "darcula" -> FlatDarculaLaf.setup();
-            case "darkmac" -> FlatMacDarkLaf.setup();
-            case "lightmac" -> FlatMacLightLaf.setup();
-            default -> FlatDarkLaf.setup();
-        }
+        String selected = Configuration.getConfiguration().getSelectedTheme();
+        FlatLaf laf = switch (selected) {
+            case "Light" -> new FlatLightLaf();
+            case "Dark" -> new FlatDarkLaf();
+            case "Darcula" -> new FlatDarculaLaf();
+            case "Dark (MacOS)" -> new FlatMacDarkLaf();
+            case "Light (MacOS)" -> new FlatMacLightLaf();
+            case "IntelliJ" -> new FlatIntelliJLaf();
+            default -> new FlatDarkLaf();
+        };
+        ThemeSwitcher.switchTheme(laf);
 
         tabbedPane = new JTabbedPane();
 
         frame = new JFrame();
         frame.setIconImage(icon);
-        frame.setBounds(50, 50, 1600, 900);
+        frame.setSize(1024, 600);
+        frame.setLocationRelativeTo(null);
+        if (Configuration.getConfiguration().isStoppedMaximized()) frame.setExtendedState(frame.getExtendedState() | JFrame.MAXIMIZED_BOTH);
         frame.setName("DataBench");
         frame.setTitle("DataBench v" + Configuration.getConfiguration().getClientVersion());
         frame.setLayout(new BorderLayout());
@@ -65,6 +71,9 @@ public class BenchUI {
         frame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
+                Configuration.getConfiguration().setStoppedMaximized(frame.getExtendedState() == JFrame.MAXIMIZED_BOTH);
+                ConfigManager.getInstance().saveConfig();
+
                 if (connections.isEmpty()) {
                     frame.dispose();
                     return;
@@ -84,13 +93,9 @@ public class BenchUI {
     }
 
     private void registerShortcuts(JFrame frame) {
-        KeyStroke newShortcut = KeyStroke.getKeyStroke(
-                KeyEvent.VK_N,
-                Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() // Ctrl (Win/Linux), Cmd (macOS)
-        );
-
         frame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-                .put(newShortcut, "create-object");
+                .put(Configuration.getConfiguration().getShortcut(ShortcutAction.NEW_FILE.name()
+                        , ShortcutAction.NEW_FILE.getDefaultKey()), "create-object");
 
         frame.getRootPane().getActionMap()
                 .put("create-object", new AbstractAction() {
@@ -106,7 +111,43 @@ public class BenchUI {
 
                         var type = dialog.getSelectedType();
                         if (type != null) {
-                            //handleCreate(type);
+                            if (connections.isEmpty()) {
+                                createLightEdit();
+                                try {Thread.sleep(100);} catch (InterruptedException ignored) {}
+                                DConnection c = connections.get(ProjectManager.LIGHT_EDIT_PROJECT);
+                                switch (type) {
+                                    case TABLE -> c.addCreateTableTab();
+                                    case VIEW -> JOptionPane.showMessageDialog(frame,
+                                            "View creation not yet implemented.", "Info",
+                                            JOptionPane.INFORMATION_MESSAGE);
+                                    case PROCEDURE -> JOptionPane.showMessageDialog(frame,
+                                            "Stored Procedure creation not yet implemented.", "Info",
+                                            JOptionPane.INFORMATION_MESSAGE);
+                                    case FUNCTION -> JOptionPane.showMessageDialog(frame,
+                                            "Function creation not yet implemented.", "Info",
+                                            JOptionPane.INFORMATION_MESSAGE);
+                                    case SCHEMA -> c.addEditorTab("CREATE DATABASE ${name};");
+                                }
+                            } else {
+                                int selectedIndex = tabbedPane.getSelectedIndex();
+                                if (selectedIndex == -1) return;
+                                DConnection c = connections.values().stream().toList().get(selectedIndex - 1);
+                                if (c == null) return;
+
+                                switch (type) {
+                                    case TABLE -> c.addCreateTableTab();
+                                    case VIEW -> JOptionPane.showMessageDialog(frame,
+                                            "View creation not yet implemented.", "Info",
+                                            JOptionPane.INFORMATION_MESSAGE);
+                                    case PROCEDURE -> JOptionPane.showMessageDialog(frame,
+                                            "Stored Procedure creation not yet implemented.", "Info",
+                                            JOptionPane.INFORMATION_MESSAGE);
+                                    case FUNCTION -> JOptionPane.showMessageDialog(frame,
+                                            "Function creation not yet implemented.", "Info",
+                                            JOptionPane.INFORMATION_MESSAGE);
+                                    case SCHEMA -> c.addEditorTab("CREATE DATABASE ${name};");
+                                }
+                            }
                         }
                     }
                 });
@@ -135,6 +176,32 @@ public class BenchUI {
         });
     }
 
+    public void createLightEdit() {
+        Project project = ProjectManager.LIGHT_EDIT_PROJECT;
+        log.info("Opening project " + project.getUuid());
+        frame.setCursor(Cursor.WAIT_CURSOR);
+        DConnection connection = new DConnection(project, this, true);
+        connections.put(project, connection);
+        connection.connect().thenAccept(conn -> {
+            connection.createNewConnectionTab();
+            frame.setCursor(Cursor.getDefaultCursor());
+        }).exceptionally(ex -> {
+            frame.setCursor(Cursor.getDefaultCursor());
+            if (ex.getCause() instanceof UnknownHostException || ex instanceof SQLNonTransientConnectionException)
+                JOptionPane.showMessageDialog(frame, "Could not contact database server.\nUnknown Host", "Failure", JOptionPane.ERROR_MESSAGE);
+            else
+                JOptionPane.showMessageDialog(frame, "No connection could be established.", "Failure", JOptionPane.ERROR_MESSAGE);
+            connections.remove(project);
+            if (ex instanceof ClassNotFoundException) return null;
+            connection.createNewConnectionTab();
+            log.error(ex.getMessage(), ex);
+            return null;
+        });
+    }
+    public boolean hasLightEdit() {
+        return connections.containsKey(ProjectManager.LIGHT_EDIT_PROJECT);
+    }
+
     public void updateProjectCards() {
         cardsContainer = new JPanel();
         cardsContainer.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 10));
@@ -153,16 +220,16 @@ public class BenchUI {
         JPanel topPanel = new JPanel(new BorderLayout(10, 0));
         topPanel.setOpaque(false);
 
-        JLabel title = new JLabel("DataBench");
+        JLabel title = new JLabel(translate("screen.main.welcome"));
         title.setFont(title.getFont().deriveFont(Font.BOLD, 28f));
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         buttonPanel.setOpaque(false);
 
-        JButton createProfile = new JButton("➕ Add Profile");
+        JButton createProfile = new JButton("➕ " + translate("screen.main.profile.create"));
         createProfile.addActionListener(e -> showAddProfilePopup());
 
-        JButton importProfile = new JButton("📂 Import Profile");
+        JButton importProfile = new JButton("📂 " + translate("screen.main.profile.import"));
         importProfile.addActionListener(e -> showImportProfilePopup());
 
         buttonPanel.add(createProfile);
@@ -204,12 +271,12 @@ public class BenchUI {
 
         mainPanel.add(tipsPanel, BorderLayout.SOUTH);
 
-        addNonClosableTab(tabbedPane, "Home", mainPanel);
+        addNonClosableTab(tabbedPane, translate("screen.main.home"), mainPanel);
     }
 
 
     private void showAddProfilePopup() {
-        JDialog popup = new JDialog(frame, "Add Profile", true);
+        JDialog popup = new JDialog(frame, translate("screen.main.profile.ui.add"), true);
         popup.setResizable(false);
         popup.setSize(500, 300);
         popup.setLayout(new GridBagLayout());
@@ -220,29 +287,29 @@ public class BenchUI {
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
 
-        JLabel nameLabel = new JLabel("Profile Name:");
+        JLabel nameLabel = new JLabel(translate("screen.main.profile.ui.form.name"));
         JTextField nameField = new JTextField();
 
-        JLabel hostLabel = new JLabel("Server (host:port):");
+        JLabel hostLabel = new JLabel(translate("screen.main.profile.ui.form.host"));
         JTextField hostField = new JTextField();
 
-        JLabel userLabel = new JLabel("Username:");
+        JLabel userLabel = new JLabel(translate("screen.main.profile.ui.form.username"));
         JTextField userField = new JTextField();
 
-        JLabel passwordLabel = new JLabel("Password:");
+        JLabel passwordLabel = new JLabel(translate("screen.main.profile.ui.form.password"));
         JPasswordField passwordField = new JPasswordField();
 
-        JCheckBox sslCheck = new JCheckBox("Use SSL");
+        JCheckBox sslCheck = new JCheckBox(translate("screen.main.profile.ui.form.useSSL"));
 
-        JLabel dbLabel = new JLabel("Default Database:");
+        JLabel dbLabel = new JLabel(translate("screen.main.profile.ui.form.defaultDB"));
         JTextField dbField = new JTextField();
 
         JLabel resultLabel = new JLabel("");
         resultLabel.setForeground(Color.RED);
 
 
-        JButton createButton = new JButton("Create");
-        JButton testButton = new JButton("Test Connection");
+        JButton createButton = new JButton(translate("screen.main.profile.ui.form.button.create"));
+        JButton testButton = new JButton("screen.main.profile.ui.form.button.test");
 
 
         int row = 0;
@@ -302,19 +369,19 @@ public class BenchUI {
         // ===== Button Actions =====
         createButton.addActionListener(e -> {
             if (nameField.getText().isBlank()) {
-                resultLabel.setText("Please enter a valid profile name.");
+                resultLabel.setText(translate("screen.main.profile.ui.feedback.noName"));
                 return;
             }
             if (hostField.getText().isBlank()) {
-                resultLabel.setText("Please enter server host and port.");
+                resultLabel.setText(translate("screen.main.profile.ui.feedback.noHost"));
                 return;
             }
             if (userField.getText().isBlank()) {
-                resultLabel.setText("Please enter a username.");
+                resultLabel.setText(translate("screen.main.profile.ui.feedback.noUser"));
                 return;
             }
             if (passwordField.getPassword().length == 0) {
-                resultLabel.setText("Please enter a password.");
+                resultLabel.setText(translate("screen.main.profile.ui.feedback.noPassword"));
                 return;
             }
 
@@ -366,10 +433,10 @@ public class BenchUI {
             boolean success = new DConnection(testProject, this).testConnection();
             if (success) {
                 resultLabel.setForeground(Color.GREEN);
-                resultLabel.setText("Test connection successful!");
+                resultLabel.setText(translate("screen.main.profile.ui.feedback.test.success"));
             } else {
                 resultLabel.setForeground(Color.RED);
-                resultLabel.setText("Test connection failed.");
+                resultLabel.setText(translate("screen.main.profile.ui.feedback.test.fail"));
             }
         });
 
@@ -456,10 +523,10 @@ public class BenchUI {
         root.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
 
         // ===== Header =====
-        JLabel title = new JLabel("Workspace of " + connection.getProject().getName());
+        JLabel title = new JLabel(translate("screen.project.start.title", Map.of("name", connection.getProject().getName())));
         title.setFont(title.getFont().deriveFont(Font.BOLD, 26f));
 
-        JLabel subtitle = new JLabel("Get started by choosing one of the following actions.");
+        JLabel subtitle = new JLabel(translate("screen.project.start.subtitle"));
         subtitle.setFont(subtitle.getFont().deriveFont(14f));
         subtitle.setForeground(Color.GRAY);
 
