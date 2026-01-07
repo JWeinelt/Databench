@@ -4,6 +4,7 @@ import com.formdev.flatlaf.*;
 import com.formdev.flatlaf.themes.FlatMacDarkLaf;
 import com.formdev.flatlaf.themes.FlatMacLightLaf;
 import de.julianweinelt.databench.api.DConnection;
+import de.julianweinelt.databench.api.DatabaseType;
 import de.julianweinelt.databench.api.DriverShim;
 import de.julianweinelt.databench.data.ConfigManager;
 import de.julianweinelt.databench.data.Configuration;
@@ -164,9 +165,11 @@ public class BenchUI {
             frame.setCursor(Cursor.getDefaultCursor());
         }).exceptionally(ex -> {
             frame.setCursor(Cursor.getDefaultCursor());
-            if (ex.getCause() instanceof UnknownHostException || ex instanceof SQLNonTransientConnectionException)
-                JOptionPane.showMessageDialog(frame, "Could not contact database server.\nUnknown Host", "Failure", JOptionPane.ERROR_MESSAGE);
-            else
+            if (ex.getMessage().contains("No suitable driver found")) {
+                JOptionPane.showMessageDialog(frame, "You don't have the needed drivers installed for " +
+                        "connecting to this database server.\nInstall them in the driver manager.", "Failure", JOptionPane.ERROR_MESSAGE);
+                return null;
+            } else
                 JOptionPane.showMessageDialog(frame, "No connection could be established.", "Failure", JOptionPane.ERROR_MESSAGE);
             connections.remove(project);
             if (ex instanceof ClassNotFoundException) return null;
@@ -301,6 +304,13 @@ public class BenchUI {
 
         JCheckBox sslCheck = new JCheckBox(translate("screen.main.profile.ui.form.useSSL"));
 
+        String[] dbTypes = new String[DatabaseType.values().length];
+        for (int i = 0; i < dbTypes.length; i++) {
+            dbTypes[i] = DatabaseType.values()[i].name();
+        }
+        JLabel typeLabel = new JLabel("Database Type:");
+        JComboBox<String> dbType = new JComboBox<>(dbTypes);
+
         JLabel dbLabel = new JLabel(translate("screen.main.profile.ui.form.defaultDB"));
         JTextField dbField = new JTextField();
 
@@ -309,7 +319,7 @@ public class BenchUI {
 
 
         JButton createButton = new JButton(translate("screen.main.profile.ui.form.button.create"));
-        JButton testButton = new JButton("screen.main.profile.ui.form.button.test");
+        JButton testButton = new JButton(translate("screen.main.profile.ui.form.button.test"));
 
 
         int row = 0;
@@ -349,6 +359,13 @@ public class BenchUI {
         row++;
         gbc.gridx = 0;
         gbc.gridy = row;
+        popup.add(typeLabel, gbc);
+        gbc.gridx = 1;
+        popup.add(dbType, gbc);
+
+        row++;
+        gbc.gridx = 0;
+        gbc.gridy = row;
         popup.add(dbLabel, gbc);
         gbc.gridx = 1;
         popup.add(dbField, gbc);
@@ -366,7 +383,6 @@ public class BenchUI {
         gbc.gridx = 1;
         popup.add(testButton, gbc);
 
-        // ===== Button Actions =====
         createButton.addActionListener(e -> {
             if (nameField.getText().isBlank()) {
                 resultLabel.setText(translate("screen.main.profile.ui.feedback.noName"));
@@ -390,6 +406,7 @@ public class BenchUI {
             String password = new String(passwordField.getPassword());
             boolean useSSL = sslCheck.isSelected();
             String defaultDB = dbField.getText().isBlank() ? null : dbField.getText();
+            DatabaseType type = DatabaseType.valueOf((dbType.getSelectedItem() == null) ? DatabaseType.MYSQL.name() : dbType.getSelectedItem().toString());
 
             Project project = new Project(
                     nameField.getText(),
@@ -397,7 +414,8 @@ public class BenchUI {
                     username,
                     password,
                     useSSL,
-                    defaultDB
+                    defaultDB,
+                    type
             );
 
             try {
@@ -427,7 +445,8 @@ public class BenchUI {
                     username,
                     password,
                     useSSL,
-                    defaultDB
+                    defaultDB,
+                    DatabaseType.MYSQL //TODO: Make dynamic
             );
 
             boolean success = new DConnection(testProject, this).testConnection();
@@ -479,6 +498,16 @@ public class BenchUI {
         closeButton.addActionListener(e -> {
             int i = tabbedPane.indexOfComponent(content);
             if (i != -1) tabbedPane.remove(i);
+
+            if (connections.size() <= i - 1) {
+                log.warn("Closing last connection. Closing project. Idx mismatch!");
+                return;
+            }
+
+            Project toClose = connections.keySet().stream().toList().get(i -1);
+            DConnection connection = connections.get(toClose);
+            connection.disconnect();
+            connections.remove(toClose);
         });
 
         tabPanel.add(label, BorderLayout.CENTER);
@@ -493,6 +522,16 @@ public class BenchUI {
                 } else if (SwingUtilities.isLeftMouseButton(e)) {
                     if (i != -1) tabbedPane.setSelectedIndex(i);
                 }
+
+                if (connections.size() <= i - 1) {
+                    log.warn("Closing last connection. Closing project. Idx mismatch!");
+                    return;
+                }
+
+                Project toClose = connections.keySet().stream().toList().get(i -1);
+                DConnection connection = connections.get(toClose);
+                connection.disconnect();
+                connections.remove(toClose);
             }
         };
 
@@ -516,49 +555,6 @@ public class BenchUI {
         tabPanel.add(label);
 
         tabbedPane.setTabComponentAt(index, tabPanel);
-    }
-
-    private JPanel createWelcomePanel(DConnection connection, BenchUI ui) {
-        JPanel root = new JPanel(new BorderLayout());
-        root.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
-
-        // ===== Header =====
-        JLabel title = new JLabel(translate("screen.project.start.title", Map.of("name", connection.getProject().getName())));
-        title.setFont(title.getFont().deriveFont(Font.BOLD, 26f));
-
-        JLabel subtitle = new JLabel(translate("screen.project.start.subtitle"));
-        subtitle.setFont(subtitle.getFont().deriveFont(14f));
-        subtitle.setForeground(Color.GRAY);
-
-        JPanel header = new JPanel();
-        header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
-        header.setOpaque(false);
-        header.add(title);
-        header.add(Box.createVerticalStrut(8));
-        header.add(subtitle);
-
-        root.add(header, BorderLayout.NORTH);
-
-        // ===== Actions =====
-        JPanel actions = new JPanel();
-        actions.setLayout(new BoxLayout(actions, BoxLayout.Y_AXIS));
-        actions.setOpaque(false);
-
-        actions.add(createActionButton("➕ New Query", connection::addEditorTab));
-
-        actions.add(Box.createVerticalStrut(10));
-
-        actions.add(createActionButton("🧱 Create Table", connection::addCreateTableTab));
-
-        actions.add(Box.createVerticalStrut(10));
-
-        actions.add(createActionButton("🔄 Refresh Schema", () -> {
-
-        }));
-
-        root.add(actions, BorderLayout.CENTER);
-
-        return root;
     }
 
     private JButton createActionButton(String text, Runnable action) {
