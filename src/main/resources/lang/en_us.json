@@ -8,10 +8,63 @@
   "menu.cat.file.open": "Open",
   "menu.cat.file.save": "Save",
   "menu.cat.file.saveAs": "Save As",
+  "menu.cat.file.lightEdit": "Lightedit",
 
   "menu.cat.edit": "Edit",
   "menu.cat.edit.undo": "Undo",
   "menu.cat.edit.redo": "Redo",
   "menu.cat.edit.cut": "Cut",
   "menu.cat.edit.preferences": "Preferences",
+
+  "menu.cat.sql.new.query": "New Query",
+  "menu.cat.sql.new.table": "New Table",
+  "menu.cat.sql.new.view": "New View",
+  "menu.cat.sql.new.procedure": "New Procedure",
+  "menu.cat.sql.backups": "Backups",
+  "menu.cat.sql.admin": "Administration",
+  "menu.cat.sql.drivers": "Drivers",
+  "menu.cat.sql.drivers.download": "Download Drivers",
+  "menu.cat.sql.drivers.manage": "Manage Drivers",
+
+  "screen.main.welcome": "Welcome to DataBench!",
+  "screen.main.home": "Home",
+  "screen.main.profile.import": "Import Profile",
+  "screen.main.profile.create": "Create Profile",
+  "screen.main.profile.ui.add": "Add Profile",
+  "screen.main.profile.ui.form.name": "Profile Name:",
+  "screen.main.profile.ui.form.host": "Server (host:port):",
+  "screen.main.profile.ui.form.username": "Username:",
+  "screen.main.profile.ui.form.password": "Password:",
+  "screen.main.profile.ui.form.useSSL": "Use SSL?",
+  "screen.main.profile.ui.form.defaultDB": "Default Database:",
+  "screen.main.profile.ui.form.button.create": "Create",
+  "screen.main.profile.ui.form.button.test": "Test Connection",
+  "screen.main.profile.ui.feedback.noName": "Please enter a valid profile name.",
+  "screen.main.profile.ui.feedback.noHost": "Please enter server host and port.",
+  "screen.main.profile.ui.feedback.noUser": "Please enter a username.",
+  "screen.main.profile.ui.feedback.noPassword": "Please enter a password.",
+  "screen.main.profile.ui.feedback.test.success": "Test Successful!",
+  "screen.main.profile.ui.feedback.test.fail": "Test Failed",
+
+  "screen.project.start.title": "Workspace of ${name}",
+  "screen.project.start.subtitle": "Get started by choosing one of the following actions.",
+
+  "connection.status.connected": "Connected",
+  "connection.status.disconnected": "Disconnected",
+  "connection.tree.title": "Project: ",
+  "connection.button.refresh": "Refresh",
+
+
+  "connection.tree.node.database.title": "Databases",
+  "connection.tree.node.tables.title": "Tables",
+  "connection.tree.node.views.title": "Views",
+  "connection.tree.node.procedures.title": "Procedures",
+
+  "connection.tree.node.database.create": "Create new Database",
+
+  "connection.editor.result.tabs.results": "Results",
+  "connection.editor.result.tabs.message": "Messages",
+  "connection.editor.result.status.rows": "Rows affected: ${count}",
+  "connection.editor.result.status.time": "Execution time: ${time} ms",
+
 }
