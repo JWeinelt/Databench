@@ -1,6 +1,7 @@
 package de.julianweinelt.databench.data;
 
 import de.julianweinelt.databench.DataBench;
+import de.julianweinelt.databench.api.DatabaseType;
 import de.julianweinelt.databench.ui.BenchUI;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +21,7 @@ public class ProjectManager {
     private final File projectsDir = new File("projects");
 
     public static Project LIGHT_EDIT_PROJECT = new Project(UUID.fromString("94534fe5-771e-430e-97fe-58b78d4c79af")
-            , "Light Edit", "", "", "", "", false);
+            , "Light Edit", "", "", "", "", false, DatabaseType.MYSQL);
 
     public ProjectManager() {
         projectsDir.mkdirs();

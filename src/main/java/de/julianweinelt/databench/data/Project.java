@@ -1,5 +1,6 @@
 package de.julianweinelt.databench.data;
 
+import de.julianweinelt.databench.api.DatabaseType;
 import de.julianweinelt.databench.api.ImagePanel;
 import de.julianweinelt.databench.ui.BenchUI;
 import lombok.AllArgsConstructor;
@@ -26,10 +27,12 @@ public class Project {
     private String password;
     private String defaultDatabase = "";
     private boolean useSSL = false;
+    private DatabaseType databaseType;
 
     private final int formatVersion = 1;
 
-    public Project(String name, String server, String username, String password, boolean useSSL, String defaultDatabase) {
+    public Project(String name, String server, String username, String password, boolean useSSL, String defaultDatabase, DatabaseType databaseType) {
+        this.databaseType = databaseType;
         this.uuid = UUID.randomUUID();
         this.name = name;
         this.server = server;
@@ -39,7 +42,8 @@ public class Project {
         this.defaultDatabase = defaultDatabase;
     }
 
-    public Project(UUID uuid, String name, String server, String username, String password, String defaultDatabase, boolean useSSL) {
+    public Project(UUID uuid, String name, String server, String username, String password, String defaultDatabase, boolean useSSL, DatabaseType databaseType) {
+        this.databaseType = databaseType;
         this.uuid = uuid;
         this.name = name;
         this.server = server;
@@ -50,7 +54,7 @@ public class Project {
     }
 
     public JPanel createCard(BenchUI ui) {
-        Image img = new ImageIcon(getClass().getResource("/icons/engine/mysql.png")).getImage();
+        Image img = new ImageIcon(getClass().getResource("/icons/engine/" + databaseType.engineName + ".png")).getImage();
         JPanel card = new ImagePanel(img);
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
         card.setPreferredSize(new Dimension(180, 120));
