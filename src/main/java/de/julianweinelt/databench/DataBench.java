@@ -9,6 +9,7 @@ import de.julianweinelt.databench.data.Configuration;
 import de.julianweinelt.databench.data.ProjectManager;
 import de.julianweinelt.databench.ui.BenchUI;
 import de.julianweinelt.databench.ui.LanguageManager;
+import de.julianweinelt.databench.ui.StartScreen;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,7 +48,9 @@ public class DataBench {
     @Getter
     private FileManager fileManager;
 
-    private CountDownLatch latch = new CountDownLatch(1);
+    private final CountDownLatch latch = new CountDownLatch(1);
+
+    private StartScreen startScreen;
 
     public static void main(String[] args) {
         // Prüfen, ob schon eine Instanz läuft
@@ -61,6 +64,9 @@ public class DataBench {
     }
 
     public void start(String[] filesToOpen) {
+        startScreen = new StartScreen();
+        startScreen.start();
+        try {Thread.sleep(1000);} catch (InterruptedException ignored) { /* Ignored */ }
         driverManagerService = new DriverManagerService();
         try {
             driverManagerService.preloadDrivers();
@@ -98,6 +104,8 @@ public class DataBench {
             log.info("Initializing UI...");
             ui = new BenchUI();
             ui.start();
+
+            startScreen.stop();
 
             if (filesToOpen != null) {
                 for (String path : filesToOpen) {
