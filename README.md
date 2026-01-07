@@ -8,6 +8,13 @@ analyze their MySQL/MariaDB databases.
 ## 🔒 Features
 - 😊 User-friendly interface for managing databases
 - 🚀 Integrated SQL editor with **syntax highlighting** and **auto-completion**
+- 🏣 Support for multiple database connections
+- 🗯 Support for different database types (MySQL, MariaDB, SQL Server, PostgreSQL, OracleSQL)
+- 🌜 Dark Mode support for comfortable coding
+- 📤 Export query results to CSV format
+- ⚙️ Lightweight and easy to install
+- 🔒 Secure and encrypted database connection details to share with team members
+
 <!-- 
 TODO Future features:
 - 🖼️ Visual query builder for creating complex queries without writing SQL code
@@ -15,11 +22,6 @@ TODO Future features:
 - 📫 Data import/export functionality
 - 🔓 Easily work together with team members with live collaboration features
 -->
-- 🏣 Support for multiple database connections
-- 🌜 Dark Mode support for comfortable coding
-- 📤 Export query results to CSV format
-- ⚙️ Lightweight and easy to install
-- 🔒 Secure and encrypted database connection details to share with team members
 
 ## ⚙️ How to Install
 **Download the latest release from the [GitHub Releases](https://github.com/JWeinelt/DataBench/releases) page.**
