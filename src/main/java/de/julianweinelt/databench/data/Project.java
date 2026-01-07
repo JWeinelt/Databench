@@ -19,7 +19,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 public class Project {
-    private UUID uuid = UUID.randomUUID();
+    private UUID uuid;
     private String name;
     private String server;
     private String username;
@@ -30,12 +30,23 @@ public class Project {
     private final int formatVersion = 1;
 
     public Project(String name, String server, String username, String password, boolean useSSL, String defaultDatabase) {
+        this.uuid = UUID.randomUUID();
         this.name = name;
         this.server = server;
         this.username = username;
         this.password = password;
         this.useSSL = useSSL;
         this.defaultDatabase = defaultDatabase;
+    }
+
+    public Project(UUID uuid, String name, String server, String username, String password, String defaultDatabase, boolean useSSL) {
+        this.uuid = uuid;
+        this.name = name;
+        this.server = server;
+        this.username = username;
+        this.password = password;
+        this.defaultDatabase = defaultDatabase;
+        this.useSSL = useSSL;
     }
 
     public JPanel createCard(BenchUI ui) {
