@@ -67,4 +67,16 @@
   "connection.editor.result.status.rows": "Rows affected: ${count}",
   "connection.editor.result.status.time": "Execution time: ${time} ms",
 
+  "drivmanage.installed.title": "Installed Drivers",
+  "drivmanage.driver.info": "Driver Information",
+  "drivmanage.button.install": "Install Drivers",
+  "drivmanage.button.uninstall": "Uninstall",
+  "drivmanage.button.reload": "Reload",
+  "drivmanage.button.close": "Close",
+  "drivmanage.info.class": "Driver Class:",
+  "drivmanage.info.urls": "Accepts URLs:",
+  "drivmanage.info.urls.unknown": "Unknown / driver-specific",
+  "drivmanage.popup.uninstall.confirm": "Do you really want to remove this driver?\n\n${driver}",
+  "drivmanage.popup.uninstall.title": "Uninstall Driver",
+  "drivmanage.title": "JDBC Driver Manager"
 }
