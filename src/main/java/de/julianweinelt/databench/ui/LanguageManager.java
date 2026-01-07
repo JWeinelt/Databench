@@ -3,6 +3,7 @@ package de.julianweinelt.databench.ui;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import de.julianweinelt.databench.DataBench;
 import de.julianweinelt.databench.data.Configuration;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +31,23 @@ public class LanguageManager {
     }
     public static String translate(String key) {
         return instance().getTranslation(key, Map.of());
+    }
+
+    public String fromFriendlyName(String friendlyName) {
+        File[] files = new File("locale").listFiles();
+        if (files == null) return "en_us";
+        for (File file : files) {
+            JsonObject o = loadData(file.getName().replace(".json", ""));
+            if (o.has("metaData") && o.get("metaData").getAsJsonObject().get("friendlyName").getAsString().equals(friendlyName)) {
+                int fileVersion = o.get("metaData").getAsJsonObject().get("fileVersion").getAsInt();
+                if (fileVersion != parserVersion) {
+                    log.warn("Loaded file for language {}, which has fileVersion {} (Parser Version {}), it may not work correctly.",
+                            file.getName(), fileVersion, parserVersion);
+                }
+                return o.get("metaData").getAsJsonObject().get("language").getAsString();
+            }
+        }
+        return "en_us";
     }
 
     public String getTranslation(String key, Map<String, String> placeholders) {
@@ -73,6 +91,9 @@ public class LanguageManager {
             preload();
             preLoadedLangData = new JsonObject();
             future.completeExceptionally(e);
+        } catch (JsonSyntaxException e) {
+            log.error(e.getMessage(), e);
+            log.error("Try to delete the locale file for {} and restart the application.", selectedLang);
         }
         return future;
     }
