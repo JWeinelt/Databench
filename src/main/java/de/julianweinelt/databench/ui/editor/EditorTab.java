@@ -18,6 +18,7 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.Instant;
 
 @Slf4j
 public class EditorTab implements IEditorTab {
@@ -189,7 +190,9 @@ public class EditorTab implements IEditorTab {
 
                         messageArea.append("Query executed successfully.\n");
                         messageArea.append(data.length + " rows returned.\n\n");
+                        messageArea.append("Executed at " + Instant.now() + "\n\n");
 
+                        bottomTabs.setSelectedIndex(1);
                     } else {
 
                         DConnection.SQLAnswer answer = connection.executeSQL(st);
@@ -200,6 +203,8 @@ public class EditorTab implements IEditorTab {
 
                             messageArea.append("Statement executed successfully.\n");
                             messageArea.append(affected + " rows affected.\n\n");
+                            messageArea.append("Executed at " + Instant.now() + "\n\n");
+                            messageArea.append("(Took " + answer.executionTimeMs() + " ms)\n\n");
                         } else {
                             messageArea.append("ERROR:\n" + answer.message() + "\n\n");
                         }
