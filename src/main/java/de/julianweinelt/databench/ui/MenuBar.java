@@ -198,7 +198,7 @@ public class MenuBar {
                             ShortcutAction.BACKUPS.getDefaultKey()
                     )
             );
-            JMenuItem adminButton = new JMenuItem(translate("menu.cat.sql.administration"));
+            JMenuItem adminButton = new JMenuItem(translate("menu.cat.sql.admin"));
             adminButton.addActionListener(e -> new AdministrationDialog(frame).setVisible(true));
             adminButton.setEnabled(!disable);
             adminButton.setAccelerator(
