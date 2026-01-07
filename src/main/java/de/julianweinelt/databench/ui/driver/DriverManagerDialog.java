@@ -11,6 +11,9 @@ import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Map;
+
+import static de.julianweinelt.databench.ui.LanguageManager.translate;
 
 public class DriverManagerDialog extends JDialog {
 
@@ -20,7 +23,7 @@ public class DriverManagerDialog extends JDialog {
     private final JTextArea infoArea = new JTextArea();
 
     public DriverManagerDialog(Window parent) {
-        super(parent, "JDBC Driver Manager", ModalityType.APPLICATION_MODAL);
+        super(parent, translate("drivmanage.title"), ModalityType.APPLICATION_MODAL);
         setSize(700, 420);
         setLocationRelativeTo(parent);
         setLayout(new BorderLayout(10, 10));
@@ -38,7 +41,7 @@ public class DriverManagerDialog extends JDialog {
         driverList.setCellRenderer(new DriverListRenderer());
 
         JScrollPane scroll = new JScrollPane(driverList);
-        scroll.setBorder(new TitledBorder("Installed Drivers"));
+        scroll.setBorder(new TitledBorder(translate("drivmanage.installed.title")));
         scroll.setPreferredSize(new Dimension(260, 0));
         return scroll;
     }
@@ -49,15 +52,15 @@ public class DriverManagerDialog extends JDialog {
         infoArea.setWrapStyleWord(true);
 
         JScrollPane scroll = new JScrollPane(infoArea);
-        scroll.setBorder(new TitledBorder("Driver Information"));
+        scroll.setBorder(new TitledBorder(translate("drivmanage.driver.info")));
         return scroll;
     }
 
     private Component createButtonPanel() {
-        JButton install = new JButton("Install Drivers");
-        JButton uninstall = new JButton("Uninstall");
-        JButton reload = new JButton("Reload");
-        JButton close = new JButton("Close");
+        JButton install = new JButton(translate("drivmanage.button.install"));
+        JButton uninstall = new JButton(translate("drivmanage.button.uninstall"));
+        JButton reload = new JButton(translate("drivmanage.button.reload"));
+        JButton close = new JButton(translate("drivmanage.button.close"));
 
         install.addActionListener(e -> {
             dispose();
@@ -113,7 +116,7 @@ public class DriverManagerDialog extends JDialog {
         boolean compliant = realDriver.jdbcCompliant();
 
         StringBuilder sb = new StringBuilder();
-        sb.append("Driver Class:\n")
+        sb.append(translate("drivmanage.info.class")).append("\n")
           .append(className).append("\n\n");
 
         sb.append("Version:\n")
@@ -126,7 +129,7 @@ public class DriverManagerDialog extends JDialog {
           .append(compliant)
           .append("\n\n");
 
-        sb.append("Accepts URLs:\n");
+        sb.append(translate("drivmanage.info.urls")).append("\n");
 
         List<String> knownUrls = guessJdbcUrls(realDriver);
         for (String url : knownUrls) {
@@ -145,7 +148,7 @@ public class DriverManagerDialog extends JDialog {
         if (name.contains("sqlserver")) urls.add("jdbc:sqlserver://host");
 
         if (urls.isEmpty()) {
-            urls.add("Unknown / driver-specific");
+            urls.add(translate("drivmanage.info.urls.unknown"));
         }
 
         return urls;
@@ -157,9 +160,8 @@ public class DriverManagerDialog extends JDialog {
 
         int result = JOptionPane.showConfirmDialog(
                 this,
-                "Do you really want to remove this driver?\n\n" +
-                driver.getClass().getName(),
-                "Confirm Uninstall",
+                translate("drivmanage.popup.uninstall.confirm", Map.of("driver", driver.getClass().getSimpleName())),
+                translate("drivmanage.popup.uninstall.title"),
                 JOptionPane.YES_NO_OPTION
         );
 
