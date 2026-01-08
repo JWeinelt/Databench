@@ -1,6 +1,7 @@
 package de.julianweinelt.databench.ui.editor;
 
 import de.julianweinelt.databench.api.DConnection;
+import de.julianweinelt.databench.data.Configuration;
 import de.julianweinelt.databench.ui.BenchUI;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +19,13 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.DateFormat;
 import java.time.Instant;
+import java.util.Date;
+import java.util.Locale;
+import java.util.Map;
+
+import static de.julianweinelt.databench.ui.LanguageManager.translate;
 
 @Slf4j
 public class EditorTab implements IEditorTab {
@@ -64,8 +71,8 @@ public class EditorTab implements IEditorTab {
         JToolBar editorToolBar = new JToolBar();
         editorToolBar.setFloatable(false);
 
-        runButton = new JButton("▶ Execute");
-        JButton formatButton = new JButton("Format");
+        runButton = new JButton("▶ " + translate("editor.button.run"));
+        JButton formatButton = new JButton(translate("editor.button.format"));
 
         editorToolBar.add(runButton);
         editorToolBar.add(formatButton);
@@ -131,21 +138,21 @@ public class EditorTab implements IEditorTab {
         messageArea.setFont(new Font("Consolas", Font.PLAIN, 12));
         JScrollPane messageScroll = new JScrollPane(messageArea);
 
-        bottomTabs.addTab("Messages", messageScroll);
+        bottomTabs.addTab("connection.editor.result.tabs.message", messageScroll);
 
         // ---- Results Tab (optional) ----
         JTable resultTable = new JTable();
         JScrollPane resultScroll = new JScrollPane(resultTable);
 
         Runnable showResultsTab = () -> {
-            if (bottomTabs.indexOfTab("Results") == -1) {
-                bottomTabs.addTab("Results", resultScroll);
+            if (bottomTabs.indexOfTab(translate("connection.editor.result.tabs.results")) == -1) {
+                bottomTabs.addTab(translate("connection.editor.result.tabs.results"), resultScroll);
             }
             bottomTabs.setSelectedComponent(resultScroll);
         };
 
         Runnable hideResultsTab = () -> {
-            int idx = bottomTabs.indexOfTab("Results");
+            int idx = bottomTabs.indexOfTab(translate("connection.editor.result.tabs.results"));
             if (idx != -1) {
                 bottomTabs.removeTabAt(idx);
             }
@@ -188,7 +195,8 @@ public class EditorTab implements IEditorTab {
                         resultTable.setModel(new DefaultTableModel(data, columns));
                         showResultsTab.run();
 
-                        messageArea.append("Query executed successfully.\n");
+                        messageArea.append(translate("query.execute.success"));
+                        messageArea.append("\n");
                         messageArea.append(data.length + " rows returned.\n\n");
                         messageArea.append("Executed at " + Instant.now() + "\n\n");
 
@@ -200,18 +208,23 @@ public class EditorTab implements IEditorTab {
                         if (answer.success()) {
 
                             int affected = answer.updateCount();
+                            DateFormat df = DateFormat.getDateInstance(DateFormat.SHORT, Locale.forLanguageTag(
+                                    Configuration.getConfiguration().getLocale().replace("_", "-")
+                            ));
 
-                            messageArea.append("Statement executed successfully.\n");
-                            messageArea.append(affected + " rows affected.\n\n");
-                            messageArea.append("Executed at " + Instant.now() + "\n\n");
-                            messageArea.append("(Took " + answer.executionTimeMs() + " ms)\n\n");
+                            messageArea.append(translate("query.execute.success"));
+                            messageArea.append("\n");
+                            messageArea.append(translate("query.execute.rows", Map.of("rows", "" + affected)));
+                            messageArea.append("\n\n");
+                            messageArea.append(translate("query.execute.time", Map.of("time", df.format(Date.from(Instant.now())))));
+                            messageArea.append("\n\n");
                         } else {
-                            messageArea.append("ERROR:\n" + answer.message() + "\n\n");
+                            messageArea.append((translate("query.execute.fail", Map.of("msg", answer.message()))));
                         }
                     }
 
                 } catch (Exception ex) {
-                    messageArea.append("ERROR:\n" + ex.getMessage() + "\n\n");
+                    messageArea.append((translate("query.execute.fail", Map.of("msg", ex.getMessage()))));
                 }
             }
 
@@ -239,9 +252,9 @@ public class EditorTab implements IEditorTab {
         }
 
         JFileChooser chooser = new JFileChooser(".");
-        chooser.setDialogTitle("Save SQL File");
+        chooser.setDialogTitle(translate("dialog.save.title"));
         chooser.setDialogType(JFileChooser.SAVE_DIALOG);
-        chooser.addChoosableFileFilter(new FileNameExtensionFilter("SQL File (*.sql)", "sql"));
+        chooser.addChoosableFileFilter(new FileNameExtensionFilter(translate("dialog.save.extension.sql"), "sql"));
 
         int returnValue = chooser.showSaveDialog(ui.getFrame());
         log.info(returnValue + "");
@@ -256,25 +269,27 @@ public class EditorTab implements IEditorTab {
                     fileSaved = true;
                 } catch (IOException e) {
                     log.error(e.getMessage());
-                    JOptionPane.showMessageDialog(ui.getFrame(), "Error saving SQL File: " + e.getMessage(),
-                            "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(ui.getFrame(), translate("dialog.title.error.message", Map.of("error", e.getMessage())),
+                            translate("dialog.title.error"), JOptionPane.ERROR_MESSAGE);
                 }
             } else {
                 try (FileWriter w = new FileWriter(saveFile)) {
                     w.write(editorArea.getText());
 
                     editorPanel.setName(saveFile.getName());
-                    JOptionPane.showMessageDialog(ui.getFrame(), "You may save SQL files with the .sql extension" +
-                            " for better compatibility.", "Warning", JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(ui.getFrame(), translate("dialog.save.wrong-format"),
+                            translate("dialog.title.warn"), JOptionPane.WARNING_MESSAGE);
                     fileSaved = true;
                 } catch (IOException e) {
                     log.error(e.getMessage());
-                    JOptionPane.showMessageDialog(ui.getFrame(), "Error saving SQL File: " + e.getMessage(),
-                            "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(ui.getFrame(), translate("dialog.title.error.message", Map.of("error", e.getMessage())),
+                            translate("dialog.title.error"), JOptionPane.ERROR_MESSAGE);
                 }
             }
         } else if (returnValue == JFileChooser.ERROR) {
-            JOptionPane.showMessageDialog(ui.getFrame(), "Error saving SQL File.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(ui.getFrame(), translate("dialog.title.error.message",
+                    Map.of("error", "Internal error. Code 1403")), translate("dialog.title.error")
+                    , JOptionPane.ERROR_MESSAGE);
         }
     }
 

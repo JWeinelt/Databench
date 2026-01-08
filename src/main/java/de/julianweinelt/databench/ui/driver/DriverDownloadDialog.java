@@ -5,6 +5,8 @@ import java.awt.*;
 import java.io.File;
 import java.util.Map;
 
+import static de.julianweinelt.databench.ui.LanguageManager.translate;
+
 public class DriverDownloadDialog extends JDialog {
 
     private final JComboBox<String> dbTypeBox;
@@ -48,7 +50,7 @@ public class DriverDownloadDialog extends JDialog {
     );
 
     public DriverDownloadDialog(Window parent, boolean modal) {
-        super(parent, "Download JDBC Driver", ModalityType.APPLICATION_MODAL);
+        super(parent, translate("dialog.driver.download.title"), ModalityType.APPLICATION_MODAL);
         this.modal = modal;
         setSize(520, 360);
         setLocationRelativeTo(parent);
@@ -63,13 +65,13 @@ public class DriverDownloadDialog extends JDialog {
         versionBox = new JComboBox<>();
 
         gbc.gridx = 0; gbc.gridy = 0;
-        formPanel.add(new JLabel("Database Type:"), gbc);
+        formPanel.add(new JLabel(translate("dialog.driver.download.dbtype")), gbc);
 
         gbc.gridx = 1;
         formPanel.add(dbTypeBox, gbc);
 
         gbc.gridx = 0; gbc.gridy = 1;
-        formPanel.add(new JLabel("Driver Version:"), gbc);
+        formPanel.add(new JLabel(translate("dialog.driver.download.version")), gbc);
 
         gbc.gridx = 1;
         formPanel.add(versionBox, gbc);
@@ -80,21 +82,14 @@ public class DriverDownloadDialog extends JDialog {
         infoArea.setEditable(false);
         infoArea.setLineWrap(true);
         infoArea.setWrapStyleWord(true);
-        infoArea.setText("""
-                Select the database type and driver version you want to install.
-                
-                The driver will be downloaded into the 'drivers' directory and
-                loaded automatically on the next application start.
-                
-                Only official JDBC drivers are provided.
-                """);
+        infoArea.setText(translate("dialog.driver.download.description"));
 
         JScrollPane scrollPane = new JScrollPane(infoArea);
         scrollPane.setBorder(BorderFactory.createTitledBorder("Information"));
         add(scrollPane, BorderLayout.CENTER);
 
-        JButton downloadButton = new JButton("Download");
-        JButton cancelButton = new JButton("Cancel");
+        JButton downloadButton = new JButton(translate("dialog.driver.download.button.download"));
+        JButton cancelButton = new JButton(translate("dialog.driver.download.button.close"));
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.add(cancelButton);

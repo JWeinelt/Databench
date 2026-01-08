@@ -5,6 +5,9 @@ import de.julianweinelt.databench.ui.BenchUI;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Map;
+
+import static de.julianweinelt.databench.ui.LanguageManager.translate;
 
 public class WelcomeTab implements IEditorTab {
     @Override
@@ -13,10 +16,10 @@ public class WelcomeTab implements IEditorTab {
         root.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
 
         // ===== Header =====
-        JLabel title = new JLabel("Workspace of " + connection.getProject().getName());
+        JLabel title = new JLabel(translate("editor.welcome.title", Map.of("project", connection.getProject().getName())));
         title.setFont(title.getFont().deriveFont(Font.BOLD, 26f));
 
-        JLabel subtitle = new JLabel("Get started by choosing one of the following actions.");
+        JLabel subtitle = new JLabel(translate("editor.welcome.subtitle"));
         subtitle.setFont(subtitle.getFont().deriveFont(14f));
         subtitle.setForeground(Color.GRAY);
 
@@ -34,17 +37,17 @@ public class WelcomeTab implements IEditorTab {
         actions.setLayout(new BoxLayout(actions, BoxLayout.Y_AXIS));
         actions.setOpaque(false);
 
-        actions.add(createActionButton("➕ New Query", connection::addEditorTab
+        actions.add(createActionButton("➕ " + translate("menu.cat.sql.new.query"), connection::addEditorTab
         ));
 
         actions.add(Box.createVerticalStrut(10));
 
-        actions.add(createActionButton("🧱 Create Table", connection::addCreateTableTab
+        actions.add(createActionButton("➕ " + translate("menu.cat.sql.new.table"), connection::addCreateTableTab
         ));
 
         actions.add(Box.createVerticalStrut(10));
 
-        actions.add(createActionButton("🔄 Refresh Schema", () -> {
+        actions.add(createActionButton("🔎 " + translate("editor.welcome.action.analyze"), () -> {
 
         }));
 
@@ -55,7 +58,7 @@ public class WelcomeTab implements IEditorTab {
 
     @Override
     public String getTitle() {
-        return "Welcome";
+        return translate("editor.welcome.tab.title");
     }
 
     private JButton createActionButton(String text, Runnable action) {

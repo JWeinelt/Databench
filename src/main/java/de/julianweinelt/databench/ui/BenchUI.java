@@ -63,7 +63,7 @@ public class BenchUI {
         frame.setLocationRelativeTo(null);
         if (Configuration.getConfiguration().isStoppedMaximized()) frame.setExtendedState(frame.getExtendedState() | JFrame.MAXIMIZED_BOTH);
         frame.setName("DataBench");
-        frame.setTitle("DataBench v" + Configuration.getConfiguration().getClientVersion());
+        frame.setTitle(translate("main.title", Map.of("version", Configuration.getConfiguration().getClientVersion())));
         frame.setLayout(new BorderLayout());
 
         registerShortcuts(frame);
@@ -166,11 +166,12 @@ public class BenchUI {
         }).exceptionally(ex -> {
             frame.setCursor(Cursor.getDefaultCursor());
             if (ex.getMessage().contains("No suitable driver found")) {
-                JOptionPane.showMessageDialog(frame, "You don't have the needed drivers installed for " +
-                        "connecting to this database server.\nInstall them in the driver manager.", "Failure", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(frame, translate("dialog.profile.open.driver.not-found.description"),
+                        translate("dialog.profile.open.driver.not-found.title"), JOptionPane.ERROR_MESSAGE);
                 return null;
             } else
-                JOptionPane.showMessageDialog(frame, "No connection could be established.", "Failure", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(frame, translate("dialog.profile.open.driver.no-connection.description"),
+                        translate("dialog.profile.open.driver.no-connection.title"), JOptionPane.ERROR_MESSAGE);
             connections.remove(project);
             if (ex instanceof ClassNotFoundException) return null;
             connection.createNewConnectionTab();
@@ -190,10 +191,6 @@ public class BenchUI {
             frame.setCursor(Cursor.getDefaultCursor());
         }).exceptionally(ex -> {
             frame.setCursor(Cursor.getDefaultCursor());
-            if (ex.getCause() instanceof UnknownHostException || ex instanceof SQLNonTransientConnectionException)
-                JOptionPane.showMessageDialog(frame, "Could not contact database server.\nUnknown Host", "Failure", JOptionPane.ERROR_MESSAGE);
-            else
-                JOptionPane.showMessageDialog(frame, "No connection could be established.", "Failure", JOptionPane.ERROR_MESSAGE);
             connections.remove(project);
             if (ex instanceof ClassNotFoundException) return null;
             connection.createNewConnectionTab();
@@ -570,9 +567,9 @@ public class BenchUI {
 
     private void showImportProfilePopup() {
         JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Import Project");
+        fileChooser.setDialogTitle(translate("dialog.profile.import.title"));
         fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
-                "DataBench Project Files (*.dbproj)", "dbproj"));
+                translate("dialog.save.extension.dbproj"), "dbproj"));
         fileChooser.setAcceptAllFileFilterUsed(false);
 
         int result = fileChooser.showOpenDialog(frame);
@@ -582,13 +579,13 @@ public class BenchUI {
         if (selectedFile == null || !selectedFile.exists()) return;
 
         JPanel passwordPanel = new JPanel(new BorderLayout(5, 5));
-        JLabel label = new JLabel("Enter encryption password (if any):");
+        JLabel label = new JLabel(translate("dialog.profile.import.password"));
         JPasswordField passField = new JPasswordField();
         passwordPanel.add(label, BorderLayout.NORTH);
         passwordPanel.add(passField, BorderLayout.CENTER);
 
         int option = JOptionPane.showConfirmDialog(frame, passwordPanel,
-                "Project Password", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+                translate("dialog.profile.import.password.title"), JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
         if (option != JOptionPane.OK_OPTION) return;
 
@@ -598,14 +595,14 @@ public class BenchUI {
             Project project = Project.loadFromFile(selectedFile, password);
             if (project == null) {
                 JOptionPane.showMessageDialog(frame,
-                        "Failed to import project. Make sure you entered the correct password.",
-                        "Import Error", JOptionPane.ERROR_MESSAGE);
+                        translate("dialog.profile.import.error.password"),
+                        "dialog.profile.import.error.title", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             if (ProjectManager.instance().projectExists(project.getName())) {
                 JOptionPane.showMessageDialog(frame,
-                        "A project with the same name already exists. Please choose a different name.",
-                        "Project Import", JOptionPane.WARNING_MESSAGE);
+                        translate("dialog.profile.import.error.duplicate"),
+                        translate("dialog.profile.import.warning.title"), JOptionPane.WARNING_MESSAGE);
                 project.setName(project.getName() + "_1");
             }
             ProjectManager.instance().addProject(project, password);
@@ -617,52 +614,153 @@ public class BenchUI {
             cardsContainer.repaint();
 
             JOptionPane.showMessageDialog(frame,
-                    "Project imported successfully: " + project.getName(),
-                    "Import Successful", JOptionPane.INFORMATION_MESSAGE);
+                    translate("dialog.profile.import.success", Map.of("name", project.getName())),
+                    translate("dialog.profile.import.success.title"), JOptionPane.INFORMATION_MESSAGE);
 
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(frame,
-                    "Failed to import project: " + ex.getMessage(),
-                    "Import Error", JOptionPane.ERROR_MESSAGE);
+                    translate("dialog.profile.import.error", Map.of("error", ex.getMessage())),
+                    translate("dialog.profile.import.error.title"), JOptionPane.ERROR_MESSAGE);
         }
     }
 
     public void showLicenseInfo() {
-        JDialog dialog = new JDialog(frame, "License Information", true);
+        JDialog dialog = new JDialog(frame, translate("dialog.license.title"), true);
         dialog.setResizable(false);
         dialog.setSize(600, 400);
         dialog.setLayout(new BorderLayout());
         dialog.setLocationRelativeTo(frame);
 
         String licenseText = """
-        This software is licensed under the GPLv3.
-
-        Libraries used:
-
-        rsyntaxtextarea 3.3.3 - BSD-3-Clause
-        https://bobbylight.github.io/RSTALanguageSupport/
-
-        autocomplete 3.3.2 - BSD-3-Clause
-        https://bobbylight.github.io/RSTALanguageSupport/
-
-        Logback Classic 1.5.19 - EPL-1.0
-        https://logback.qos.ch/
-
-        Jackson Databind 2.20.1 - Apache License 2.0
-        https://github.com/FasterXML/jackson-databind
-
-        Gson 2.13.1 - Apache License 2.0
-        https://github.com/google/gson
-
-        Lombok 1.18.38 - MIT
-        https://projectlombok.org/
-
-        FlatLaf 3.6 - Apache License 2.0
-        https://www.formdev.com/flatlaf/
-
-        MySQL Connector/J 9.4.0 - GPLv2 with FOSS License Exception
-        https://dev.mysql.com/downloads/connector/j/
-        """;
+                Copyright (C) 2025–2026 Julian Weinelt
+               \s
+                This program is free software: you can redistribute it and/or modify
+                it under the terms of the GNU General Public License as published by
+                the Free Software Foundation, either version 3 of the License, or
+                (at your option) any later version.
+               \s
+                This program is distributed in the hope that it will be useful,
+                but WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+                GNU General Public License for more details.
+               \s
+                You should have received a copy of the GNU General Public License
+                along with this program. If not, see <https://www.gnu.org/licenses/>.
+               \s
+                ---
+               \s
+                Third-Party Libraries
+               \s
+                This software uses the following third-party libraries.
+                Each library is distributed under its own license.
+               \s
+                ---
+               \s
+                Logback (logback-classic)
+                Copyright (C) 1999–2024 QOS.ch
+               \s
+                License: Eclipse Public License v1.0 / GNU LGPL 2.1
+               \s
+                This library is dual-licensed under the Eclipse Public License 1.0
+                and the GNU Lesser General Public License 2.1.
+               \s
+                ---
+               \s
+                Jackson Databind
+                Copyright (C) FasterXML, LLC
+               \s
+                License: Apache License 2.0
+               \s
+                Licensed under the Apache License, Version 2.0 (the "License");
+                you may not use this file except in compliance with the License.
+                You may obtain a copy of the License at
+               \s
+                https://www.apache.org/licenses/LICENSE-2.0
+               \s
+                ---
+               \s
+                Gson
+                Copyright (C) Google Inc.
+               \s
+                License: Apache License 2.0
+               \s
+                Licensed under the Apache License, Version 2.0 (the "License");
+                you may not use this file except in compliance with the License.
+                You may obtain a copy of the License at
+               \s
+                https://www.apache.org/licenses/LICENSE-2.0
+               \s
+                ---
+               \s
+                Lombok
+                Copyright (C) 2009–2024 The Project Lombok Authors
+               \s
+                License: MIT License
+               \s
+                Permission is hereby granted, free of charge, to any person obtaining
+                a copy of this software and associated documentation files (the
+                "Software"), to deal in the Software without restriction...
+               \s
+                ---
+               \s
+                FlatLaf
+                Copyright (C) FormDev Software GmbH
+               \s
+                License: Apache License 2.0
+               \s
+                Licensed under the Apache License, Version 2.0 (the "License");
+                you may not use this file except in compliance with the License.
+                You may obtain a copy of the License at
+               \s
+                https://www.apache.org/licenses/LICENSE-2.0
+               \s
+                ---
+               \s
+                JetBrains Annotations
+                Copyright (C) JetBrains s.r.o.
+               \s
+                License: Apache License 2.0
+               \s
+                Licensed under the Apache License, Version 2.0 (the "License");
+                you may not use this file except in compliance with the License.
+                You may obtain a copy of the License at
+               \s
+                https://www.apache.org/licenses/LICENSE-2.0
+               \s
+                ---
+               \s
+                RSyntaxTextArea
+                Copyright (C) Robert Futrell
+               \s
+                License: BSD 3-Clause License
+               \s
+                Redistribution and use in source and binary forms, with or without
+                modification, are permitted provided that the following conditions
+                are met...
+               \s
+                ---
+               \s
+                AutoComplete
+                Copyright (C) Robert Futrell
+               \s
+                License: BSD 3-Clause License
+               \s
+                Redistribution and use in source and binary forms, with or without
+                modification, are permitted provided that the following conditions
+                are met...
+               \s
+               \s
+                Apache Commons Compress
+                Copyright (C) The Apache Software Foundation
+               \s
+                License: Apache License 2.0
+               \s
+                Licensed under the Apache License, Version 2.0 (the "License");
+                you may not use this file except in compliance with the License.
+                You may obtain a copy of the License at
+               \s
+                https://www.apache.org/licenses/LICENSE-2.0
+       \s""";
 
         JTextArea textArea = new JTextArea(licenseText);
         textArea.setEditable(false);

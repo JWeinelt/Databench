@@ -78,5 +78,61 @@
   "drivmanage.info.urls.unknown": "Unknown / driver-specific",
   "drivmanage.popup.uninstall.confirm": "Do you really want to remove this driver?\n\n${driver}",
   "drivmanage.popup.uninstall.title": "Uninstall Driver",
-  "drivmanage.title": "JDBC Driver Manager"
+  "drivmanage.title": "JDBC Driver Manager",
+
+  "query.execute.success": "Query executed successfully.",
+  "query.execute.error": "Query execution failed: ${error}",
+  "query.execute.rows": "${rows} rows affected.",
+  "query.execute.time": "Executed at ${time}",
+
+  "dialog.save.title": "Save File",
+  "dialog.save.extension.sql": "SQL Files (*.sql)",
+  "dialog.save.extension.dbproj": "DataBench Project Files (*.dbproj)",
+  "dialog.save.wrong-format": "You may save files only with .sql extension.",
+  "dialog.title.warn": "Warning",
+  "dialog.title.error": "Error",
+  "dialog.title.error.message": "Error saving SQL File: ${error}",
+
+  "editor.button.run": "Execute",
+  "editor.button.format": "Format",
+
+  "editor.welcome.title": "Workspace of ${project}",
+  "editor.welcome.tab.title": "Welcome",
+  "editor.welcome.subtitle": "Get started by choosing one of the following actions.",
+  "editor.welcome.action.analyze": "Analyze Database",
+
+  "dialog.profile.import.password": "Enter encryption password (if any):",
+  "dialog.profile.import.password.title": "Project Password",
+  "dialog.profile.import.title": "Import Project",
+  "dialog.profile.import.success": "Project imported successfully: ${name}",
+  "dialog.profile.import.success.title": "Import Successful",
+  "dialog.profile.import.error": "Failed to import project: ${error}",
+  "dialog.profile.import.error.password": "Failed to import project. Make sure you entered the correct password.",
+  "dialog.profile.import.error.duplicate": "A project with the same name already exists. Please choose a different name.",
+  "dialog.profile.import.error.title": "Import Error",
+  "dialog.profile.import.warning.title": "Project Import",
+  "dialog.profile.open.driver.not-found.title": "No suitable driver found",
+  "dialog.profile.open.driver.not-found.description": "You don't have the needed drivers installed for connecting to this database server.\nInstall them in the driver manager.",
+  "dialog.profile.open.driver.no-connection.title": "Failure",
+  "dialog.profile.open.driver.no-connection.description": "No connection could be established.",
+
+  "main.title": "DataBench v${version}",
+
+  "dialog.license.title": "License Information",
+
+  "dialog.driver.download.title": "Download JDBC Drivers",
+  "dialog.driver.download.description": "Select the database type and driver version you want to install.\n\nThe driver will be downloaded into the 'drivers' directory and\nloaded automatically on the next application start.\n\nOnly official JDBC drivers are provided.",
+  "dialog.driver.download.dbtype": "Database Type:",
+  "dialog.driver.download.version": "Driver Version:",
+  "dialog.driver.download.button.download": "Download and Install",
+  "dialog.driver.download.button.close": "Close",
+  "dialog.driver.download.progress.title": "Downloading Driver",
+  "dialog.driver.download.progress.description": "Downloading ${dbtype} JDBC Driver version ${version}...",
+  "dialog.driver.download.progress.prepare": "Preparing download...",
+  "dialog.driver.download.progress.install": "Installing...",
+  "dialog.driver.download.progress.extract": "Extracting archives...",
+  "dialog.driver.download.success.title": "Download Successful",
+  "dialog.driver.download.success.description": "The ${dbtype} JDBC Driver version ${version} has been downloaded and installed successfully.",
+  "dialog.driver.download.error.title": "Download Failed",
+  "dialog.driver.download.error.description": "Failed to download the ${dbtype} JDBC Driver version ${version}:\n${error}"
 }
