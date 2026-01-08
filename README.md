@@ -1,6 +1,6 @@
 [![Build](https://github.com/JWeinelt/Databench/actions/workflows/maven.yml/badge.svg)](https://github.com/JWeinelt/Databench/actions/workflows/maven.yml)
 
-# DataBench 💾
+# 💾 DataBench
 
 Databench is a small open-source software tool designed to help users manage and 
 analyze their MySQL/MariaDB databases.
