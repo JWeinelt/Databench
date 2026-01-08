@@ -77,5 +77,61 @@
   "drivmanage.info.urls.unknown": "Unbekannt / treiberspezifisch",
   "drivmanage.popup.uninstall.confirm": "Willst du diesen Treiber wirklich entfernen?\n\n${driver}",
   "drivmanage.popup.uninstall.title": "Treiber deinstallieren",
-  "drivmanage.title": "JDBC-Treiberverwaltung"
+  "drivmanage.title": "JDBC-Treiberverwaltung",
+
+  "query.execute.success": "Abfrage erfolgreich ausgeführt.",
+  "query.execute.error": "Ausführung der Abfrage fehlgeschlagen: ${error}",
+  "query.execute.rows": "${rows} Zeilen betroffen.",
+  "query.execute.time": "Ausgeführt um ${time}",
+
+  "dialog.save.title": "Datei speichern",
+  "dialog.save.extension.sql": "SQL-Dateien (*.sql)",
+  "dialog.save.extension.dbproj": "DataBench-Projektdateien (*.dbproj)",
+  "dialog.save.wrong-format": "Dateien dürfen nur mit der Endung .sql gespeichert werden.",
+  "dialog.title.warn": "Warnung",
+  "dialog.title.error": "Fehler",
+  "dialog.title.error.message": "Fehler beim Speichern der SQL-Datei: ${error}",
+
+  "editor.button.run": "Ausführen",
+  "editor.button.format": "Formatieren",
+
+  "editor.welcome.title": "Arbeitsbereich von ${project}",
+  "editor.welcome.tab.title": "Willkommen",
+  "editor.welcome.subtitle": "Beginne, indem du eine der folgenden Aktionen auswählst.",
+  "editor.welcome.action.analyze": "Datenbank analysieren",
+
+  "dialog.profile.import.password": "Verschlüsselungspasswort eingeben (falls vorhanden):",
+  "dialog.profile.import.password.title": "Projektpasswort",
+  "dialog.profile.import.title": "Projekt importieren",
+  "dialog.profile.import.success": "Projekt erfolgreich importiert: ${name}",
+  "dialog.profile.import.success.title": "Import erfolgreich",
+  "dialog.profile.import.error": "Projekt konnte nicht importiert werden: ${error}",
+  "dialog.profile.import.error.password": "Projekt konnte nicht importiert werden. Stelle sicher, dass das Passwort korrekt ist.",
+  "dialog.profile.import.error.duplicate": "Ein Projekt mit demselben Namen existiert bereits. Bitte wähle einen anderen Namen.",
+  "dialog.profile.import.error.title": "Importfehler",
+  "dialog.profile.import.warning.title": "Projektimport",
+  "dialog.profile.open.driver.not-found.title": "Kein geeigneter Treiber gefunden",
+  "dialog.profile.open.driver.not-found.description": "Du hast die benötigten Treiber für die Verbindung zu diesem Datenbankserver nicht installiert.\nInstalliere sie in der Treiberverwaltung.",
+  "dialog.profile.open.driver.no-connection.title": "Fehlgeschlagen",
+  "dialog.profile.open.driver.no-connection.description": "Es konnte keine Verbindung hergestellt werden.",
+
+  "main.title": "DataBench Version ${version}",
+
+  "dialog.license.title": "Lizenzinformationen",
+
+  "dialog.driver.download.title": "JDBC-Treiber herunterladen",
+  "dialog.driver.download.description": "Wähle den Datenbanktyp und die Treiberversion aus, die du installieren möchtest.\n\nDer Treiber wird in das Verzeichnis „drivers“ heruntergeladen und\nbeim nächsten Start der Anwendung automatisch geladen.\n\nEs werden ausschließlich offizielle JDBC-Treiber bereitgestellt.",
+  "dialog.driver.download.dbtype": "Datenbanktyp:",
+  "dialog.driver.download.version": "Treiberversion:",
+  "dialog.driver.download.button.download": "Herunterladen und installieren",
+  "dialog.driver.download.button.close": "Schließen",
+  "dialog.driver.download.progress.title": "Treiber wird heruntergeladen",
+  "dialog.driver.download.progress.description": "Lade ${dbtype}-JDBC-Treiber Version ${version} herunter...",
+  "dialog.driver.download.progress.prepare": "Download wird vorbereitet...",
+  "dialog.driver.download.progress.install": "Installation läuft...",
+  "dialog.driver.download.progress.extract": "Archive werden entpackt...",
+  "dialog.driver.download.success.title": "Download erfolgreich",
+  "dialog.driver.download.success.description": "Der ${dbtype}-JDBC-Treiber Version ${version} wurde erfolgreich heruntergeladen und installiert.",
+  "dialog.driver.download.error.title": "Download fehlgeschlagen",
+  "dialog.driver.download.error.description": "Der ${dbtype}-JDBC-Treiber Version ${version} konnte nicht heruntergeladen werden:\n${error}"
 }
