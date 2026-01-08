@@ -3,7 +3,6 @@ package de.julianweinelt.databench.data;
 import de.julianweinelt.databench.api.DatabaseType;
 import de.julianweinelt.databench.api.ImagePanel;
 import de.julianweinelt.databench.ui.BenchUI;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -27,7 +26,7 @@ public class Project {
     private String password;
     private String defaultDatabase = "";
     private boolean useSSL = false;
-    private DatabaseType databaseType;
+    private DatabaseType databaseType = DatabaseType.MYSQL;
 
     private final int formatVersion = 1;
 
