@@ -39,3 +39,6 @@ build/
 /run-ui/
 /run-ui/
 /run-launcher/
+/run/
+/run-server/
+/run-worker/
