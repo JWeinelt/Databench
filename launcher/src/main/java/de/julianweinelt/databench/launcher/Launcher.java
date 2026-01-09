@@ -14,13 +14,14 @@ public class Launcher {
     private final File appFile = new File("../DataBench/DataBench.jar");
 
     public static void main(String[] args) {
+        new Launcher().start(args);
     }
 
     private void start(String[] args) {
         if (args.length != 0) {
             List<String> a = List.of(args);
             if (a.contains("--update")) {
-
+                update();
             }
         }
     }
