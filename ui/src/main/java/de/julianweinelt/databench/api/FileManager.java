@@ -78,7 +78,7 @@ public class FileManager {
         try (BufferedReader br = new BufferedReader(new FileReader(rootFile))) {
             String line;
             StringBuilder sb = new StringBuilder();
-            while ((line = br.readLine()) != null) sb.append(line);
+            while ((line = br.readLine()) != null) sb.append(line).append("\n");
 
             Type type = new TypeToken<List<ProjectFile>>(){}.getType();
             projectFiles = GSON.fromJson(sb.toString(), type);
