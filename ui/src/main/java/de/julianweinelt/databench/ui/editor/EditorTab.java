@@ -138,7 +138,7 @@ public class EditorTab implements IEditorTab {
         messageArea.setFont(new Font("Consolas", Font.PLAIN, 12));
         JScrollPane messageScroll = new JScrollPane(messageArea);
 
-        bottomTabs.addTab("connection.editor.result.tabs.message", messageScroll);
+        bottomTabs.addTab(translate("connection.editor.result.tabs.message"), messageScroll);
 
         // ---- Results Tab (optional) ----
         JTable resultTable = new JTable();
