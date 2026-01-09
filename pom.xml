@@ -12,6 +12,7 @@
         <module>ui</module>
         <module>launcher</module>
         <module>server</module>
+        <module>worker</module>
     </modules>
 
     <properties>
