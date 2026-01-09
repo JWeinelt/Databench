@@ -3,6 +3,7 @@ package de.julianweinelt.databench.api;
 import de.julianweinelt.databench.data.Project;
 import de.julianweinelt.databench.ui.BenchUI;
 import de.julianweinelt.databench.ui.editor.*;
+import de.julianweinelt.databench.util.FileUtil;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +16,7 @@ import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.sql.*;
 import java.util.*;
 import java.util.List;
@@ -151,8 +153,26 @@ public class DConnection {
         FileManager.instance().getProjectData(project, benchUI).forEach(this::addTab);
     }
 
+    public void handleFileEvent(File file) {
+        if (file.getName().endsWith(".sql")) {
+            String content = FileUtil.readFile(file);
+            addEditorTab(content);
+        } else {
+            log.warn("Unknown file type: {}", file.getName());
+            int val = JOptionPane.showConfirmDialog(benchUI.getFrame(), "Unknown file type: " + file.getName()
+                    + "\n\nShould DataBench try to load it anyway?", "File type mismatch", JOptionPane.YES_NO_OPTION);
+            if (val == JOptionPane.YES_OPTION) {
+                addEditorTab(FileUtil.readFile(file));
+            }
+        }
+    }
+
     public void addCreateTableTab() {
         addTab(new CreateTableTab(this).newTable());
+    }
+
+    public void addCreateViewTab() {
+        addTab(new CreateViewTab(this).newTable());
     }
 
     public void addCreateTableTab(String db, String table) {
@@ -292,17 +312,24 @@ public class DConnection {
         current.setContextClassLoader(DriverManagerService.instance().getDriverLoader());
 
         CompletableFuture<Connection> future = new CompletableFuture<>();
-        final String DB_NAME = "jdbc:" + project.getDatabaseType().jdbcString + "://"+project.getServer() +"/"+project.getDefaultDatabase()+
-                "?useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&autoReconnect=true"
-                + (project.isUseSSL() ? "&useSSL=true&requireSSL=true" : "&useSSL=false");
+        String DB_NAME = project.getDatabaseType().jdbcURL.replace("${server}", project.getServer())
+                .replace("${database}", project.getDefaultDatabase());
 
         try {
             // Establish a connection using the provided connection details
-            conn = DriverManager.getConnection(DB_NAME, project.getUsername(), project.getPassword());
-            future.complete(conn);
+            if (!project.getDatabaseType().equals(DatabaseType.MSSQL)) {
+                conn = DriverManager.getConnection(DB_NAME, project.getUsername(), project.getPassword());
+                future.complete(conn);
+            } else {
+                conn = DriverManager.getConnection(DB_NAME);
+                future.complete(conn);
+            }
         } catch (SQLException ex) {
             // Log any exception that occurs during the connection process
-            log.warn("MySQL connection failed: {}", ex.getMessage());
+            log.warn("SQL connection failed: {}", ex.getMessage());
+            if (project.getDatabaseType().equals(DatabaseType.MSSQL)) {
+                log.warn("SQL Server (Windows Auth) connection failed: {}", ex.getMessage());
+            }
             future.completeExceptionally(ex);
         } finally {
             current.setContextClassLoader(previous);
@@ -326,15 +353,21 @@ public class DConnection {
         }
     }
 
-    public List<String> getDatabases() {
-        List<String> databases = new ArrayList<>();
-        try (PreparedStatement pS = conn.prepareStatement("SHOW DATABASES;")) {
+    public List<DBObject> getDatabases() {
+        List<DBObject> databases = new ArrayList<>();
+        try (PreparedStatement pS = conn.prepareStatement(project.getDatabaseType().syntax.showDatabases())) {
             ResultSet rs = pS.executeQuery();
             while (rs.next()) {
-                if (rs.getString(1).equalsIgnoreCase("information_schema")) continue;
-                if (rs.getString(1).equalsIgnoreCase("performance_schema")) continue;
-                if (rs.getString(1).equalsIgnoreCase("mysql")) continue;
-                databases.add(rs.getString(1));
+                if (project.getDatabaseType().equals(DatabaseType.MSSQL)) {
+                    DBObject object = new DBObject(rs.getString(1), rs.getString(2).equals("OFFLINE"));
+                    databases.add(object);
+                } else {
+                    if (rs.getString(1).equalsIgnoreCase("information_schema")) continue;
+                    if (rs.getString(1).equalsIgnoreCase("performance_schema")) continue;
+                    if (rs.getString(1).equalsIgnoreCase("mysql")) continue;
+                    DBObject object = new DBObject(rs.getString(1), false);
+                    databases.add(object);
+                }
             }
         } catch (SQLException e) {
             log.error(e.getMessage());
@@ -345,7 +378,7 @@ public class DConnection {
     public List<String> getTables(String database) {
         List<String> tables = new ArrayList<>();
         try (PreparedStatement pS = conn.prepareStatement("USE " + database)) {pS.execute();} catch (SQLException e) {}
-        try (PreparedStatement pS = conn.prepareStatement("SHOW FULL TABLES IN " + database + " WHERE TABLE_TYPE = 'BASE TABLE'")) {
+        try (PreparedStatement pS = conn.prepareStatement(project.getDatabaseType().syntax.showTables().replace("${db}", database))) {
             ResultSet rs = pS.executeQuery();
             while (rs.next()) tables.add(rs.getString(1));
         } catch (SQLException e) {
@@ -368,7 +401,7 @@ public class DConnection {
 
     public List<String> getViews(String database) {
         List<String> views = new ArrayList<>();
-        try (PreparedStatement pS = conn.prepareStatement("SHOW FULL TABLES IN " + database + " WHERE TABLE_TYPE = 'VIEW';")) {
+        try (PreparedStatement pS = conn.prepareStatement(project.getDatabaseType().syntax.showViews().replace("${db}", database))) {
             ResultSet rs = pS.executeQuery();
             while (rs.next()) views.add(rs.getString(1));
         } catch (SQLException e) {
@@ -384,20 +417,21 @@ public class DConnection {
         DefaultMutableTreeNode databases = new DefaultMutableTreeNode(translate("connection.tree.node.database.title"));
         treeRoot.add(databases);
         if (!checkConnection()) return;
-        for (String s : getDatabases()) {
-            log.debug("Adding database {}", s);
-            DefaultMutableTreeNode db = new DefaultMutableTreeNode(s);
+        for (DBObject s : getDatabases()) {
+            log.debug("Adding database {}", s.name);
+            DefaultMutableTreeNode db = new DefaultMutableTreeNode(s.name + (s.offline ? " (offline)" : ""));
             databases.add(db);
+            if (s.offline) continue;
 
             DefaultMutableTreeNode tb = new DefaultMutableTreeNode(translate("connection.tree.node.tables.title"));
             DefaultMutableTreeNode views = new DefaultMutableTreeNode(translate("connection.tree.node.views.title"));
             DefaultMutableTreeNode procedures = new DefaultMutableTreeNode(translate("connection.tree.node.procedures.title"));
             db.add(tb);
-            for (String t : getTables(s)) {
+            for (String t : getTables(s.name)) {
                 DefaultMutableTreeNode table = new DefaultMutableTreeNode(t);
                 tb.add(table);
             }
-            for (String v : getViews(s)) {
+            for (String v : getViews(s.name)) {
                 DefaultMutableTreeNode view = new DefaultMutableTreeNode(v);
                 views.add(view);
             }
@@ -441,7 +475,10 @@ public class DConnection {
                     if (parent != null) {
                         Object parentObject = parent.getUserObject();
                         if (translate("connection.tree.node.database.title").equals(parentObject.toString())) {
-                            setIcon(new ImageIcon(getClass().getResource("/icons/app/schema.png")));
+                            if (userObject.toString().endsWith("(offline)")) {
+                                setIcon(new ImageIcon(getClass().getResource("/icons/app/schema_offline.png")));
+                            } else
+                                setIcon(new ImageIcon(getClass().getResource("/icons/app/schema.png")));
                         } else if (translate("connection.tree.node.tables.title").equals(parentObject.toString())) {
                             setIcon(new ImageIcon(getClass().getResource("/icons/app/table.png")));
                         } else if (translate("connection.tree.node.views.title").equals(parentObject.toString())) {
@@ -479,10 +516,12 @@ public class DConnection {
             });
             menu.add(refresh);
             menu.add(newDB);
-        }
-
-        else if (node.getParent() != null &&
+        } else if (node.getParent() != null &&
                 ((DefaultMutableTreeNode) node.getParent()).getUserObject().equals(translate("connection.tree.node.database.title"))) {
+            JMenuItem newDB = new JMenuItem(translate("connection.tree.node.database.create"));
+            newDB.addActionListener(e -> {
+                addEditorTab("CREATE DATABASE ${name};");
+            });
             JMenuItem drop = new JMenuItem("Drop Database");
             drop.addActionListener(e -> {
                 String dbName = node.getUserObject().toString();
@@ -492,8 +531,10 @@ public class DConnection {
                     t.execute();
                 }
             });
+            menu.add(newDB);
             menu.add(drop);
             JMenuItem createTable = new JMenuItem("Create new Table");
+            createTable.addActionListener(e -> addCreateTableTab());
             menu.add(createTable);
             JMenuItem createView = new JMenuItem("Create new View");
             menu.add(createView);
@@ -567,14 +608,18 @@ public class DConnection {
 
         else if (name.equals(translate("connection.tree.node.views.title"))) {
             JMenuItem create = new JMenuItem("Create new View");
+            create.addActionListener(e -> addCreateViewTab());
             menu.add(create);
         }
 
         else if (node.getParent() != null &&
                 ((DefaultMutableTreeNode) node.getParent()).getUserObject().equals(translate("connection.tree.node.views.title"))) {
+            JMenuItem create = new JMenuItem("Create new View");
+            create.addActionListener(e -> addCreateViewTab());
             JMenuItem browse = new JMenuItem("Edit View ");
             JMenuItem select = new JMenuItem("Select data");
             JMenuItem drop = new JMenuItem("Drop View ");
+            menu.add(create);
             menu.add(browse);
             menu.add(select);
             menu.add(drop);
@@ -711,6 +756,36 @@ public class DConnection {
     }
 
     public record SQLAnswer(boolean success, ResultSet resultSet, int updateCount, String message, long executionTimeMs) {
+        public boolean hasResultSet() {
+            return resultSet != null;
+        }
 
+        public List<String> columns() throws SQLException {
+            ResultSetMetaData meta = resultSet.getMetaData();
+
+            int columnCount = meta.getColumnCount();
+            String[] columns = new String[columnCount];
+            for (int i = 0; i < columnCount; i++) {
+                columns[i] = meta.getColumnLabel(i + 1);
+            }
+            return List.of(columns);
+        }
+        public Object[][] rows() throws SQLException {
+            ResultSetMetaData meta = resultSet.getMetaData();
+            int columnCount = meta.getColumnCount();
+            List<Object[]> rows = new ArrayList<>();
+
+            while (resultSet.next()) {
+                Object[] row = new Object[columnCount];
+                for (int i = 0; i < columnCount; i++) {
+                    row[i] = resultSet.getObject(i + 1);
+                }
+                rows.add(row);
+            }
+
+            return rows.toArray(new Object[0][]);
+        }
     }
+
+    public record DBObject(String name, boolean offline) {}
 }
