@@ -24,6 +24,18 @@ public class DriverDownloadWrapper {
                 return new DriverDownload("https://dlm.mariadb.com/"  + id + "/Connectors/java/connector-java-"
                         + version + "/mariadb-java-client-" + version + ".jar", false, "mariadb.jar");
             }
+            case "mssql" -> {
+                return new DriverDownload(
+                        "https://github.com/microsoft/mssql-jdbc/releases/download/v" + version + "/mssql-jdbc-" + version + ".jre11.jar",
+                        false, "mssql.jar"
+                );
+            }
+            case "postgresql" -> {
+                return new DriverDownload(
+                        "https://github.com/pgjdbc/pgjdbc/releases/download/REL%s/postgresql-%s.jar".formatted(version, version),
+                        false, "postgresql.jar"
+                );
+            }
         }
         return null;
     }

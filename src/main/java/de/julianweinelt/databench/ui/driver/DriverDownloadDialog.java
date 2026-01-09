@@ -46,8 +46,28 @@ public class DriverDownloadDialog extends JDialog {
     private final Map<String, String[]> versions = Map.of(
             "mysql", mySQLVersions,
             "mariadb", new String[]{"3.5.7", "3.4.0", "2.7.13"},
-            "mssql", new String[]{"13.2.1"}
+            "mssql", new String[]{"13.2.1", "12.10.2", "12.8.2"},
+            "postgresql", new String[]{"42.7.8", "42.7.7", "42.7.6", "42.7.5", "42.7.4", "42.7.3", "42.7.1"}
     );
+
+    private String fromInternalDBName(String name) {
+        return switch (name) {
+            case "mysql" -> "MySQL";
+            case "mariadb" -> "MariaDB";
+            case "mssql" -> "Microsoft SQL Server";
+            case "postgresql" -> "Postgre SQL";
+            default -> name;
+        };
+    }
+    private String toInternalDBName(String name) {
+        return switch (name) {
+            case "MySQL" -> "mysql";
+            case "MariaDB" -> "mariadb";
+            case "Microsoft SQL Server" -> "mssql";
+            case "Postgre SQL" -> "postgresql";
+            default -> name;
+        };
+    }
 
     public DriverDownloadDialog(Window parent, boolean modal) {
         super(parent, translate("dialog.driver.download.title"), ModalityType.APPLICATION_MODAL);
@@ -61,7 +81,13 @@ public class DriverDownloadDialog extends JDialog {
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.anchor = GridBagConstraints.WEST;
 
-        dbTypeBox = new JComboBox<>(versions.keySet().toArray(new String[0]));
+        String[] dbEngines = new String[versions.size()];
+        int i = 0;
+        for (String s : versions.keySet()) {
+            dbEngines[i++] = fromInternalDBName(s);
+        }
+
+        dbTypeBox = new JComboBox<>(dbEngines);
         versionBox = new JComboBox<>();
 
         gbc.gridx = 0; gbc.gridy = 0;
@@ -109,7 +135,7 @@ public class DriverDownloadDialog extends JDialog {
             if (db == null) return;
             String version = (String) versionBox.getSelectedItem();
 
-            DriverDownloadWrapper.DriverDownload driverDownload = DriverDownloadWrapper.getForDB(db, version);
+            DriverDownloadWrapper.DriverDownload driverDownload = DriverDownloadWrapper.getForDB(toInternalDBName(db), version);
             if (driverDownload == null) return;
 
             new DriverDownloadProgressDialog(this, driverDownload.url(), new File("drivers"),
@@ -121,7 +147,7 @@ public class DriverDownloadDialog extends JDialog {
         versionBox.removeAllItems();
         String selectedDb = (String) dbTypeBox.getSelectedItem();
         if (selectedDb != null) {
-            for (String v : versions.get(selectedDb)) {
+            for (String v : versions.get(toInternalDBName(selectedDb))) {
                 versionBox.addItem(v);
             }
         }
