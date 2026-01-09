@@ -185,6 +185,7 @@ public class EditorTab implements IEditorTab {
 
                 @Override
                 protected Void doInBackground() {
+                    long firstTime = System.currentTimeMillis();
 
                     String[] statements = sql.split(";");
 
@@ -208,9 +209,12 @@ public class EditorTab implements IEditorTab {
                                     bottomTabs.setSelectedIndex(1);
                                 });
 
+                                long nowTime = System.currentTimeMillis();
+
                                 publish(translate("query.execute.success"));
                                 publish(data.length + " rows returned.");
                                 publish("Executed at " + Instant.now());
+                                publish("Took " + (nowTime - firstTime) + " ms.");
                                 publish("");
 
                             } else {
@@ -242,16 +246,16 @@ public class EditorTab implements IEditorTab {
 
                                 } else {
                                     publish(translate(
-                                            "query.execute.fail",
-                                            Map.of("msg", answer.message())
+                                            "query.execute.error",
+                                            Map.of("error", answer.message())
                                     ));
                                 }
                             }
 
                         } catch (Exception ex) {
                             publish(translate(
-                                    "query.execute.fail",
-                                    Map.of("msg", ex.getMessage())
+                                    "query.execute.error",
+                                    Map.of("error", ex.getMessage())
                             ));
                         }
                     }
