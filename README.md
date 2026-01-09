@@ -1,4 +1,6 @@
-[![Build](https://github.com/JWeinelt/Databench/actions/workflows/maven.yml/badge.svg)](https://github.com/JWeinelt/Databench/actions/workflows/maven.yml)
+[![Build](https://github.com/JWeinelt/Databench/actions/workflows/maven.yml/badge.svg)](https://github.com/JWeinelt/Databench/actions/workflows/maven.yml) [![Crowdin](https://badges.crowdin.net/databench/localized.svg)](https://crowdin.com)
+
+[![Translate](https://github.com/intergrav/devins-badges/blob/v3/assets/cozy/translate/crowdin_64h.png?raw=true)](https://crowdin.com/project/databench)
 
 # 💾 DataBench
 

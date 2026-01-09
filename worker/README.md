@@ -7,7 +7,7 @@ With the DataBench Worker, you can schedule SQL jobs to run at specific times or
 automating routine database tasks such as backups, maintenance, and data processing.
 
 ## ⚙️ Installing on your server
-> [!INFO]
+> [!NOTE]
 > You may also install the DataBench Worker on another machine than your database server,
 > but you have to make sure that the worker can connect to your database server.
  
@@ -18,7 +18,7 @@ automating routine database tasks such as backups, maintenance, and data process
 - A database user with sufficient privileges to execute the scheduled SQL jobs.
 - (Optional) Firewall rules allowing incoming connections to the DataBench Worker on the specified port.
 
-> [!INFO]
+> [!TIP]
 > You may open the port ``25295`` on your firewall to allow remote access to the DataBench Worker.
 > This is required if you want to manage the sql agent jobs from DataBench.
 
