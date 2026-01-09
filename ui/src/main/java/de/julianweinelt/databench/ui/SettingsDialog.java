@@ -232,7 +232,7 @@ public class SettingsDialog extends JDialog {
         final JDialog dialog = new JDialog(
                 SwingUtilities.getWindowAncestor(parent),
                 "Press shortcut",
-                Dialog.ModalityType.APPLICATION_MODAL
+                ModalityType.APPLICATION_MODAL
         );
 
         JLabel label = new JLabel("Press the desired key combination…", SwingConstants.CENTER);

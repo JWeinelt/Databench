@@ -31,7 +31,7 @@ public class DConnection {
         Pattern.compile("\\$\\{([a-zA-Z0-9_]+)}");
     private final Project project;
     private BenchUI benchUI;
-    private java.sql.Connection conn;
+    private Connection conn;
     @Setter
     private JTabbedPane workTabs;
     private final List<IEditorTab> editorTabs = new ArrayList<>();

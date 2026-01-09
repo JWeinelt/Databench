@@ -112,7 +112,7 @@ public class DataBench {
                     File f = new File(path);
                     if (f.exists() && ui != null) {
                         final File fileToOpen = f;
-                        javax.swing.SwingUtilities.invokeLater(() -> {
+                        SwingUtilities.invokeLater(() -> {
                             //TODO: Open file in UI
                         });
                     }
@@ -207,7 +207,7 @@ public class DataBench {
                             String filePath = in.nextLine();
                             final File file = new File(filePath);
                             if (file.exists() && ui != null) {
-                                javax.swing.SwingUtilities.invokeLater(() -> {
+                                SwingUtilities.invokeLater(() -> {
                                     //TODO: Open file in UI
                                 });
                             }
