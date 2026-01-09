@@ -15,6 +15,7 @@ public class Launcher {
 
     public static void main(String[] args) {
         new Launcher().start(args);
+        //TODO: Add JVM args or System.load for dll lib loading for mssql
     }
 
     private void start(String[] args) {
