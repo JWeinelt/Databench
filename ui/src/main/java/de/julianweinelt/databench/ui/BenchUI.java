@@ -12,6 +12,7 @@ import de.julianweinelt.databench.data.Project;
 import de.julianweinelt.databench.data.ProjectManager;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -180,7 +181,7 @@ public class BenchUI {
         });
     }
 
-    public void createLightEdit() {
+    public DConnection createLightEdit() {
         Project project = ProjectManager.LIGHT_EDIT_PROJECT;
         log.info("Opening project " + project.getUuid());
         frame.setCursor(Cursor.WAIT_CURSOR);
@@ -197,9 +198,21 @@ public class BenchUI {
             log.error(ex.getMessage(), ex);
             return null;
         });
+        return connection;
     }
     public boolean hasLightEdit() {
         return connections.containsKey(ProjectManager.LIGHT_EDIT_PROJECT);
+    }
+
+
+    /**
+     * Retrieves the connection associated with the LIGHT_EDIT_PROJECT, if available.
+     *
+     * @return the DConnection associated with LIGHT_EDIT_PROJECT, or null if no connection exists.
+     */
+    @Nullable
+    public DConnection getLightEdit() {
+        return connections.getOrDefault(ProjectManager.LIGHT_EDIT_PROJECT, null);
     }
 
     public void updateProjectCards() {
@@ -278,7 +291,7 @@ public class BenchUI {
     private void showAddProfilePopup() {
         JDialog popup = new JDialog(frame, translate("screen.main.profile.ui.add"), true);
         popup.setResizable(false);
-        popup.setSize(500, 300);
+        popup.setSize(500, 350);
         popup.setLayout(new GridBagLayout());
         popup.setLocationRelativeTo(frame);
 
@@ -286,6 +299,13 @@ public class BenchUI {
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
+
+        String[] dbTypes = new String[DatabaseType.values().length];
+        for (int i = 0; i < dbTypes.length; i++) {
+            dbTypes[i] = DatabaseType.values()[i].name();
+        }
+        JLabel typeLabel = new JLabel("Database Type:");
+        JComboBox<String> dbType = new JComboBox<>(dbTypes);
 
         JLabel nameLabel = new JLabel(translate("screen.main.profile.ui.form.name"));
         JTextField nameField = new JTextField();
@@ -301,19 +321,26 @@ public class BenchUI {
 
         JCheckBox sslCheck = new JCheckBox(translate("screen.main.profile.ui.form.useSSL"));
 
-        String[] dbTypes = new String[DatabaseType.values().length];
-        for (int i = 0; i < dbTypes.length; i++) {
-            dbTypes[i] = DatabaseType.values()[i].name();
-        }
-        JLabel typeLabel = new JLabel("Database Type:");
-        JComboBox<String> dbType = new JComboBox<>(dbTypes);
-
         JLabel dbLabel = new JLabel(translate("screen.main.profile.ui.form.defaultDB"));
         JTextField dbField = new JTextField();
+
+        JLabel useWinAuthLabel = new JLabel(translate("screen.main.profile.ui.form.winauth"));
+        JCheckBox winAuthField = new JCheckBox();
+        winAuthField.setVisible(false);
+        useWinAuthLabel.setVisible(false);
 
         JLabel resultLabel = new JLabel("");
         resultLabel.setForeground(Color.RED);
 
+
+        dbType.addActionListener(e -> {
+            DatabaseType type = DatabaseType.valueOf((dbType.getSelectedItem() == null) ? DatabaseType.MYSQL.name() : dbType.getSelectedItem().toString());
+
+            userField.setEditable(!type.equals(DatabaseType.MSSQL));
+            passwordField.setEditable(!type.equals(DatabaseType.MSSQL));
+            winAuthField.setVisible(type.equals(DatabaseType.MSSQL));
+            useWinAuthLabel.setVisible(type.equals(DatabaseType.MSSQL));
+        });
 
         JButton createButton = new JButton(translate("screen.main.profile.ui.form.button.create"));
         JButton testButton = new JButton(translate("screen.main.profile.ui.form.button.test"));
@@ -349,6 +376,13 @@ public class BenchUI {
         popup.add(passwordField, gbc);
 
         row++;
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        popup.add(useWinAuthLabel, gbc);
+        gbc.gridx = 1;
+        popup.add(winAuthField, gbc);
+
+        row++;
         gbc.gridx = 1;
         gbc.gridy = row;
         popup.add(sslCheck, gbc);
@@ -381,6 +415,7 @@ public class BenchUI {
         popup.add(testButton, gbc);
 
         createButton.addActionListener(e -> {
+            DatabaseType type = DatabaseType.valueOf((dbType.getSelectedItem() == null) ? DatabaseType.MYSQL.name() : dbType.getSelectedItem().toString());
             if (nameField.getText().isBlank()) {
                 resultLabel.setText(translate("screen.main.profile.ui.feedback.noName"));
                 return;
@@ -389,11 +424,11 @@ public class BenchUI {
                 resultLabel.setText(translate("screen.main.profile.ui.feedback.noHost"));
                 return;
             }
-            if (userField.getText().isBlank()) {
+            if (userField.getText().isBlank() && !type.equals(DatabaseType.MSSQL)) {
                 resultLabel.setText(translate("screen.main.profile.ui.feedback.noUser"));
                 return;
             }
-            if (passwordField.getPassword().length == 0) {
+            if (passwordField.getPassword().length == 0 && !type.equals(DatabaseType.MSSQL)) {
                 resultLabel.setText(translate("screen.main.profile.ui.feedback.noPassword"));
                 return;
             }
@@ -403,7 +438,6 @@ public class BenchUI {
             String password = new String(passwordField.getPassword());
             boolean useSSL = sslCheck.isSelected();
             String defaultDB = dbField.getText().isBlank() ? null : dbField.getText();
-            DatabaseType type = DatabaseType.valueOf((dbType.getSelectedItem() == null) ? DatabaseType.MYSQL.name() : dbType.getSelectedItem().toString());
 
             Project project = new Project(
                     nameField.getText(),
@@ -435,6 +469,7 @@ public class BenchUI {
             String password = new String(passwordField.getPassword());
             boolean useSSL = sslCheck.isSelected();
             String defaultDB = dbField.getText().isBlank() ? null : dbField.getText();
+            DatabaseType type = DatabaseType.valueOf((dbType.getSelectedItem() == null) ? DatabaseType.MYSQL.name() : dbType.getSelectedItem().toString());
 
             Project testProject = new Project(
                     nameField.getText(),
@@ -443,7 +478,7 @@ public class BenchUI {
                     password,
                     useSSL,
                     defaultDB,
-                    DatabaseType.MYSQL //TODO: Make dynamic
+                    type
             );
 
             boolean success = new DConnection(testProject, this).testConnection();
@@ -593,6 +628,53 @@ public class BenchUI {
 
         try {
             Project project = Project.loadFromFile(selectedFile, password);
+            if (project == null) {
+                JOptionPane.showMessageDialog(frame,
+                        translate("dialog.profile.import.error.password"),
+                        "dialog.profile.import.error.title", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (ProjectManager.instance().projectExists(project.getName())) {
+                JOptionPane.showMessageDialog(frame,
+                        translate("dialog.profile.import.error.duplicate"),
+                        translate("dialog.profile.import.warning.title"), JOptionPane.WARNING_MESSAGE);
+                project.setName(project.getName() + "_1");
+            }
+            ProjectManager.instance().addProject(project, password);
+            ProjectManager.instance().saveProjectFile(project, password);
+
+            JPanel card = project.createCard(this);
+            cardsContainer.add(card);
+            cardsContainer.revalidate();
+            cardsContainer.repaint();
+
+            JOptionPane.showMessageDialog(frame,
+                    translate("dialog.profile.import.success", Map.of("name", project.getName())),
+                    translate("dialog.profile.import.success.title"), JOptionPane.INFORMATION_MESSAGE);
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(frame,
+                    translate("dialog.profile.import.error", Map.of("error", ex.getMessage())),
+                    translate("dialog.profile.import.error.title"), JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    public void importProfilePopupPreDefinedFile(File file) {
+        JPanel passwordPanel = new JPanel(new BorderLayout(5, 5));
+        JLabel label = new JLabel(translate("dialog.profile.import.password"));
+        JPasswordField passField = new JPasswordField();
+        passwordPanel.add(label, BorderLayout.NORTH);
+        passwordPanel.add(passField, BorderLayout.CENTER);
+
+        int option = JOptionPane.showConfirmDialog(frame, passwordPanel,
+                translate("dialog.profile.import.password.title"), JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+        if (option != JOptionPane.OK_OPTION) return;
+
+        String password = new String(passField.getPassword());
+
+        try {
+            Project project = Project.loadFromFile(file, password);
             if (project == null) {
                 JOptionPane.showMessageDialog(frame,
                         translate("dialog.profile.import.error.password"),
@@ -781,5 +863,33 @@ public class BenchUI {
         dialog.setVisible(true);
     }
 
+    public void showChangelog() {
+        JDialog dialog = new JDialog(frame, translate("dialog.changelog.title"), true);
+        dialog.setResizable(false);
+        dialog.setSize(600, 400);
+        dialog.setLayout(new BorderLayout());
+        dialog.setLocationRelativeTo(frame);
 
+        String licenseText = """
+                
+                """;
+
+        JTextArea textArea = new JTextArea(licenseText);
+        textArea.setEditable(false);
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+        textArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        dialog.add(scrollPane, BorderLayout.CENTER);
+
+        JButton okButton = new JButton("OK");
+        okButton.addActionListener(e -> dialog.dispose());
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(okButton);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+
+        dialog.setVisible(true);
+    }
 }
