@@ -180,56 +180,100 @@ public class EditorTab implements IEditorTab {
             hideResultsTab.run();
 
             String sql = removeComments(editorArea.getText());
-            String[] statements = sql.split(";");
 
-            for (String raw : statements) {
-                String st = raw.trim();
-                if (st.isEmpty()) continue;
+            SwingWorker<Void, String> worker = new SwingWorker<>() {
 
-                try {
-                    if (connection.isQuery(st)) {
+                @Override
+                protected Void doInBackground() {
 
-                        Object[][] data = connection.executeQuery(st);
-                        String[] columns = connection.getColumnNames(st);
+                    String[] statements = sql.split(";");
 
-                        resultTable.setModel(new DefaultTableModel(data, columns));
-                        showResultsTab.run();
+                    for (String raw : statements) {
+                        if (isCancelled()) break;
 
-                        messageArea.append(translate("query.execute.success"));
-                        messageArea.append("\n");
-                        messageArea.append(data.length + " rows returned.\n\n");
-                        messageArea.append("Executed at " + Instant.now() + "\n\n");
+                        String st = raw.trim();
+                        if (st.isEmpty()) continue;
 
-                        bottomTabs.setSelectedIndex(1);
-                    } else {
+                        try {
+                            publish(translate("query.execute.running", Map.of("sql", st)));
 
-                        DConnection.SQLAnswer answer = connection.executeSQL(st);
+                            if (connection.isQuery(st)) {
 
-                        if (answer.success()) {
+                                Object[][] data = connection.executeQuery(st);
+                                String[] columns = connection.getColumnNames(st);
 
-                            int affected = answer.updateCount();
-                            DateFormat df = DateFormat.getDateInstance(DateFormat.SHORT, Locale.forLanguageTag(
-                                    Configuration.getConfiguration().getLocale().replace("_", "-")
+                                SwingUtilities.invokeLater(() -> {
+                                    resultTable.setModel(new DefaultTableModel(data, columns));
+                                    showResultsTab.run();
+                                    bottomTabs.setSelectedIndex(1);
+                                });
+
+                                publish(translate("query.execute.success"));
+                                publish(data.length + " rows returned.");
+                                publish("Executed at " + Instant.now());
+                                publish("");
+
+                            } else {
+
+                                DConnection.SQLAnswer answer = connection.executeSQL(st);
+
+                                if (answer.success()) {
+
+                                    int affected = answer.updateCount();
+                                    DateFormat df = DateFormat.getDateInstance(
+                                            DateFormat.SHORT,
+                                            Locale.forLanguageTag(
+                                                    Configuration.getConfiguration()
+                                                            .getLocale()
+                                                            .replace("_", "-")
+                                            )
+                                    );
+
+                                    publish(translate("query.execute.success"));
+                                    publish(translate(
+                                            "query.execute.rows",
+                                            Map.of("rows", String.valueOf(affected))
+                                    ));
+                                    publish(translate(
+                                            "query.execute.time",
+                                            Map.of("time", df.format(Date.from(Instant.now())))
+                                    ));
+                                    publish("");
+
+                                } else {
+                                    publish(translate(
+                                            "query.execute.fail",
+                                            Map.of("msg", answer.message())
+                                    ));
+                                }
+                            }
+
+                        } catch (Exception ex) {
+                            publish(translate(
+                                    "query.execute.fail",
+                                    Map.of("msg", ex.getMessage())
                             ));
-
-                            messageArea.append(translate("query.execute.success"));
-                            messageArea.append("\n");
-                            messageArea.append(translate("query.execute.rows", Map.of("rows", "" + affected)));
-                            messageArea.append("\n\n");
-                            messageArea.append(translate("query.execute.time", Map.of("time", df.format(Date.from(Instant.now())))));
-                            messageArea.append("\n\n");
-                        } else {
-                            messageArea.append((translate("query.execute.fail", Map.of("msg", answer.message()))));
                         }
                     }
 
-                } catch (Exception ex) {
-                    messageArea.append((translate("query.execute.fail", Map.of("msg", ex.getMessage()))));
+                    return null;
                 }
-            }
 
-            bottomTabs.setSelectedComponent(messageScroll);
-            splitPane.setDividerLocation(0.7);
+                @Override
+                protected void process(java.util.List<String> chunks) {
+                    for (String msg : chunks) {
+                        messageArea.append(msg + "\n");
+                    }
+                }
+
+                @Override
+                protected void done() {
+                    bottomTabs.setSelectedComponent(messageScroll);
+                    splitPane.setDividerLocation(0.7);
+                }
+            };
+
+            worker.execute();
         });
 
         return editorPanel;
