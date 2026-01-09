@@ -25,7 +25,6 @@ public class ProjectEncryptionUtil {
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final SecureRandom secureRandom = new SecureRandom();
 
-    /** Verschlüsselt ein Projektobjekt und speichert es in der Datei */
     public static void encryptProject(Object project, File targetFile, String password) throws Exception {
         byte[] salt = new byte[SALT_SIZE];
         secureRandom.nextBytes(salt);
