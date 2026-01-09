@@ -1,5 +1,7 @@
 [![Build](https://github.com/JWeinelt/Databench/actions/workflows/maven.yml/badge.svg)](https://github.com/JWeinelt/Databench/actions/workflows/maven.yml)
 
+[![Translate](https://github.com/intergrav/devins-badges/blob/v3/assets/cozy/translate/crowdin_64h.png?raw=true)](https://crowdin.com/project/databench)
+
 # 💾 DataBench
 
 Databench is a small open-source software tool designed to help users manage and 
