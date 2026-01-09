@@ -1,6 +1,7 @@
 package de.julianweinelt.databench;
 
 import com.formdev.flatlaf.FlatDarkLaf;
+import de.julianweinelt.databench.api.DConnection;
 import de.julianweinelt.databench.api.DriverManagerService;
 import de.julianweinelt.databench.api.DriverShim;
 import de.julianweinelt.databench.api.FileManager;
@@ -53,7 +54,6 @@ public class DataBench {
     private StartScreen startScreen;
 
     public static void main(String[] args) {
-        // Prüfen, ob schon eine Instanz läuft
         if (isAnotherInstanceRunning(args)) {
             log.info("Another instance is already running. Forwarded files to it.");
             return;
@@ -113,7 +113,18 @@ public class DataBench {
                     if (f.exists() && ui != null) {
                         final File fileToOpen = f;
                         SwingUtilities.invokeLater(() -> {
-                            //TODO: Open file in UI
+                            if (fileToOpen.getName().endsWith(".dbproj")) {
+                                // Project file
+                                ui.importProfilePopupPreDefinedFile(fileToOpen);
+                                return;
+                            }
+
+                            if (ui.hasLightEdit()) {
+                                DConnection connection = ui.getLightEdit();
+                                connection.handleFileEvent(fileToOpen);
+                            } else {
+                                ui.createLightEdit().handleFileEvent(fileToOpen);
+                            }
                         });
                     }
                 }
