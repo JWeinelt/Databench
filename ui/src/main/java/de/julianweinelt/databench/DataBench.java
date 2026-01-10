@@ -3,11 +3,11 @@ package de.julianweinelt.databench;
 import com.formdev.flatlaf.FlatDarkLaf;
 import de.julianweinelt.databench.api.DConnection;
 import de.julianweinelt.databench.api.DriverManagerService;
-import de.julianweinelt.databench.api.DriverShim;
 import de.julianweinelt.databench.api.FileManager;
 import de.julianweinelt.databench.data.ConfigManager;
 import de.julianweinelt.databench.data.Configuration;
 import de.julianweinelt.databench.data.ProjectManager;
+import de.julianweinelt.databench.service.UpdateChecker;
 import de.julianweinelt.databench.ui.BenchUI;
 import de.julianweinelt.databench.ui.LanguageManager;
 import de.julianweinelt.databench.ui.StartScreen;
@@ -17,19 +17,21 @@ import lombok.extern.slf4j.Slf4j;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
-import java.lang.reflect.InvocationTargetException;
-import java.net.*;
-import java.sql.Driver;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.Properties;
 import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
 
 @Slf4j
 public class DataBench {
+    public static String version = "unknown";
 
     private static final int PORT = 43210;
+    public static boolean shouldUpdate = false;
 
     @Getter
     private BenchUI ui;
@@ -49,9 +51,10 @@ public class DataBench {
     @Getter
     private FileManager fileManager;
 
-    private final CountDownLatch latch = new CountDownLatch(1);
+    @Getter
+    private UpdateChecker updateChecker;
 
-    private StartScreen startScreen;
+    private final CountDownLatch latch = new CountDownLatch(1);
 
     public static void main(String[] args) {
         if (isAnotherInstanceRunning(args)) {
@@ -63,8 +66,25 @@ public class DataBench {
         instance.start(args);
     }
 
+    public DataBench() {
+        Properties props = new Properties();
+        try (InputStream is = DataBench.class
+                .getClassLoader()
+                .getResourceAsStream("application.properties")) {
+
+            props.load(is);
+        } catch (IOException e) {
+            log.error("Could not load application.properties. Version could not be determined.");
+            log.error(e.getMessage(), e);
+        }
+
+        String version = props.getProperty("app.version");
+        log.info("Starting DataBench v{}", version);
+        DataBench.version = version;
+    }
+
     public void start(String[] filesToOpen) {
-        startScreen = new StartScreen();
+        StartScreen startScreen = new StartScreen();
         startScreen.start();
         try {Thread.sleep(1000);} catch (InterruptedException ignored) { /* Ignored */ }
         driverManagerService = new DriverManagerService();
@@ -94,15 +114,14 @@ public class DataBench {
         fileManager = new FileManager();
         languageManager = new LanguageManager();
         log.info("Loading language data...");
-        languageManager.preload().thenAccept(v -> {
-            latch.countDown();
-        });
+        languageManager.preload().thenAccept(v -> latch.countDown());
 
         try {
             latch.await();
 
             log.info("Initializing UI...");
             ui = new BenchUI();
+            updateChecker = new UpdateChecker(ui);
             ui.start();
 
             startScreen.stop();
@@ -112,20 +131,7 @@ public class DataBench {
                     File f = new File(path);
                     if (f.exists() && ui != null) {
                         final File fileToOpen = f;
-                        SwingUtilities.invokeLater(() -> {
-                            if (fileToOpen.getName().endsWith(".dbproj")) {
-                                // Project file
-                                ui.importProfilePopupPreDefinedFile(fileToOpen);
-                                return;
-                            }
-
-                            if (ui.hasLightEdit()) {
-                                DConnection connection = ui.getLightEdit();
-                                connection.handleFileEvent(fileToOpen);
-                            } else {
-                                ui.createLightEdit().handleFileEvent(fileToOpen);
-                            }
-                        });
+                        SwingUtilities.invokeLater(() -> openFile(fileToOpen));
                     }
                 }
             }
@@ -134,6 +140,36 @@ public class DataBench {
         }
 
         startSocketListener();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            if (!shouldUpdate) return;
+            ProcessBuilder pb = new ProcessBuilder(
+                    "DataBench.exe",
+                    "--update"
+            );
+            try {
+                pb.start();
+            } catch (IOException e) {
+                log.error(e.getMessage(), e);
+            }
+            System.exit(0);
+        }));
+    }
+
+    private void openFile(File fileToOpen) {
+        if (fileToOpen.getName().endsWith(".dbproj")) {
+            // Project file
+            ui.importProfilePopupPreDefinedFile(fileToOpen);
+            return;
+        }
+
+        if (ui.hasLightEdit()) {
+            DConnection connection = ui.getLightEdit();
+            if (connection == null) return; // Will NEVER happen
+            connection.handleFileEvent(fileToOpen);
+        } else {
+            ui.createLightEdit().handleFileEvent(fileToOpen);
+        }
     }
 
     private void prepare() {
@@ -201,6 +237,9 @@ public class DataBench {
                 for (String filePath : args) {
                     out.println(filePath);
                 }
+                if (args.length == 0) {
+                    out.println("!!ATTENTION!!");
+                }
             } catch (Exception ex) {
                 log.error("Failed to send files to running instance", ex);
             }
@@ -216,10 +255,15 @@ public class DataBench {
                          Scanner in = new Scanner(client.getInputStream())) {
                         while (in.hasNextLine()) {
                             String filePath = in.nextLine();
+                            if (filePath.equals("!!ATTENTION!!")) {
+                                ui.getFrame().requestFocus();
+                                return;
+                            }
                             final File file = new File(filePath);
                             if (file.exists() && ui != null) {
                                 SwingUtilities.invokeLater(() -> {
-                                    //TODO: Open file in UI
+                                    openFile(file);
+                                    ui.getFrame().requestFocus();
                                 });
                             }
                         }
