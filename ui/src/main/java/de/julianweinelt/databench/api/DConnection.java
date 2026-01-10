@@ -189,6 +189,10 @@ public class DConnection {
             for (Map.Entry<String, String> entry : values.entrySet()) {
                 content = content.replace("${" + entry.getKey() + "}", entry.getValue());
             }
+        } else {
+            EditorTab tab = new EditorTab("-- You've entered an invalid value.", benchUI);
+            addTab(tab);
+            return tab;
         }
 
 
@@ -286,7 +290,7 @@ public class DConnection {
                     JOptionPane.WARNING_MESSAGE
             );
             if (option == JOptionPane.YES_OPTION) {
-                e.saveFile();
+                e.saveFile(false);
             } else if (option == JOptionPane.CANCEL_OPTION) {
                 return;
             } else if (option == JOptionPane.NO_OPTION) {
@@ -310,6 +314,8 @@ public class DConnection {
         Thread current = Thread.currentThread();
         ClassLoader previous = current.getContextClassLoader();
         current.setContextClassLoader(DriverManagerService.instance().getDriverLoader());
+
+        log.info("Project " + project.getUuid() + " is " + project.getDatabaseType().name());
 
         CompletableFuture<Connection> future = new CompletableFuture<>();
         String DB_NAME = project.getDatabaseType().jdbcURL.replace("${server}", project.getServer())
@@ -340,7 +346,9 @@ public class DConnection {
     public boolean testConnection() {
         try {
             return !connect().get().isClosed();
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            log.error("Failed to connect to database");
+            log.error(e.getMessage());
             return false;
         }
     }
@@ -410,6 +418,31 @@ public class DConnection {
         return views;
     }
 
+    private List<JobObject> getSQLJobs() {
+        if (!project.getDatabaseType().equals(DatabaseType.MSSQL)) return new ArrayList<>();
+        List<JobObject> jobs = new ArrayList<>();
+        try {conn.createStatement().execute("USE msdb;");} catch (SQLException ignored) {}
+        try (PreparedStatement pS = conn.prepareStatement("""
+            SELECT
+                job_id,
+                name,
+                enabled,
+                date_created,
+                date_modified
+            FROM dbo.sysjobs
+            ORDER BY name;
+        """)) {
+            ResultSet set = pS.executeQuery();
+            log.debug("Retrieved SQL Agent Jobs");
+            while (set.next()) {
+                jobs.add(new JobObject(set.getString(2), set.getBoolean(3)));
+            }
+        } catch (SQLException e) {
+            log.error(e.getMessage(), e);
+        }
+        return jobs;
+    }
+
     public void getProjectTree() {
         benchUI.getFrame().setCursor(Cursor.WAIT_CURSOR);
         log.debug("Refreshing project tree for {}", getProject().getName());
@@ -442,14 +475,18 @@ public class DConnection {
 
         DefaultMutableTreeNode jobAgent = new DefaultMutableTreeNode("SQL Agent");
         DefaultMutableTreeNode jobs = new DefaultMutableTreeNode("Jobs");
+
+        for (JobObject job : getSQLJobs()) {
+            DefaultMutableTreeNode jobNode = new DefaultMutableTreeNode(job.name);
+            jobs.add(jobNode);
+        }
+
         DefaultMutableTreeNode protocols = new DefaultMutableTreeNode("Protocol");
         DefaultMutableTreeNode errors = new DefaultMutableTreeNode("Errors");
-        DefaultMutableTreeNode timetables = new DefaultMutableTreeNode("Time Tables");
         jobAgent.add(jobs);
         jobAgent.add(protocols);
         jobAgent.add(errors);
-        jobAgent.add(timetables);
-        treeRoot.add(jobAgent);
+        //treeRoot.add(jobAgent);
 
         tree.setCellRenderer(new DefaultTreeCellRenderer() {
             @Override
@@ -485,6 +522,8 @@ public class DConnection {
                             setIcon(new ImageIcon(getClass().getResource("/icons/app/view.png")));
                         } else if ("SQL Agent".equals(parentObject.toString())) {
                             setIcon(new ImageIcon(getClass().getResource("/icons/app/folder.png")));
+                        } else if ("Jobs".equals(parentObject.toString())) {
+                            setIcon(new ImageIcon(getClass().getResource("/icons/app/job.png")));
                         }
                     }
                 }
@@ -531,14 +570,49 @@ public class DConnection {
                     t.execute();
                 }
             });
+            JMenuItem rename = new JMenuItem("Rename");
+            rename.addActionListener(e -> {
+                String dbName = node.getUserObject().toString();
+                addEditorTab("ALTER DATABASE " + dbName + " MODIFY NAME = ${name}").execute();
+            });
             menu.add(newDB);
+            menu.add(rename);
             menu.add(drop);
             JMenuItem createTable = new JMenuItem("Create new Table");
             createTable.addActionListener(e -> addCreateTableTab());
-            menu.add(createTable);
             JMenuItem createView = new JMenuItem("Create new View");
-            menu.add(createView);
             JMenuItem createProcedure = new JMenuItem("Create new Procedure");
+
+            // MSSQL Specific
+            if (project.getDatabaseType().equals(DatabaseType.MSSQL)) {
+                JMenu tasks = new JMenu("Tasks");
+                JMenuItem takeOffline = new JMenuItem("Take offline");
+                JMenuItem takeOnline = new JMenuItem("Take online");
+                if (node.getUserObject().toString().endsWith("(offline)")) {
+                    takeOnline.setEnabled(true);
+                    takeOffline.setEnabled(false);
+                    takeOnline.addActionListener(e -> {
+                        String dbName = node.getUserObject().toString();
+                        dbName = dbName.substring(0,  dbName.length() - "(offline) ".length());
+                        log.info("Taking database {} online", dbName);
+                        EditorTab t = addEditorTab("ALTER DATABASE [" + dbName + "] SET ONLINE;");
+                        t.execute();
+                    });
+                } else {
+                    takeOnline.setEnabled(false);
+                    takeOffline.setEnabled(true);
+                    takeOffline.addActionListener(e -> {
+                        String dbName = node.getUserObject().toString();
+                        EditorTab t = addEditorTab("ALTER DATABASE [" + dbName + "] SET OFFLINE WITH ROLLBACK IMMEDIATE;");
+                        t.execute();
+                    });
+                }
+                tasks.add(takeOffline);
+                tasks.add(takeOnline);
+                menu.add(tasks);
+            }
+            menu.add(createTable);
+            menu.add(createView);
             menu.add(createProcedure);
         }
 
@@ -704,7 +778,7 @@ public class DConnection {
 
 
     public Object[][] executeQuery(String sql) throws SQLException {
-        checkConnection();
+        if (!checkConnection()) connect();
 
         try (PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
@@ -788,4 +862,5 @@ public class DConnection {
     }
 
     public record DBObject(String name, boolean offline) {}
+    public record JobObject(String name, boolean active) {}
 }
