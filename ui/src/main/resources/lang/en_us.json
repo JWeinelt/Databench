@@ -134,5 +134,17 @@
   "dialog.driver.download.success.title": "Download Successful",
   "dialog.driver.download.success.description": "The ${dbtype} JDBC Driver version ${version} has been downloaded and installed successfully.",
   "dialog.driver.download.error.title": "Download Failed",
-  "dialog.driver.download.error.description": "Failed to download the ${dbtype} JDBC Driver version ${version}:\n${error}"
+  "dialog.driver.download.error.description": "Failed to download the ${dbtype} JDBC Driver version ${version}:\n${error}",
+
+  "dialog.update.download.button.download": "Download and Install",
+  "dialog.update.download.button.close": "Close",
+  "dialog.update.download.progress.title": "Downloading Driver",
+  "dialog.update.download.progress.description": "Downloading ${dbtype} JDBC Driver version ${version}...",
+  "dialog.update.download.progress.prepare": "Preparing download...",
+  "dialog.update.download.progress.install": "Installing...",
+  "dialog.update.download.progress.extract": "Extracting archives...",
+  "dialog.update.download.success.title": "Download Successful",
+  "dialog.update.download.success.description": "The update has been downloaded successfully.",
+  "dialog.update.download.error.title": "Download Failed",
+  "dialog.update.download.error.description": "Failed to download: ${error}"
 }
