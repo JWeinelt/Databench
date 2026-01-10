@@ -1,10 +1,12 @@
 package de.julianweinelt.databench.ui;
 
 import de.julianweinelt.databench.data.Configuration;
+import de.julianweinelt.databench.service.UpdateChecker;
 import de.julianweinelt.databench.ui.admin.AdministrationDialog;
 import de.julianweinelt.databench.ui.driver.DriverDownloadDialog;
 import de.julianweinelt.databench.ui.driver.DriverManagerDialog;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -15,7 +17,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
-import java.util.Map;
 
 import static de.julianweinelt.databench.ui.LanguageManager.translate;
 
@@ -24,7 +25,7 @@ public class MenuBar {
     private final JFrame frame;
     private final BenchUI ui;
 
-    private JMenuBar bar;
+    private final JMenuBar bar;
 
     private final HashMap<String, Boolean> categoryEnabled = new HashMap<>();
 
@@ -64,8 +65,9 @@ public class MenuBar {
     }
 
     public void createFileCategory(boolean disable) {
+        JMenu fileMenu;
         if (!menus.containsKey("file")) {
-            JMenu fileMenu = new JMenu(translate("menu.cat.file"));
+            fileMenu = new JMenu(translate("menu.cat.file"));
             JMenuItem openButton = new JMenuItem(translate("menu.cat.file.open"));
             openButton.setAccelerator(
                     Configuration.getConfiguration().getShortcut(
@@ -115,22 +117,22 @@ public class MenuBar {
             fileMenu.add(lightEditButton);
             bar.add(fileMenu);
             menus.put("file", fileMenu);
-            updateMenuBar();
         } else {
-            JMenu fileMenu = menus.get("file");
+            fileMenu = menus.get("file");
             for (int i = 0; i < fileMenu.getItemCount(); i++) {
                 JMenuItem item = fileMenu.getItem(i);
                 if (item != null) {
                     item.setEnabled(!disable);
                 }
             }
-            updateMenuBar();
         }
+        updateMenuBar();
     }
 
     public void createEditCategory(boolean disable) {
+        JMenu editMenu;
         if (!menus.containsKey("edit")) {
-            JMenu editMenu = new JMenu(translate("menu.cat.edit"));
+            editMenu = new JMenu(translate("menu.cat.edit"));
             JMenuItem undoButton = new JMenuItem(translate("menu.cat.edit.undo"));
             undoButton.setAccelerator(
                     Configuration.getConfiguration().getShortcut(
@@ -166,22 +168,22 @@ public class MenuBar {
             editMenu.add(preferencesButton);
             bar.add(editMenu);
             menus.put("edit", editMenu);
-            updateMenuBar();
         } else {
-            JMenu editMenu = menus.get("edit");
+            editMenu = menus.get("edit");
             for (int i = 0; i < editMenu.getItemCount(); i++) {
                 JMenuItem item = editMenu.getItem(i);
                 if (item != null) {
                     item.setEnabled(!disable);
                 }
             }
-            updateMenuBar();
         }
+        updateMenuBar();
     }
 
     public void createSQLCategory(boolean disable) {
+        JMenu sqlMenu;
         if (!menus.containsKey("sql")) {
-            JMenu sqlMenu = new JMenu("SQL");
+            sqlMenu = new JMenu("SQL");
             JMenuItem newQueryButton = new JMenuItem(translate("menu.cat.sql.new.query"));
             newQueryButton.setEnabled(!disable);
             JMenuItem newTableButton = new JMenuItem(translate("menu.cat.sql.new.table"));
@@ -231,48 +233,35 @@ public class MenuBar {
             sqlMenu.add(adminButton);
             bar.add(sqlMenu);
             menus.put("sql", sqlMenu);
-            updateMenuBar();
         } else {
-            JMenu sqlMenu = menus.get("sql");
+            sqlMenu = menus.get("sql");
             for (int i = 0; i < sqlMenu.getItemCount(); i++) {
                 JMenuItem item = sqlMenu.getItem(i);
                 if (item != null) {
                     item.setEnabled(!disable);
                 }
             }
-            updateMenuBar();
         }
+        updateMenuBar();
     }
 
     public void createHelpCategory(boolean disable) {
+        JMenu sqlMenu;
         if (!menus.containsKey("help")) {
-            JMenu sqlMenu = new JMenu("Help");
-            JMenuItem helpIndex = new JMenuItem("Help Index");
-            helpIndex.addActionListener(e -> {
-                if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                    try {
-                        Desktop.getDesktop().browse(URI.create("https://dev.mysql.com/doc/refman/8.0/en/"));
-                    } catch (IOException ex) {
-                        log.error(ex.getMessage(), ex);
-                    }
-                }
-            });
+            sqlMenu = new JMenu("Help");
+            JMenuItem helpIndex = getHelpIndexItem("Help Index", "https://dev.mysql.com/doc/refman/8.0/en/");
             helpIndex.setAccelerator(
                     KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0)
             );
             JMenuItem licenseInfo = new JMenuItem("License Info");
             licenseInfo.addActionListener(e -> ui.showLicenseInfo());
-            JMenuItem reportBug = new JMenuItem("Report a Bug");
-            reportBug.addActionListener(e -> {
-                if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                    try {
-                        Desktop.getDesktop().browse(URI.create("https://github.com/JWeinelt/databench/issues/new/choose"));
-                    } catch (IOException ex) {
-                        log.error(ex.getMessage(), ex);
-                    }
-                }
-            });
+            JMenuItem reportBug = getHelpIndexItem("Report a Bug", "https://github.com/JWeinelt/databench/issues/new/choose");
             JMenuItem locateLogs = new JMenuItem("Locate Log Files");
+            JMenuItem showVersionInfo = new JMenuItem("Version Info");
+            JMenuItem checkUpdates = new JMenuItem("Check for Updates");
+            checkUpdates.addActionListener(e -> UpdateChecker.instance().checkForUpdates(true));
+            JMenuItem showChangelog = new JMenuItem("Show Changelog");
+            showChangelog.addActionListener(e -> ui.showChangelog());
 
             locateLogs.addActionListener(e -> {
                 if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE_FILE_DIR)) {
@@ -284,19 +273,35 @@ public class MenuBar {
             sqlMenu.add(licenseInfo);
             sqlMenu.add(reportBug);
             sqlMenu.add(locateLogs);
+            sqlMenu.add(checkUpdates);
+            sqlMenu.add(showVersionInfo);
+            sqlMenu.add(showChangelog);
             bar.add(sqlMenu);
             menus.put("help", sqlMenu);
-            updateMenuBar();
         } else {
-            JMenu sqlMenu = menus.get("help");
+            sqlMenu = menus.get("help");
             for (int i = 0; i < sqlMenu.getItemCount(); i++) {
                 JMenuItem item = sqlMenu.getItem(i);
                 if (item != null) {
                     item.setEnabled(!disable);
                 }
             }
-            updateMenuBar();
         }
+        updateMenuBar();
+    }
+
+    private static @NotNull JMenuItem getHelpIndexItem(String name, String url) {
+        JMenuItem helpIndex = new JMenuItem(name);
+        helpIndex.addActionListener(e -> {
+            if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                try {
+                    Desktop.getDesktop().browse(URI.create(url));
+                } catch (IOException ex) {
+                    log.error(ex.getMessage(), ex);
+                }
+            }
+        });
+        return helpIndex;
     }
 
 
