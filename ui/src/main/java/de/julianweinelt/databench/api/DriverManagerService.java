@@ -11,11 +11,14 @@ import java.net.URLClassLoader;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ServiceLoader;
 
 @Getter
 @Slf4j
 public class DriverManagerService {
+    private final List<String> loadedDrivers = new ArrayList<>();
 
     private URLClassLoader driverLoader;
 
@@ -43,8 +46,13 @@ public class DriverManagerService {
 
         int count = 0;
         for (Driver driver : serviceLoader) {
+            if (loadedDrivers.contains(driver.getClass().getName())) {
+                log.info("Driver {} is already loaded. Skipping...", driver.getClass().getName());
+                continue;
+            }
             DriverManager.registerDriver(new DriverShim(driver));
             log.info("Loaded driver: {}", driver.getClass().getName());
+            loadedDrivers.add(driver.getClass().getName());
             count++;
         }
 
