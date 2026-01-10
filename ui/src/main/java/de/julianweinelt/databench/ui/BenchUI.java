@@ -3,27 +3,23 @@ package de.julianweinelt.databench.ui;
 import com.formdev.flatlaf.*;
 import com.formdev.flatlaf.themes.FlatMacDarkLaf;
 import com.formdev.flatlaf.themes.FlatMacLightLaf;
+import de.julianweinelt.databench.DataBench;
 import de.julianweinelt.databench.api.DConnection;
 import de.julianweinelt.databench.api.DatabaseType;
-import de.julianweinelt.databench.api.DriverShim;
 import de.julianweinelt.databench.data.ConfigManager;
 import de.julianweinelt.databench.data.Configuration;
 import de.julianweinelt.databench.data.Project;
 import de.julianweinelt.databench.data.ProjectManager;
+import de.julianweinelt.databench.service.UpdateChecker;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.net.UnknownHostException;
-import java.sql.Driver;
-import java.sql.DriverManager;
-import java.sql.SQLNonTransientConnectionException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,7 +31,6 @@ public class BenchUI {
     private final HashMap<Project, DConnection> connections = new HashMap<>();
 
     private JFrame frame;
-    private JPanel currentPanel;
     private JTabbedPane tabbedPane;
 
     private MenuBar menuBar;
@@ -47,7 +42,6 @@ public class BenchUI {
         String selected = Configuration.getConfiguration().getSelectedTheme();
         FlatLaf laf = switch (selected) {
             case "Light" -> new FlatLightLaf();
-            case "Dark" -> new FlatDarkLaf();
             case "Darcula" -> new FlatDarculaLaf();
             case "Dark (MacOS)" -> new FlatMacDarkLaf();
             case "Light (MacOS)" -> new FlatMacLightLaf();
@@ -64,7 +58,6 @@ public class BenchUI {
         frame.setLocationRelativeTo(null);
         if (Configuration.getConfiguration().isStoppedMaximized()) frame.setExtendedState(frame.getExtendedState() | JFrame.MAXIMIZED_BOTH);
         frame.setName("DataBench");
-        frame.setTitle(translate("main.title", Map.of("version", Configuration.getConfiguration().getClientVersion())));
         frame.setLayout(new BorderLayout());
 
         registerShortcuts(frame);
@@ -92,6 +85,9 @@ public class BenchUI {
         frame.add(tabbedPane, BorderLayout.CENTER);
 
         frame.setVisible(true);
+
+        UpdateChecker.instance().checkForUpdates(false);
+        frame.setTitle(translate("main.title", Map.of("version", DataBench.version)));
     }
 
     private void registerShortcuts(JFrame frame) {
@@ -157,8 +153,8 @@ public class BenchUI {
 
 
     public void connect(Project project) {
-        log.info("Opening project " + project.getUuid());
-        frame.setCursor(Cursor.WAIT_CURSOR);
+        log.info("Opening normal project {}", project.getUuid());
+        frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         DConnection connection = new DConnection(project, this);
         connections.put(project, connection);
         connection.connect().thenAccept(conn -> {
@@ -183,8 +179,8 @@ public class BenchUI {
 
     public DConnection createLightEdit() {
         Project project = ProjectManager.LIGHT_EDIT_PROJECT;
-        log.info("Opening project " + project.getUuid());
-        frame.setCursor(Cursor.WAIT_CURSOR);
+        log.info("Opening project light edit {}", project.getUuid());
+        frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         DConnection connection = new DConnection(project, this, true);
         connections.put(project, connection);
         connection.connect().thenAccept(conn -> {
@@ -253,14 +249,7 @@ public class BenchUI {
 
         mainPanel.add(topPanel, BorderLayout.NORTH);
 
-        cardsContainer = new JPanel();
-        cardsContainer.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 10));
-        cardsContainer.setOpaque(false);
-
-        for (Project p : ProjectManager.instance().getProjects()) {
-            JPanel card = p.createCard(this);
-            cardsContainer.add(card);
-        }
+        updateProjectCards();
 
         JScrollPane cardsScroll = new JScrollPane(cardsContainer);
         cardsScroll.setBorder(BorderFactory.createEmptyBorder());
@@ -457,6 +446,7 @@ public class BenchUI {
                 cardsContainer.add(card);
                 cardsContainer.revalidate();
                 cardsContainer.repaint();
+                updateProjectCards();
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
             }
@@ -504,15 +494,6 @@ public class BenchUI {
                 .disable("sql");
     }
 
-    private boolean isInt(String input) {
-        try {
-            Integer.parseInt(input);
-            return true;
-        } catch (NumberFormatException e) {
-            return false;
-        }
-    }
-
     public void addClosableTab(JTabbedPane tabbedPane, String title, Component content) {
         tabbedPane.add(content);
         int index = tabbedPane.indexOfComponent(content);
@@ -521,6 +502,40 @@ public class BenchUI {
         tabPanel.setOpaque(false);
 
         JLabel label = new JLabel(title + " ");
+        JButton closeButton = getCloseButton(tabbedPane, content);
+
+        tabPanel.add(label, BorderLayout.CENTER);
+        tabPanel.add(closeButton, BorderLayout.EAST);
+
+        MouseAdapter mouseAdapter = new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int i = tabbedPane.indexOfTabComponent(tabPanel);
+                if (SwingUtilities.isMiddleMouseButton(e)) {
+                    if (i != -1) tabbedPane.remove(i);
+                } else if (SwingUtilities.isLeftMouseButton(e)) {
+                    if (i != -1) tabbedPane.setSelectedIndex(i);
+                }
+
+                if (connections.size() <= i - 1) {
+                    log.warn("Closing last connection. Idx mismatch!");
+                    return;
+                }
+
+                Project toClose = connections.keySet().stream().toList().get(i -1);
+                DConnection connection = connections.get(toClose);
+                connection.disconnect();
+                connections.remove(toClose);
+            }
+        };
+
+        tabPanel.addMouseListener(mouseAdapter);
+        label.addMouseListener(mouseAdapter);
+
+        tabbedPane.setTabComponentAt(index, tabPanel);
+    }
+
+    private @NotNull JButton getCloseButton(JTabbedPane tabbedPane, Component content) {
         JButton closeButton = new JButton("x");
         closeButton.setMargin(new Insets(0, 2, 0, 2));
         closeButton.setBorder(BorderFactory.createEmptyBorder());
@@ -541,36 +556,7 @@ public class BenchUI {
             connection.disconnect();
             connections.remove(toClose);
         });
-
-        tabPanel.add(label, BorderLayout.CENTER);
-        tabPanel.add(closeButton, BorderLayout.EAST);
-
-        MouseAdapter mouseAdapter = new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                int i = tabbedPane.indexOfTabComponent(tabPanel);
-                if (SwingUtilities.isMiddleMouseButton(e)) {
-                    if (i != -1) tabbedPane.remove(i);
-                } else if (SwingUtilities.isLeftMouseButton(e)) {
-                    if (i != -1) tabbedPane.setSelectedIndex(i);
-                }
-
-                if (connections.size() <= i - 1) {
-                    log.warn("Closing last connection. Closing project. Idx mismatch!");
-                    return;
-                }
-
-                Project toClose = connections.keySet().stream().toList().get(i -1);
-                DConnection connection = connections.get(toClose);
-                connection.disconnect();
-                connections.remove(toClose);
-            }
-        };
-
-        tabPanel.addMouseListener(mouseAdapter);
-        label.addMouseListener(mouseAdapter);
-
-        tabbedPane.setTabComponentAt(index, tabPanel);
+        return closeButton;
     }
 
 
@@ -587,17 +573,6 @@ public class BenchUI {
         tabPanel.add(label);
 
         tabbedPane.setTabComponentAt(index, tabPanel);
-    }
-
-    private JButton createActionButton(String text, Runnable action) {
-        JButton button = new JButton(text);
-        button.setHorizontalAlignment(SwingConstants.LEFT);
-        button.setFont(button.getFont().deriveFont(Font.PLAIN, 15f));
-        button.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
-        button.setFocusPainted(false);
-
-        button.addActionListener(e -> action.run());
-        return button;
     }
 
     private void showImportProfilePopup() {
