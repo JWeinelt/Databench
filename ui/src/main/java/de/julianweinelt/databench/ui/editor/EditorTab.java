@@ -65,9 +65,6 @@ public class EditorTab implements IEditorTab {
     public JPanel getTabComponent(BenchUI ui, DConnection connection) {
         editorPanel = new JPanel(new BorderLayout());
 
-    /* =======================
-       Toolbar
-       ======================= */
         JToolBar editorToolBar = new JToolBar();
         editorToolBar.setFloatable(false);
 
@@ -79,9 +76,6 @@ public class EditorTab implements IEditorTab {
 
         editorPanel.add(editorToolBar, BorderLayout.NORTH);
 
-    /* =======================
-       SQL Editor
-       ======================= */
         editorArea = new RSyntaxTextArea(20, 60);
         editorArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_SQL);
         editorArea.setCodeFoldingEnabled(true);
@@ -98,6 +92,9 @@ public class EditorTab implements IEditorTab {
                 KeyStroke.getKeyStroke("ctrl S"), "save"
         );
         editorArea.getInputMap().put(
+                KeyStroke.getKeyStroke("ctrl shift S"), "saveAs"
+        );
+        editorArea.getInputMap().put(
                 KeyStroke.getKeyStroke("F5"), "execute"
         );
         editorArea.getActionMap().put("execute", new AbstractAction() {
@@ -107,7 +104,12 @@ public class EditorTab implements IEditorTab {
         });
         editorArea.getActionMap().put("save", new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
-                saveFile();
+                saveFile(false);
+            }
+        });
+        editorArea.getActionMap().put("saveAs", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                saveFile(true);
             }
         });
 
@@ -127,12 +129,8 @@ public class EditorTab implements IEditorTab {
         RTextScrollPane editorScroll = new RTextScrollPane(editorArea);
         editorScroll.setFoldIndicatorEnabled(true);
 
-    /* =======================
-       Bottom Tabs
-       ======================= */
         JTabbedPane bottomTabs = new JTabbedPane();
 
-        // ---- Messages Tab (immer sichtbar) ----
         JTextArea messageArea = new JTextArea();
         messageArea.setEditable(false);
         messageArea.setFont(new Font("Consolas", Font.PLAIN, 12));
@@ -140,7 +138,6 @@ public class EditorTab implements IEditorTab {
 
         bottomTabs.addTab(translate("connection.editor.result.tabs.message"), messageScroll);
 
-        // ---- Results Tab (optional) ----
         JTable resultTable = new JTable();
         JScrollPane resultScroll = new JScrollPane(resultTable);
 
@@ -158,9 +155,6 @@ public class EditorTab implements IEditorTab {
             }
         };
 
-    /* =======================
-       SplitPane
-       ======================= */
         JSplitPane splitPane = new JSplitPane(
                 JSplitPane.VERTICAL_SPLIT,
                 editorScroll,
@@ -171,9 +165,6 @@ public class EditorTab implements IEditorTab {
 
         editorPanel.add(splitPane, BorderLayout.CENTER);
 
-    /* =======================
-       Execute Logic
-       ======================= */
         runButton.addActionListener(e -> {
 
             messageArea.setText("");
@@ -289,8 +280,8 @@ public class EditorTab implements IEditorTab {
         return (saveFile == null) ? "New Query" : saveFile.getName() + ((fileSaved) ? " *" : "");
     }
 
-    public void saveFile() {
-        if (saveFile != null) {
+    public void saveFile(boolean forceSaveAs) {
+        if (saveFile != null && !forceSaveAs) {
             try (FileWriter w = new FileWriter(saveFile)) {
                 w.write(editorArea.getText());
             } catch (IOException e) {
@@ -305,7 +296,6 @@ public class EditorTab implements IEditorTab {
         chooser.addChoosableFileFilter(new FileNameExtensionFilter(translate("dialog.save.extension.sql"), "sql"));
 
         int returnValue = chooser.showSaveDialog(ui.getFrame());
-        log.info(returnValue + "");
         if (returnValue == JFileChooser.APPROVE_OPTION) {
             saveFile = chooser.getSelectedFile();
             if (saveFile.getName().toLowerCase().endsWith(".sql")) {
