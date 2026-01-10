@@ -25,8 +25,6 @@ public class Configuration {
     private boolean checkForUpdates = true;
     private String updateChannel = "stable";
 
-    private final String clientVersion = "1.0.0";
-
     public static Configuration getConfiguration() {
         return DataBench.getInstance().getConfigManager().getConfiguration();
     }
