@@ -21,7 +21,7 @@ public class DriverShim implements Driver {
             return driver.connect(url, info);
         } catch (NoClassDefFoundError e) {
             JOptionPane.showMessageDialog(null, "No suitable driver found for this project.", "Error opening project", JOptionPane.ERROR_MESSAGE);
-            log.warn("MySQL connection failed: {}", e.getMessage());
+            log.warn("SQL connection failed: {}", e.getMessage());
             return null;
         }
     }
