@@ -42,3 +42,4 @@ build/
 /run/
 /run-server/
 /run-worker/
+/.idea/
