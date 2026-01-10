@@ -1,5 +1,6 @@
 package de.julianweinelt.databench.ui;
 
+import de.julianweinelt.databench.DataBench;
 import de.julianweinelt.databench.api.ImagePanel;
 
 import javax.imageio.ImageIO;
@@ -7,6 +8,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.Objects;
 
 public class StartScreen {
     private JFrame frame;
@@ -20,9 +22,15 @@ public class StartScreen {
         frame.setLocationRelativeTo(null);
         frame.setUndecorated(true);
 
+        JLabel label = new JLabel("v" + DataBench.version);
+        label.setBounds(frame.getWidth() - 100, frame.getHeight() - 30, 100, 20);
+        label.setFont(new Font("Arial", Font.PLAIN, 24));
+        label.setForeground(Color.WHITE);
+        frame.add(label);
+
         BufferedImage image;
         try {
-            image = ImageIO.read(getClass().getResource("/icons/boot_splash.png"));
+            image = ImageIO.read(Objects.requireNonNull(getClass().getResource("/icons/boot_splash.png")));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
