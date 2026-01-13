@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>de.julianweinelt.databench</groupId>
+        <artifactId>DataBench</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>dbx</artifactId>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <!-- Schema validation -->
+        <dependency>
+            <groupId>com.networknt</groupId>
+            <artifactId>json-schema-validator</artifactId>
+            <version>2.0.1</version>
+        </dependency>
+        <dependency>
+            <!-- Used for logging -->
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>2.0.17</version>
+        </dependency>
+
+        <dependency>
+            <!-- Used to process JSON -->
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.20.1</version>
+        </dependency>
+
+        <!-- Source: https://mvnrepository.com/artifact/tools.jackson.dataformat/jackson-dataformat-yaml -->
+        <dependency>
+            <groupId>tools.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+            <version>3.0.3</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <!-- Used to validate RFC 3339 date and date-time -->
+            <groupId>com.ethlo.time</groupId>
+            <artifactId>itu</artifactId>
+            <version>1.14.0</version>
+        </dependency>
+
+        <dependency>
+            <!-- Used to validate ECMA 262 regular expressions -->
+            <!-- Approximately 50 MB in dependencies -->
+            <!-- GraalJSRegularExpressionFactory -->
+            <groupId>org.graalvm.js</groupId>
+            <artifactId>js</artifactId>
+            <version>25.0.1</version>
+            <type>pom</type>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <!-- Used to validate ECMA 262 regular expressions -->
+            <!-- Approximately 2 MB in dependencies -->
+            <!-- JoniRegularExpressionFactory -->
+            <groupId>org.jruby.joni</groupId>
+            <artifactId>joni</artifactId>
+            <version>2.2.6</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.13.2</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+
+</project>

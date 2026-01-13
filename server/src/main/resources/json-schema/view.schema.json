@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://api.databench.julianweinelt.de/dbx/view.schema.json",
+  "type": "object",
+  "required": ["name", "definition"],
+  "additionalProperties": false,
+
+  "properties": {
+    "name": { "type": "string" },
+
+    "definition": {
+      "type": "object",
+      "required": ["dialect", "sql"],
+      "additionalProperties": false,
+      "properties": {
+        "dialect": { "type": "string" },
+        "sql": { "type": "string" }
+      }
+    },
+
+    "resultSample": {
+      "type": "object",
+      "required": ["columns", "rows"],
+      "additionalProperties": false,
+      "properties": {
+        "orderBy": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+
+        "limit": {
+          "type": "integer",
+          "minimum": 1
+        },
+
+        "columns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "type"],
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": "string" },
+              "type": { "type": "string" }
+            }
+          }
+        },
+
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "array"
+          }
+        }
+      }
+    }
+  }
+}

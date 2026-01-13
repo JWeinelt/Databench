@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://databench.dev/dbx/manifest.schema.json",
+  "type": "object",
+  "required": ["formatVersion", "createdAt", "tool", "source", "export"],
+  "additionalProperties": false,
+
+  "properties": {
+    "formatVersion": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+
+    "tool": {
+      "type": "object",
+      "required": ["name", "version"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "version": { "type": "string" },
+        "build": { "type": "string" }
+      }
+    },
+
+    "source": {
+      "type": "object",
+      "required": ["dbms", "dbmsVersion"],
+      "additionalProperties": false,
+      "properties": {
+        "dbms": { "type": "string" },
+        "dbmsVersion": { "type": "string" },
+        "jdbcDriver": { "type": "string" },
+        "charset": { "type": "string" },
+        "collation": { "type": "string" }
+      }
+    },
+
+    "export": {
+      "type": "object",
+      "required": ["mode", "databases", "options"],
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["DATABENCH"]
+        },
+
+        "databases": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" }
+        },
+
+        "options": {
+          "type": "object",
+          "required": [
+            "includeData",
+            "includeSchema",
+            "includeViews",
+            "includeTriggers",
+            "includeProcedures",
+            "includeEvents"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "includeData": { "type": "boolean" },
+            "includeSchema": { "type": "boolean" },
+            "includeViews": { "type": "boolean" },
+            "includeTriggers": { "type": "boolean" },
+            "includeProcedures": { "type": "boolean" },
+            "includeEvents": { "type": "boolean" }
+          }
+        }
+      }
+    }
+  }
+}

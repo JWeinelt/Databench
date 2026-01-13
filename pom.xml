@@ -13,6 +13,7 @@
         <module>launcher</module>
         <module>server</module>
         <module>worker</module>
+        <module>dbx</module>
     </modules>
 
     <properties>

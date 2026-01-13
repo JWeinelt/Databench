@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://api.databench.julianweinelt.de/dbx/table.schema.json",
+  "type": "object",
+  "required": ["name", "columns"],
+  "additionalProperties": false,
+
+  "properties": {
+    "name": { "type": "string" },
+
+    "columns": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "type", "nullable"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+
+          "type": {
+            "type": "string",
+            "enum": [
+              "INTEGER",
+              "BIGINT",
+              "DECIMAL",
+              "STRING",
+              "TEXT",
+              "BOOLEAN",
+              "DATE",
+              "TIME",
+              "DATETIME",
+              "BINARY",
+              "JSON"
+            ]
+          },
+
+          "size": { "type": "integer", "minimum": 1 },
+          "length": { "type": "integer", "minimum": 1 },
+
+          "unsigned": { "type": "boolean" },
+          "nullable": { "type": "boolean" },
+          "autoIncrement": { "type": "boolean" }
+        }
+      }
+    },
+
+    "primaryKey": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+
+    "indexes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "columns"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "unique": { "type": "boolean" },
+          "columns": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+
+    "foreignKeys": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "columns", "references"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "columns": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "references": {
+            "type": "object",
+            "required": ["table", "columns"],
+            "additionalProperties": false,
+            "properties": {
+              "table": { "type": "string" },
+              "columns": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

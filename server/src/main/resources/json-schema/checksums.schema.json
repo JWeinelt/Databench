@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://api.databench.julianweinelt.de/dbx/checksums.schema.json",
+  "type": "object",
+  "required": ["algorithm", "files"],
+  "additionalProperties": false,
+
+  "properties": {
+    "algorithm": {
+      "type": "string",
+      "enum": ["SHA-256"]
+    },
+
+    "files": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[a-fA-F0-9]{64}$"
+      }
+    }
+  }
+}
