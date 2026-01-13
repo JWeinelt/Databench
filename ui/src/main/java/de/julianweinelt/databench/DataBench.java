@@ -7,6 +7,8 @@ import de.julianweinelt.databench.api.FileManager;
 import de.julianweinelt.databench.data.ConfigManager;
 import de.julianweinelt.databench.data.Configuration;
 import de.julianweinelt.databench.data.ProjectManager;
+import de.julianweinelt.databench.dbx.api.DbxAPI;
+import de.julianweinelt.databench.dbx.api.plugins.PluginLoader;
 import de.julianweinelt.databench.service.UpdateChecker;
 import de.julianweinelt.databench.ui.BenchUI;
 import de.julianweinelt.databench.ui.LanguageManager;
@@ -38,6 +40,10 @@ public class DataBench {
 
     @Getter
     private static DataBench instance;
+    @Getter
+    private final DbxAPI api;
+    @Getter
+    private PluginLoader pluginLoader;
 
     @Getter
     private DriverManagerService driverManagerService;
@@ -81,6 +87,8 @@ public class DataBench {
         String version = props.getProperty("app.version");
         log.info("Starting DataBench v{}", version);
         DataBench.version = version;
+        log.info("Starting event queue...");
+        api = new DbxAPI(new File("api"));
     }
 
     public void start(String[] filesToOpen) {
@@ -154,6 +162,13 @@ public class DataBench {
             }
             System.exit(0);
         }));
+
+        log.info("Starting plugin service...");
+        log.info("Loading plugins...");
+        pluginLoader = new PluginLoader(api.getRegistry());
+        pluginLoader.loadAll();
+        log.info("Startup finished.");
+
     }
 
     private void openFile(File fileToOpen) {
