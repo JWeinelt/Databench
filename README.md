@@ -12,10 +12,12 @@ analyze their MySQL/MariaDB databases.
 - 🚀 Integrated SQL editor with **syntax highlighting** and **auto-completion**
 - 🏣 Support for multiple database connections
 - 🗯 Support for different database types (MySQL, MariaDB, SQL Server, PostgreSQL, OracleSQL)
+- 🏛️ Native Windows authentication support for SQL Server
 - 🌜 Dark Mode support for comfortable coding
 - 📤 Export query results to CSV format
 - ⚙️ Lightweight and easy to install
 - 🔒 Secure and encrypted database connection details to share with team members
+- 🐳 Advanced plugin system to integrate into events, change ui elements, implement new database types and more
 
 <!-- 
 TODO Future features:
