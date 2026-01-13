@@ -52,6 +52,11 @@
     </build>
 
     <dependencies>
+        <dependency>
+            <groupId>de.julianweinelt.databench</groupId>
+            <artifactId>dbx</artifactId>
+            <version>1.0.0</version>
+        </dependency>
         <!-- For logging -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
