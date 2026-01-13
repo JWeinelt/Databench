@@ -1,19 +1,23 @@
 package de.julianweinelt.databench.ui;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
+import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 import de.julianweinelt.databench.DataBench;
 import de.julianweinelt.databench.data.Configuration;
+import de.julianweinelt.databench.dbx.api.Registry;
+import de.julianweinelt.databench.dbx.api.events.Event;
+import de.julianweinelt.databench.dbx.api.events.Priority;
+import de.julianweinelt.databench.dbx.api.events.Subscribe;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -22,6 +26,10 @@ import java.util.concurrent.CompletableFuture;
 public class LanguageManager {
     private final int parserVersion = 1;
     private JsonObject preLoadedLangData = new JsonObject();
+
+    public LanguageManager() {
+        Registry.instance().registerListener(this, Registry.instance().getSystemPlugin());
+    }
 
     public static LanguageManager instance() {
         return DataBench.getInstance().getLanguageManager();
@@ -130,6 +138,20 @@ public class LanguageManager {
             Configuration.getConfiguration().setLocale("en_us");
             preload();
             return new JsonObject();
+        }
+    }
+
+    @Subscribe(value = "PluginLanguageDataEvent")
+    public void onTranslationAdd(Event event) {
+        log.info("Loading language data for plugin {}", event.get("plugin").asString());
+        String lang = Configuration.getConfiguration().getLocale();
+        JsonObject b = JsonParser.parseString(event.get("languageData").asString()).getAsJsonObject();
+        JsonObject data = new JsonObject();
+        if (b.has(lang)) data = b.get(lang).getAsJsonObject();
+        else b.get("en_us").getAsJsonObject();
+
+        for (String key : data.keySet()) {
+            preLoadedLangData.addProperty(key, data.get(key).getAsString());
         }
     }
 }
