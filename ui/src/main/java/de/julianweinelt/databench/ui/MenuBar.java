@@ -193,13 +193,15 @@ public class MenuBar {
             JMenuItem newProcedureButton = new JMenuItem(translate("menu.cat.sql.new.procedure"));
             newProcedureButton.setEnabled(!disable);
             JMenuItem backupButton = new JMenuItem(translate("menu.cat.sql.backups"));
-            backupButton.setEnabled(!disable);
+            //backupButton.setEnabled(!disable);
             backupButton.setAccelerator(
                     Configuration.getConfiguration().getShortcut(
                             ShortcutAction.BACKUPS.name(),
                             ShortcutAction.BACKUPS.getDefaultKey()
                     )
             );
+            backupButton.addActionListener(e -> new ExportDialog(frame).setVisible(true)); // Temporary
+
             JMenuItem adminButton = new JMenuItem(translate("menu.cat.sql.admin"));
             adminButton.addActionListener(e -> new AdministrationDialog(frame).setVisible(true));
             adminButton.setEnabled(!disable);
