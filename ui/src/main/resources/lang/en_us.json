@@ -84,6 +84,7 @@
   "query.execute.error": "Query execution failed: ${error}",
   "query.execute.rows": "${rows} rows affected.",
   "query.execute.time": "Executed at ${time}",
+  "query.execute.running": "Executing...",
 
   "dialog.save.title": "Save File",
   "dialog.save.extension.sql": "SQL Files (*.sql)",
