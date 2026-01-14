@@ -19,6 +19,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.net.URL;
 import java.sql.*;
 import java.util.*;
 import java.util.List;
@@ -30,11 +31,12 @@ import static de.julianweinelt.databench.ui.LanguageManager.translate;
 
 @Slf4j
 @Getter
+@SuppressWarnings({"SqlSourceToSinkFlow", "SqlResolve"})
 public class DConnection {
     private final Pattern PLACEHOLDER_PATTERN =
         Pattern.compile("\\$\\{([a-zA-Z0-9_]+)}");
     private final Project project;
-    private BenchUI benchUI;
+    private final BenchUI benchUI;
     private Connection conn;
     @Setter
     private JTabbedPane workTabs;
@@ -84,9 +86,7 @@ public class DConnection {
         toolBar.setFloatable(false);
         //toolBar.add(new JButton("Connect"));
         JButton btnNewQuery = new JButton("New Query");
-        btnNewQuery.addActionListener(e -> {
-            addEditorTab("/* Your query goes here */");
-        });
+        btnNewQuery.addActionListener(e -> addEditorTab("/* Your query goes here */"));
         toolBar.add(btnNewQuery);
 
         DefaultMutableTreeNode root = new DefaultMutableTreeNode(translate("connection.tree.title") + getProject().getName() + " (" +
@@ -317,7 +317,7 @@ public class DConnection {
         ClassLoader previous = current.getContextClassLoader();
         current.setContextClassLoader(DriverManagerService.instance().getDriverLoader());
 
-        log.info("Project " + project.getUuid() + " is " + project.getDatabaseType().name());
+        log.info("Project {} is {}", project.getUuid(), project.getDatabaseType().name());
 
         CompletableFuture<Connection> future = new CompletableFuture<>();
         String DB_NAME = project.getDatabaseType().jdbcURL.replace("${server}", project.getServer())
@@ -387,7 +387,7 @@ public class DConnection {
 
     public List<String> getTables(String database) {
         List<String> tables = new ArrayList<>();
-        try (PreparedStatement pS = conn.prepareStatement("USE " + database)) {pS.execute();} catch (SQLException e) {}
+        try (PreparedStatement pS = conn.prepareStatement("USE " + database)) {pS.execute();} catch (SQLException ignored) {}
         try (PreparedStatement pS = conn.prepareStatement(project.getDatabaseType().syntax.showTables().replace("${db}", database))) {
             ResultSet rs = pS.executeQuery();
             while (rs.next()) tables.add(rs.getString(1));
@@ -398,7 +398,7 @@ public class DConnection {
     }
 
     public SQLAnswer executeSQL(String sql) {
-        SQLAnswer answer = null;
+        SQLAnswer answer;
         try (PreparedStatement pS = conn.prepareStatement(sql)) {
             pS.execute();
             answer = new SQLAnswer(true, pS.getResultSet(), pS.getUpdateCount(), "Query executed successfully.", -1);
@@ -420,10 +420,12 @@ public class DConnection {
         return views;
     }
 
+    @SuppressWarnings("SqlResolve")
     private List<JobObject> getSQLJobs() {
         if (!project.getDatabaseType().equals(DatabaseType.MSSQL)) return new ArrayList<>();
         List<JobObject> jobs = new ArrayList<>();
         try {conn.createStatement().execute("USE msdb;");} catch (SQLException ignored) {}
+        // noinspection SqlResolve
         try (PreparedStatement pS = conn.prepareStatement("""
             SELECT
                 job_id,
@@ -446,7 +448,7 @@ public class DConnection {
     }
 
     public void getProjectTree() {
-        benchUI.getFrame().setCursor(Cursor.WAIT_CURSOR);
+        benchUI.getFrame().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         log.debug("Refreshing project tree for {}", getProject().getName());
         treeRoot.removeAllChildren();
         DefaultMutableTreeNode databases = new DefaultMutableTreeNode(translate("connection.tree.node.database.title"));
@@ -500,32 +502,32 @@ public class DConnection {
                 if (value instanceof DefaultMutableTreeNode node) {
                     Object userObject = node.getUserObject();
                     if ("SQL Agent".equals(userObject)) {
-                        setIcon(new ImageIcon(getClass().getResource("/icons/app/agent.png")));
+                        setIcon(new ImageIcon(getClassURL("/icons/app/agent.png")));
                     } else if (translate("connection.tree.node.tables.title").equals(userObject)) {
-                        setIcon(new ImageIcon(getClass().getResource("/icons/app/folder.png")));
+                        setIcon(new ImageIcon(getClassURL("/icons/app/folder.png")));
                     } else if (translate("connection.tree.node.views.title").equals(userObject)) {
-                        setIcon(new ImageIcon(getClass().getResource("/icons/app/folder.png")));
+                        setIcon(new ImageIcon(getClassURL("/icons/app/folder.png")));
                     } else if (translate("connection.tree.node.procedures.title").equals(userObject)) {
-                        setIcon(new ImageIcon(getClass().getResource("/icons/app/folder.png")));
+                        setIcon(new ImageIcon(getClassURL("/icons/app/folder.png")));
                     } else if (translate("connection.tree.node.database.title").equals(userObject)) {
-                        setIcon(new ImageIcon(getClass().getResource("/icons/app/folder.png")));
+                        setIcon(new ImageIcon(getClassURL("/icons/app/folder.png")));
                     }
                     DefaultMutableTreeNode parent = (DefaultMutableTreeNode) node.getParent();
                     if (parent != null) {
                         Object parentObject = parent.getUserObject();
                         if (translate("connection.tree.node.database.title").equals(parentObject.toString())) {
                             if (userObject.toString().endsWith("(offline)")) {
-                                setIcon(new ImageIcon(getClass().getResource("/icons/app/schema_offline.png")));
+                                setIcon(new ImageIcon(getClassURL("/icons/app/schema_offline.png")));
                             } else
-                                setIcon(new ImageIcon(getClass().getResource("/icons/app/schema.png")));
+                                setIcon(new ImageIcon(getClassURL("/icons/app/schema.png")));
                         } else if (translate("connection.tree.node.tables.title").equals(parentObject.toString())) {
-                            setIcon(new ImageIcon(getClass().getResource("/icons/app/table.png")));
+                            setIcon(new ImageIcon(getClassURL("/icons/app/table.png")));
                         } else if (translate("connection.tree.node.views.title").equals(parentObject.toString())) {
-                            setIcon(new ImageIcon(getClass().getResource("/icons/app/view.png")));
+                            setIcon(new ImageIcon(getClassURL("/icons/app/view.png")));
                         } else if ("SQL Agent".equals(parentObject.toString())) {
-                            setIcon(new ImageIcon(getClass().getResource("/icons/app/folder.png")));
+                            setIcon(new ImageIcon(getClassURL("/icons/app/folder.png")));
                         } else if ("Jobs".equals(parentObject.toString())) {
-                            setIcon(new ImageIcon(getClass().getResource("/icons/app/job.png")));
+                            setIcon(new ImageIcon(getClassURL("/icons/app/job.png")));
                         }
                     }
                 }
@@ -537,7 +539,11 @@ public class DConnection {
         DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
         model.reload();
         tree.expandPath(new TreePath(databases.getPath()));
-        benchUI.getFrame().setCursor(Cursor.DEFAULT_CURSOR);
+        benchUI.getFrame().setCursor(Cursor.getDefaultCursor());
+    }
+
+    public URL getClassURL(String file) {
+        return getClass().getResource(file);
     }
 
     public JPopupMenu createContextMenu(DefaultMutableTreeNode node, BenchUI ui) {
@@ -548,21 +554,15 @@ public class DConnection {
 
         if (name.equals(translate("connection.tree.node.database.title"))) {
             JMenuItem refresh = new JMenuItem(translate("connection.button.refresh"));
-            refresh.addActionListener(e -> {
-                getProjectTree();
-            });
+            refresh.addActionListener(e -> getProjectTree());
             JMenuItem newDB = new JMenuItem(translate("connection.tree.node.database.create"));
-            newDB.addActionListener(e -> {
-                addEditorTab("CREATE DATABASE ${name};");
-            });
+            newDB.addActionListener(e -> addEditorTab("CREATE DATABASE ${name};"));
             menu.add(refresh);
             menu.add(newDB);
         } else if (node.getParent() != null &&
                 ((DefaultMutableTreeNode) node.getParent()).getUserObject().equals(translate("connection.tree.node.database.title"))) {
             JMenuItem newDB = new JMenuItem(translate("connection.tree.node.database.create"));
-            newDB.addActionListener(e -> {
-                addEditorTab("CREATE DATABASE ${name};");
-            });
+            newDB.addActionListener(e -> addEditorTab("CREATE DATABASE ${name};"));
             JMenuItem drop = new JMenuItem("Drop Database");
             drop.addActionListener(e -> {
                 String dbName = node.getUserObject().toString();
@@ -832,10 +832,6 @@ public class DConnection {
     }
 
     public record SQLAnswer(boolean success, ResultSet resultSet, int updateCount, String message, long executionTimeMs) {
-        public boolean hasResultSet() {
-            return resultSet != null;
-        }
-
         public List<String> columns() throws SQLException {
             ResultSetMetaData meta = resultSet.getMetaData();
 
