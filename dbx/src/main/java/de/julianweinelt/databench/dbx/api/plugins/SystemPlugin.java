@@ -43,11 +43,6 @@ public final class SystemPlugin extends DbxPlugin {
         getRegistry().registerEvents(this, "UIServiceEnabledEvent");
     }
 
-    @Override
-    public void onCreateCommands() {
-
-    }
-
     @Subscribe(value = "UIServiceEnabledEvent")
     public void onUIReady(Event event) {
         getLogger().info("Registering settings dialogs...");
