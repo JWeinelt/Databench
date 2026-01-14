@@ -1,6 +1,7 @@
 package de.julianweinelt.databench.ui;
 
 import de.julianweinelt.databench.data.Configuration;
+import de.julianweinelt.databench.data.ProjectManager;
 import de.julianweinelt.databench.service.UpdateChecker;
 import de.julianweinelt.databench.ui.admin.AdministrationDialog;
 import de.julianweinelt.databench.ui.driver.DriverDownloadDialog;
@@ -192,15 +193,29 @@ public class MenuBar {
             newViewButton.setEnabled(!disable);
             JMenuItem newProcedureButton = new JMenuItem(translate("menu.cat.sql.new.procedure"));
             newProcedureButton.setEnabled(!disable);
-            JMenuItem backupButton = new JMenuItem(translate("menu.cat.sql.backups"));
-            //backupButton.setEnabled(!disable);
-            backupButton.setAccelerator(
+            JMenu backupMenu = new JMenu(translate("menu.cat.sql.backups"));
+            JMenuItem export = new JMenuItem("Export");
+            export.setAccelerator(
                     Configuration.getConfiguration().getShortcut(
-                            ShortcutAction.BACKUPS.name(),
-                            ShortcutAction.BACKUPS.getDefaultKey()
+                            ShortcutAction.BACKUPS_EXPORT.name(),
+                            ShortcutAction.BACKUPS_EXPORT.getDefaultKey()
                     )
             );
-            backupButton.addActionListener(e -> new ExportDialog(frame).setVisible(true)); // Temporary
+            export.addActionListener(e -> new ExportDialog(frame).setVisible(true)); // Temporary
+
+            JMenuItem importItem = new JMenuItem("Import");
+            importItem.addActionListener(e -> {
+                new ImportDialog(frame).setVisible(true);
+            });
+            importItem.setAccelerator(
+                    Configuration.getConfiguration().getShortcut(
+                            ShortcutAction.BACKUPS_IMPORT.name(),
+                            ShortcutAction.BACKUPS_IMPORT.getDefaultKey()
+                    )
+            );
+
+            backupMenu.add(export);
+            backupMenu.add(importItem);
 
             JMenuItem adminButton = new JMenuItem(translate("menu.cat.sql.admin"));
             adminButton.addActionListener(e -> new AdministrationDialog(frame).setVisible(true));
@@ -231,7 +246,7 @@ public class MenuBar {
             sqlMenu.add(newTableButton);
             sqlMenu.add(newViewButton);
             sqlMenu.add(newProcedureButton);
-            sqlMenu.add(backupButton);
+            sqlMenu.add(backupMenu);
             sqlMenu.add(adminButton);
             bar.add(sqlMenu);
             menus.put("sql", sqlMenu);
