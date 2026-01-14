@@ -55,6 +55,8 @@ public class PluginLoader {
      * Loads all plugins found by the scanner, resolving dependencies and load order.
      */
     public void loadAll() {
+        Registry.instance().getSystemPlugin().preInit();
+        Registry.instance().getSystemPlugin().init();
         List<PluginDescriptor> descriptors = scanner.scan();
         Map<String, PluginConfiguration> pluginConfigs = new HashMap<>();
         Map<String, File> pluginFiles = new HashMap<>();
