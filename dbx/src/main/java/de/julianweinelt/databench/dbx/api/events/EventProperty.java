@@ -1,4 +1,7 @@
 package de.julianweinelt.databench.dbx.api.events;
+
+import org.jetbrains.annotations.ApiStatus;
+
 /**
  * Represents a generic event property that can hold a value of any type.
  * Provides utility methods to retrieve the value as different data types.
@@ -8,6 +11,7 @@ package de.julianweinelt.databench.dbx.api.events;
 
 public class EventProperty {
     private final Object value;
+    private final Class<?> valueClass;
 
     /**
      * Constructs an EventProperty with the specified value.
@@ -21,23 +25,60 @@ public class EventProperty {
      */
     public EventProperty(Object value) {
         this.value = value;
+        this.valueClass = value.getClass();
+    }
+
+    /**
+     *
+     * @param expectedType The {@code Class<T>} that is expected to be returned
+     * @param <T> The type of object
+     * @return The stored value cast to the expected type
+     * @throws ClassCastException if the stored is not a type of {@code expectedType}
+     */
+    public <T> T asValue(Class<T> expectedType) {
+        if (!expectedType.isInstance(value)) {
+            throw new ClassCastException(
+                    "Expected " + expectedType.getName() +
+                            " but was " + valueClass.getName()
+            );
+        }
+        return expectedType.cast(value);
+    }
+
+    /**
+     * Retrieves the stored value as the original type using Java's type casting.
+     * <p>
+     * Important: This method is experimental, as there are no checks done.
+     * If you want to use the type-safe variant, please use {@link #asValue(Class)}.
+     * @return The stored value cast to their original type.
+     * @param <T> The type of the class
+     * <p></p>
+     */
+    @ApiStatus.Experimental
+    @SuppressWarnings("unchecked")
+    public <T> T asValue() {
+        return (T) value;
     }
 
     /**
      * Retrieves the stored value as a specified type using Java's type casting.
-     *
-     * @param type The class of the expected return type.
-     * @return The stored value cast to the specified type.
-     * @throws ClassCastException if the stored value is not of the requested type.
      * <p></p>
      * Example:
      * <pre>{@code
      *     EventProperty property = new EventProperty(42);
      *     int intValue = property.getAs(Integer.class); // Returns 42
      * }</pre>
+     * <p></p>
+     * This method is unsafe to use, as it may throw a {@code ClassCastException}.
+     * You may use {@link #asValue(Class)} for type-safe casting instead.
+     *
+     * @param type The class of the expected return type.
+     * @return The stored value cast to the specified type.
+     * @throws ClassCastException if the stored value is not of the requested type.
      */
+    @Deprecated
     public <T> T getAs(Class<T> type) {
-        return type.cast(value); // Sicherer Cast mit Java Reflection
+        return type.cast(value);
     }
 
     /**
