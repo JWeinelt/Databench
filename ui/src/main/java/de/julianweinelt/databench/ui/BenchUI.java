@@ -88,6 +88,9 @@ public class BenchUI {
 
         UpdateChecker.instance().checkForUpdates(false);
         frame.setTitle(translate("main.title", Map.of("version", DataBench.version)));
+        if (Configuration.getConfiguration().isFirstStartup()) {
+            showDataSendDialog();
+        }
     }
 
     private void registerShortcuts(JFrame frame) {
@@ -863,6 +866,48 @@ public class BenchUI {
 
         JPanel buttonPanel = new JPanel();
         buttonPanel.add(okButton);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+
+        dialog.setVisible(true);
+    }
+
+    public void showDataSendDialog() {
+        JDialog dialog = new JDialog(frame, translate("dialog.data.title"), true);
+        dialog.setResizable(false);
+        dialog.setSize(600, 400);
+        dialog.setLayout(new BorderLayout());
+        dialog.setLocationRelativeTo(frame);
+
+        String licenseText = """
+                We would like to collect anonymous usage statistics to help improve DataBench. This data includes only a randomly generated installation ID and no personal information.
+                
+                Your data will remain private and will be used solely for analytics.
+                
+                Do you agree to send anonymous usage data?
+                """;
+
+        JTextArea textArea = new JTextArea(licenseText);
+        textArea.setEditable(false);
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+        textArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        dialog.add(scrollPane, BorderLayout.CENTER);
+
+        JButton allowButton = new JButton("Allow");
+        allowButton.addActionListener(e -> {
+            Configuration.getConfiguration().setSendAnonymousData(true);
+            ConfigManager.getInstance().saveConfig();
+            dialog.dispose();
+        });
+
+        JButton denyButton = new JButton("Deny");
+        denyButton.addActionListener(e -> dialog.dispose());
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(allowButton);
+        buttonPanel.add(denyButton);
         dialog.add(buttonPanel, BorderLayout.SOUTH);
 
         dialog.setVisible(true);
