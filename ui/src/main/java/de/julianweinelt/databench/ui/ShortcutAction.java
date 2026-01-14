@@ -19,7 +19,8 @@ public enum ShortcutAction {
     TOGGLE_BOOKMARK("Toggle Bookmark", KeyStroke.getKeyStroke("control F2")),
     NEXT_BOOKMARK("Next Bookmark", KeyStroke.getKeyStroke("F2")),
     PREVIOUS_BOOKMARK("Previous Bookmark", KeyStroke.getKeyStroke("shift F2")),
-    BACKUPS("Manage Backups", KeyStroke.getKeyStroke("control shift B")),
+    BACKUPS_EXPORT("Export Backups", KeyStroke.getKeyStroke("control shift J")),
+    BACKUPS_IMPORT("Import Backups", KeyStroke.getKeyStroke("control shift I")),
     ADMINISTRATION("Administration", KeyStroke.getKeyStroke("control shift A"));
 
     private final String displayName;
