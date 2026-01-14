@@ -1,6 +1,7 @@
 package de.julianweinelt.databench.api;
 
 import de.julianweinelt.databench.data.Project;
+import de.julianweinelt.databench.dbx.database.DatabaseType;
 import de.julianweinelt.databench.ui.BenchUI;
 import de.julianweinelt.databench.ui.editor.*;
 import de.julianweinelt.databench.util.FileUtil;
