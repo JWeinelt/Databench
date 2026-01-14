@@ -191,7 +191,7 @@ public class DConnection {
             for (Map.Entry<String, String> entry : values.entrySet()) {
                 content = content.replace("${" + entry.getKey() + "}", entry.getValue());
             }
-        } else {
+        } else if (content.contains("${")) {
             EditorTab tab = new EditorTab("-- You've entered an invalid value.", benchUI);
             addTab(tab);
             return tab;
