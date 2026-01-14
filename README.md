@@ -18,12 +18,12 @@ analyze their MySQL/MariaDB databases.
 - ⚙️ Lightweight and easy to install
 - 🔒 Secure and encrypted database connection details to share with team members
 - 🐳 Advanced plugin system to integrate into events, change ui elements, implement new database types and more
+- 📫 Data import/export functionality (WIP; Proof of concept)
 
 <!-- 
 TODO Future features:
 - 🖼️ Visual query builder for creating complex queries without writing SQL code
 - 🖨️ Database schema visualization
-- 📫 Data import/export functionality
 - 🔓 Easily work together with team members with live collaboration features
 -->
 
