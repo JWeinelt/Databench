@@ -1,6 +1,6 @@
-package de.julianweinelt.databench.api;
+package de.julianweinelt.databench.dbx.api.drivers;
 
-import de.julianweinelt.databench.DataBench;
+import de.julianweinelt.databench.dbx.api.DbxAPI;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -22,12 +22,18 @@ public class DriverManagerService {
 
     private URLClassLoader driverLoader;
 
+    private static DriverManagerService instance;
+
     public static DriverManagerService instance() {
-        return DataBench.getInstance().getDriverManagerService();
+        return instance;
+    }
+
+    public DriverManagerService() {
+        instance = this;
     }
 
     public void preloadDrivers() throws SQLException, IOException {
-        File folder = new File("drivers");
+        File folder = DbxAPI.driversFolder();
         File[] driverFiles = folder.listFiles((dir, name) -> name.endsWith(".jar"));
 
         if (driverFiles == null || driverFiles.length == 0) {

@@ -1,4 +1,4 @@
-package de.julianweinelt.databench.api;
+package de.julianweinelt.databench.dbx.api.drivers;
 
 import lombok.extern.slf4j.Slf4j;
 
