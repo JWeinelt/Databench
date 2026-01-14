@@ -3,6 +3,7 @@ package de.julianweinelt.databench.dbx.export;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import de.julianweinelt.databench.dbx.util.GsonProvider;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -13,9 +14,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+@Slf4j
 public class DbxArchiveWriter implements Closeable {
 
     private final ZipOutputStream zip;
@@ -61,14 +65,20 @@ public class DbxArchiveWriter implements Closeable {
             JsonObject row = new JsonObject();
             for (int i = 1; i <= cols; i++) {
                 String name = meta.getColumnLabel(i);
-                Object val = rs.getObject(i);
-                row.add(name, gson.toJsonTree(val));
+                try {
+                    Object val = rs.getObject(i);
+                    if (val instanceof LocalDateTime) val = ((LocalDateTime) val).toEpochSecond(ZoneOffset.UTC);
+                    row.add(name, gson.toJsonTree(val));
+                } catch (Exception e) {
+                    log.error("Failed: {}", e.getMessage(), e);
+                }
             }
             w.write(gson.toJson(row));
             w.write('\n');
         }
 
         w.flush();
+        rs.close();
         zip.closeEntry();
     }
 
