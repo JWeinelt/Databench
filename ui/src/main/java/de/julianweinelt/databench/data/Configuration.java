@@ -5,14 +5,12 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.swing.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Getter
 @Setter
 public class Configuration {
+    private final UUID installationID = UUID.randomUUID();
     private String selectedTheme;
     private String locale;
 
@@ -22,8 +20,13 @@ public class Configuration {
 
     private boolean stoppedMaximized = false;
 
+    private boolean sendAnonymousData = false;
+    private boolean sendErrorProtocols = false;
+    private boolean firstStartup = true;
+
     private boolean checkForUpdates = true;
     private String updateChannel = "stable";
+    private final int configVersion = 2;
 
     public static Configuration getConfiguration() {
         return DataBench.getInstance().getConfigManager().getConfiguration();
