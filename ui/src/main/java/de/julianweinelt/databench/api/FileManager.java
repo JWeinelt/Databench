@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Slf4j
+@SuppressWarnings("SpellCheckingInspection")
 public class FileManager {
     private final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     private final File tempFolder = new File("tmp");
@@ -29,8 +30,12 @@ public class FileManager {
 
     public void save(List<IEditorTab> tabs, Project project) {
         File projectFolder = new File(tempFolder, project.getUuid().toString());
-        projectFolder.mkdirs();
-        Arrays.stream(projectFolder.listFiles()).toList().forEach(File::delete);
+        if (projectFolder.mkdirs()) log.debug("Project folder created");
+        File[] files1 = projectFolder.listFiles();
+        if (files1 == null) return;
+        Arrays.stream(files1).toList().forEach(file -> {
+            if (file.delete()) log.debug("File deleted: {}", file.getAbsolutePath());
+        });
         List<ProjectFile> files = new ArrayList<>();
 
         for (IEditorTab tab : tabs) {
@@ -39,24 +44,10 @@ public class FileManager {
                     if (e.isFileSaved()) {
                         files.add(new ProjectFile(e.getSaveFile(), FileState.SAVED));
                     } else {
-                        UUID id = UUID.randomUUID();
-                        File file = new File(projectFolder, id + ".tmp");
-                        try (FileWriter w = new FileWriter(file)) {
-                            w.write(e.getEditorContent());
-                        } catch (IOException ex) {
-                            log.error(ex.getMessage(), ex);
-                        }
-                        files.add(new ProjectFile(id, file, FileState.NON_SAVED));
+                        createTempFile(projectFolder, files, e);
                     }
                 } else {
-                    UUID id = UUID.randomUUID();
-                    File file = new File(projectFolder, id + ".tmp");
-                    try (FileWriter w = new FileWriter(file)) {
-                        w.write(e.getEditorContent());
-                    } catch (IOException ex) {
-                        log.error(ex.getMessage(), ex);
-                    }
-                    files.add(new ProjectFile(id, file, FileState.NON_SAVED));
+                    createTempFile(projectFolder, files, e);
                 }
             }
         }
@@ -66,6 +57,17 @@ public class FileManager {
         } catch (IOException ex) {
             log.error(ex.getMessage(), ex);
         }
+    }
+
+    private void createTempFile(File projectFolder, List<ProjectFile> files, EditorTab e) {
+        UUID id = UUID.randomUUID();
+        File file = new File(projectFolder, id + ".tmp");
+        try (FileWriter w = new FileWriter(file)) {
+            w.write(e.getEditorContent());
+        } catch (IOException ex) {
+            log.error(ex.getMessage(), ex);
+        }
+        files.add(new ProjectFile(id, file, FileState.NON_SAVED));
     }
 
     public List<EditorTab> getProjectData(Project project, BenchUI ui) {
