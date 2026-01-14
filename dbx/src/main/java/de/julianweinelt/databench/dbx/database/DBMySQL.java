@@ -57,7 +57,15 @@ public class DBMySQL extends ADatabase {
 
     @Override
     public ResultSet getTableData(String database, String table) throws SQLException {
-        PreparedStatement pS = conn.prepareStatement("SELECT * FROM " + database + "." + table);
+        PreparedStatement pS = conn.prepareStatement(
+                "SELECT * FROM " + database + "." + table,
+                ResultSet.TYPE_FORWARD_ONLY,
+                ResultSet.CONCUR_READ_ONLY
+        );
+
+        conn.setAutoCommit(false);
+        pS.setFetchSize(Integer.MIN_VALUE);
+
         return pS.executeQuery();
     }
 
