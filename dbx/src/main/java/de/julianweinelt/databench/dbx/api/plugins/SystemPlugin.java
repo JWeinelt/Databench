@@ -1,7 +1,6 @@
 package de.julianweinelt.databench.dbx.api.plugins;
 
 
-import de.julianweinelt.databench.dbx.api.Registry;
 import de.julianweinelt.databench.dbx.api.events.Event;
 import de.julianweinelt.databench.dbx.api.events.Subscribe;
 import de.julianweinelt.databench.dbx.api.ui.SettingsPanel;
