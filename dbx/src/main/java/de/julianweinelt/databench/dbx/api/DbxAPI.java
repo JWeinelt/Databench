@@ -33,16 +33,18 @@ public class DbxAPI {
     private void init() {
         if (new File(apiFolder, "plugins").mkdirs()) log.debug("API plugins folder created");
         if (new File(apiFolder, "drivers").mkdirs()) log.debug("API drivers folder created");
-        types.add(new DatabaseType("MySQL", "", "", "Oracle"));
+        types.add(new DatabaseType("MySQL", "jdbc:mysql://${server}/${database}" +
+                "?useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=" +
+                "UTC&autoReconnect=true", "Oracle"));
     }
 
     // API Methods
-    public void registerDatabaseType(String name, String jdbcLink, String driverClass, String vendor) {
-        types.add(new DatabaseType(name, jdbcLink, driverClass, vendor));
+    public void registerDatabaseType(String name, String jdbcLink, String vendor) {
+        types.add(new DatabaseType(name, jdbcLink, vendor));
     }
-    public boolean typeRegistered(String driverClass) {
+    public boolean typeRegistered(String name) {
         for (DatabaseType type : types) {
-            if (type.driverClass().equals(driverClass)) return true;
+            if (type.name().equals(name)) return true;
         }
         return false;
     }
