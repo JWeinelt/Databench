@@ -18,11 +18,13 @@ public class DBMySQL extends ADatabase {
 
     @Override
     public boolean connect() {
-        String DB_NAME = "jdbc:mysql://${server}/?useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&autoReconnect=true";
+        String DB_NAME = "jdbc:mysql://${server}/?useJDBCCompliantTimezoneShift=true&useLegacyDatetime" +
+                "Code=false&serverTimezone=UTC&autoReconnect=true&zeroDateTimeBehavior=convertToNull";
         DB_NAME = DB_NAME.replace("${server}", getHost() + ":" + getPort()).replace("${db}", defaultDB);
 
         try {
             conn = DriverManager.getConnection(DB_NAME, getUsername(), getPassword());
+            conn.setAutoCommit(false);
             return true;
         } catch (SQLException ex) {
             // Log any exception that occurs during the connection process
@@ -63,8 +65,6 @@ public class DBMySQL extends ADatabase {
                 ResultSet.TYPE_FORWARD_ONLY,
                 ResultSet.CONCUR_READ_ONLY
         );
-
-        conn.setAutoCommit(false);
         pS.setFetchSize(Integer.MIN_VALUE);
 
         return pS.executeQuery();
