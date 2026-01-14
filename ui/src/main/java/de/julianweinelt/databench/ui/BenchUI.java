@@ -5,7 +5,7 @@ import com.formdev.flatlaf.themes.FlatMacDarkLaf;
 import com.formdev.flatlaf.themes.FlatMacLightLaf;
 import de.julianweinelt.databench.DataBench;
 import de.julianweinelt.databench.api.DConnection;
-import de.julianweinelt.databench.api.DatabaseType;
+import de.julianweinelt.databench.dbx.database.DatabaseType;
 import de.julianweinelt.databench.data.ConfigManager;
 import de.julianweinelt.databench.data.Configuration;
 import de.julianweinelt.databench.data.Project;

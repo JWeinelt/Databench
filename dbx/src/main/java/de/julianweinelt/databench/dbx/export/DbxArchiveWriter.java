@@ -1,4 +1,4 @@
-package de.julianweinelt.databench.dbx;
+package de.julianweinelt.databench.dbx.export;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -30,10 +30,12 @@ public class DbxArchiveWriter implements Closeable {
 
     public void writeJson(String path, Object obj) throws IOException {
         zip.putNextEntry(new ZipEntry(path));
-        try (Writer w = new OutputStreamWriter(zip, StandardCharsets.UTF_8)) {
-            gson.toJson(obj, w);
-            w.flush();
-        }
+
+        Writer w = new OutputStreamWriter(zip, StandardCharsets.UTF_8);
+
+        gson.toJson(obj, w);
+        w.flush();
+
         zip.closeEntry();
     }
 
@@ -43,30 +45,31 @@ public class DbxArchiveWriter implements Closeable {
     }
 
     public void exportTableData(
-            DbxArchiveWriter writer,
             String db,
             String table,
             ResultSet rs
     ) throws Exception {
 
-        try (Writer w = writer.openTextEntry(
+        Writer w = openTextEntry(
                 "databases/" + db + "/data/" + table + ".data.jsonl"
-        )) {
-            Gson gson = GsonProvider.gson();
-            ResultSetMetaData meta = rs.getMetaData();
-            int cols = meta.getColumnCount();
+        );
 
-            while (rs.next()) {
-                JsonObject row = new JsonObject();
-                for (int i = 1; i <= cols; i++) {
-                    String name = meta.getColumnLabel(i);
-                    Object val = rs.getObject(i);
-                    row.add(name, gson.toJsonTree(val));
-                }
-                w.write(gson.toJson(row));
-                w.write('\n');
+        ResultSetMetaData meta = rs.getMetaData();
+        int cols = meta.getColumnCount();
+
+        while (rs.next()) {
+            JsonObject row = new JsonObject();
+            for (int i = 1; i <= cols; i++) {
+                String name = meta.getColumnLabel(i);
+                Object val = rs.getObject(i);
+                row.add(name, gson.toJsonTree(val));
             }
+            w.write(gson.toJson(row));
+            w.write('\n');
         }
+
+        w.flush();
+        zip.closeEntry();
     }
 
 

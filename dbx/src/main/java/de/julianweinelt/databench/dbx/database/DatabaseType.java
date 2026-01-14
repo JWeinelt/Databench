@@ -1,4 +1,4 @@
-package de.julianweinelt.databench.api;
+package de.julianweinelt.databench.dbx.database;
 
 public enum DatabaseType {
     MYSQL("mysql", "mysql", "jdbc:mysql://${server}/${database}" +

@@ -1,4 +1,4 @@
-package de.julianweinelt.databench.api;
+package de.julianweinelt.databench.dbx.database;
 
 public abstract class DatabaseSyntax {
     public abstract String showTables();
