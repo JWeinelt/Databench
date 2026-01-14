@@ -5,23 +5,31 @@ import com.formdev.flatlaf.themes.FlatMacDarkLaf;
 import com.formdev.flatlaf.themes.FlatMacLightLaf;
 import de.julianweinelt.databench.data.ConfigManager;
 import de.julianweinelt.databench.data.Configuration;
+import de.julianweinelt.databench.dbx.api.ui.SettingsPanel;
+import de.julianweinelt.databench.dbx.api.ui.UIService;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.ArrayList;
 
 @Slf4j
 public class SettingsDialog extends JDialog {
+    private boolean saved = true;
+    private JButton applyButton;
+    private final java.util.List<Runnable> toSaveRuns = new ArrayList<>();
 
     public SettingsDialog(Frame owner) {
         super(owner, "Preferences", true);
-        setSize(520, 420);
+        setSize(600, 420);
         setLocationRelativeTo(owner);
-        setLayout(new BorderLayout(10, 10));
+
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         JTabbedPane tabs = new JTabbedPane();
         tabs.addTab("General", createGeneralPanel());
@@ -30,28 +38,31 @@ public class SettingsDialog extends JDialog {
         tabs.addTab("Advanced", createAdvancedPanel());
         tabs.addTab("Keyboard Shortcuts", createShortcutPanel());
 
-        add(tabs, BorderLayout.CENTER);
-        add(createButtonPanel(), BorderLayout.SOUTH);
+        for (SettingsPanel p : UIService.instance().getSettingsPanels()) {
+            tabs.addTab(p.title(), p.createPanel());
+        }
+
+        mainPanel.add(tabs, BorderLayout.CENTER);
+        mainPanel.add(createButtonPanel(), BorderLayout.SOUTH);
+
+        add(mainPanel);
     }
 
     private JPanel createGeneralPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
-        GridBagConstraints c = new GridBagConstraints();
-        c.insets = new Insets(6, 6, 6, 6);
+        GridBagConstraints c = baseConstraints();
         c.anchor = GridBagConstraints.NORTHWEST;
-        c.fill = GridBagConstraints.HORIZONTAL;
 
         c.gridx = 0;
         c.gridy = 0;
         c.weightx = 0;
+        c.fill = GridBagConstraints.NONE;
         panel.add(new JLabel("Language:"), c);
 
         c.gridx = 1;
-        c.weightx = 1;
         JComboBox<Object> comp = new JComboBox<>(LanguageManager.instance().getFriendlyNames().toArray());
         comp.addActionListener(e -> {
             String selected = (String) comp.getSelectedItem();
-
             String langID = LanguageManager.instance().fromFriendlyName(selected);
             log.info("Selected language: {}", langID);
             Configuration.getConfiguration().setLocale(langID);
@@ -63,10 +74,15 @@ public class SettingsDialog extends JDialog {
         c.gridy++;
         c.gridwidth = 2;
         c.weightx = 0;
+        c.fill = GridBagConstraints.HORIZONTAL;
         panel.add(new JCheckBox("Open last project on startup"), c);
 
         c.gridy++;
         panel.add(new JCheckBox("Show start page on startup"), c);
+
+        c.gridy++;
+        c.weighty = 1;
+        panel.add(Box.createVerticalGlue(), c);
 
         return panel;
     }
@@ -76,31 +92,23 @@ public class SettingsDialog extends JDialog {
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints c = baseConstraints();
 
+        c.gridx = 0;
+        c.gridy = 0;
+        c.weightx = 0;
         panel.add(new JLabel("Theme:"), c);
-        c.gridx++;
-        JComboBox<String> themes = new JComboBox<>(new String[]{"Dark", "Light", "Darcula", "Dark (MacOS)", "Light (MacOS)", "IntelliJ"});
-        themes.addActionListener(e -> {
-            String selected = (String) themes.getSelectedItem();
-            if (selected == null) return;
-            FlatLaf laf = switch (selected) {
-                case "Light" -> new FlatLightLaf();
-                case "Dark" -> new FlatDarkLaf();
-                case "Darcula" -> new FlatDarculaLaf();
-                case "Dark (MacOS)" -> new FlatMacDarkLaf();
-                case "Light (MacOS)" -> new FlatMacLightLaf();
-                case "IntelliJ" -> new FlatIntelliJLaf();
-                default -> new FlatDarkLaf();
-            };
-            ThemeSwitcher.switchTheme(laf);
-            Configuration.getConfiguration().setSelectedTheme(selected);
-            ConfigManager.getInstance().saveConfig();
-        });
+
+        c.gridx = 1;
+        c.weightx = 1;
+        JComboBox<String> themes = getThemeComboBox();
         panel.add(themes, c);
 
         c.gridx = 0;
         c.gridy++;
+        c.weightx = 0;
         panel.add(new JLabel("Font size:"), c);
-        c.gridx++;
+
+        c.gridx = 1;
+        c.weightx = 1;
         panel.add(new JSpinner(new SpinnerNumberModel(13, 10, 20, 1)), c);
 
         c.gridx = 0;
@@ -108,7 +116,34 @@ public class SettingsDialog extends JDialog {
         c.gridwidth = 2;
         panel.add(new JCheckBox("Use Animations"), c);
 
+        c.gridy++;
+        c.weighty = 1;
+        panel.add(Box.createVerticalGlue(), c);
+
         return panel;
+    }
+
+    private @NotNull JComboBox<String> getThemeComboBox() {
+        JComboBox<String> themes = new JComboBox<>(new String[]{"Dark", "Light", "Darcula", "Dark (MacOS)", "Light (MacOS)", "IntelliJ"});
+        themes.addActionListener(e -> {
+            String selected = (String) themes.getSelectedItem();
+            if (selected == null) return;
+            FlatLaf laf = switch (selected) {
+                case "Light" -> new FlatLightLaf();
+                case "Darcula" -> new FlatDarculaLaf();
+                case "Dark (MacOS)" -> new FlatMacDarkLaf();
+                case "Light (MacOS)" -> new FlatMacLightLaf();
+                case "IntelliJ" -> new FlatIntelliJLaf();
+                default -> new FlatDarkLaf();
+            };
+            setNonSaved();
+            toSaveRuns.add(() -> {
+                ThemeSwitcher.switchTheme(laf);
+                Configuration.getConfiguration().setSelectedTheme(selected);
+                ConfigManager.getInstance().saveConfig();
+            });
+        });
+        return themes;
     }
 
     private JPanel createUpdatePanel() {
@@ -119,8 +154,13 @@ public class SettingsDialog extends JDialog {
 
         c.gridy++;
         panel.add(new JLabel("Update Channel:"), c);
+
         c.gridy++;
         panel.add(new JComboBox<>(new String[]{"stable", "nightly", "beta"}), c);
+
+        c.gridy++;
+        c.weighty = 1;
+        panel.add(Box.createVerticalGlue(), c);
 
         return panel;
     }
@@ -129,13 +169,29 @@ public class SettingsDialog extends JDialog {
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints c = baseConstraints();
 
-        panel.add(new JCheckBox("Automatically send error protocols"), c);
+        JCheckBox automaticallySendErrorProtocols = new JCheckBox("Automatically send error protocols");
+        automaticallySendErrorProtocols.addActionListener(e -> {
+            setNonSaved();
+            runAfterSave(() -> Configuration.getConfiguration().setSendErrorProtocols(automaticallySendErrorProtocols.isSelected()));
+        });
+        panel.add(automaticallySendErrorProtocols, c);
+        c.gridy++;
+        JCheckBox sendAnonymousStatistics = new JCheckBox("Send anonymous statistics");
+        sendAnonymousStatistics.addActionListener(e -> {
+            setNonSaved();
+            runAfterSave(() -> Configuration.getConfiguration().setSendAnonymousData(sendAnonymousStatistics.isSelected()));
+        });
+        panel.add(sendAnonymousStatistics, c);
 
         c.gridy++;
         panel.add(new JCheckBox("Use Debug logging"), c);
 
         c.gridx++;
         panel.add(new JButton("Reset preferences"), c);
+
+        c.gridy++;
+        c.weighty = 1;
+        panel.add(Box.createVerticalGlue(), c);
 
         return panel;
     }
@@ -150,6 +206,8 @@ public class SettingsDialog extends JDialog {
 
         JList<ShortcutAction> actionList = new JList<>(model);
         actionList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        actionList.setLayoutOrientation(JList.VERTICAL);
+        actionList.setVisibleRowCount(-1);
         actionList.setCellRenderer((list, value, index, isSelected, cellHasFocus) -> {
             JLabel label = new JLabel(value.getDisplayName());
             label.setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
@@ -161,8 +219,7 @@ public class SettingsDialog extends JDialog {
             return label;
         });
 
-        panel.add(new JScrollPane(actionList), BorderLayout.WEST);
-
+        panel.add(new JScrollPane(actionList), BorderLayout.LINE_START);
         panel.add(createShortcutDetailPanel(actionList), BorderLayout.CENTER);
 
         return panel;
@@ -288,29 +345,47 @@ public class SettingsDialog extends JDialog {
                 || keyCode == KeyEvent.VK_ALT_GRAPH;
     }
 
-
-
     private JPanel createButtonPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
-        JButton apply = new JButton("Apply");
+        applyButton = new JButton("Apply");
         JButton ok = new JButton("OK");
         JButton cancel = new JButton("Cancel");
 
         ok.addActionListener(e -> {
-            // saveSettings();
+            applyButton.doClick();
             dispose();
         });
-
-        apply.addActionListener(e -> {
-            // saveSettings();
+        applyButton.addActionListener(e -> {
+            toSaveRuns.forEach(Runnable::run);
+            toSaveRuns.clear();
+            applyButton.setEnabled(false);
+            ConfigManager.getInstance().saveConfig();
+        });
+        cancel.addActionListener(e -> {
+            if (!saved)  {
+                int val = JOptionPane.showConfirmDialog(SettingsDialog.this, "You have unsaved " +
+                        "changes. If you close this window, they will get lost. Continue?", "Unsaved changes", JOptionPane.OK_CANCEL_OPTION);
+                if (val == JOptionPane.OK_OPTION) {
+                    dispose();
+                    toSaveRuns.clear();
+                    saved = true;
+                }
+            } else dispose();
         });
 
-        cancel.addActionListener(e -> dispose());
-
-        panel.add(apply);
+        panel.add(applyButton);
         panel.add(ok);
         panel.add(cancel);
+
+
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                cancel.doClick();
+            }
+        });
 
         return panel;
     }
@@ -319,8 +394,17 @@ public class SettingsDialog extends JDialog {
         GridBagConstraints c = new GridBagConstraints();
         c.gridx = 0;
         c.gridy = 0;
-        c.anchor = GridBagConstraints.WEST;
+        c.anchor = GridBagConstraints.NORTHWEST;
         c.insets = new Insets(6, 6, 6, 6);
+        c.fill = GridBagConstraints.HORIZONTAL;
         return c;
+    }
+
+    private void setNonSaved() {
+        saved = false;
+        applyButton.setEnabled(true);
+    }
+    private void runAfterSave(Runnable r) {
+        toSaveRuns.add(r);
     }
 }
