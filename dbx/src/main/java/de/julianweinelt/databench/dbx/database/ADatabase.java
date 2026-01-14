@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
@@ -41,6 +42,22 @@ public abstract class ADatabase {
         }
     }
 
+    public void useDatabase(String database) {
+        try {
+            if (!database.matches("[a-zA-Z0-9_]+")) {
+                throw new IllegalArgumentException("Invalid database name");
+            }
+
+            conn.createStatement().execute("USE `" + database + "`");
+        } catch (SQLException e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    public PreparedStatement prepareStatement(String sql) throws SQLException {
+        return conn.prepareStatement(sql);
+    }
+
     public abstract List<String> getDatabases();
     public abstract List<String> getTables(String database);
     public abstract ResultSet getTableData(String database, String table) throws SQLException;
@@ -49,6 +66,14 @@ public abstract class ADatabase {
 
     public abstract String getDatabaseProductName();
     public abstract String getDatabaseProductVersion();
+
+    public void createDatabaseIfNotExists(String db) {
+        try {
+            conn.createStatement().execute("CREATE SCHEMA IF NOT EXISTS `" + db + "`");
+        } catch (SQLException e) {
+            log.error(e.getMessage());
+        }
+    }
 
 
     public record SchemaInfo(String database, String defaultCharset, String defaultCollation, List<TableInfo> tables) {}
