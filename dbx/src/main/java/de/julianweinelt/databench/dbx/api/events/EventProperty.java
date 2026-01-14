@@ -9,6 +9,7 @@ import org.jetbrains.annotations.ApiStatus;
  * This class is useful for handling dynamic event properties where the type is not known beforehand.
  */
 
+@SuppressWarnings("unused")
 public class EventProperty {
     private final Object value;
     private final Class<?> valueClass;
@@ -61,27 +62,6 @@ public class EventProperty {
     }
 
     /**
-     * Retrieves the stored value as a specified type using Java's type casting.
-     * <p></p>
-     * Example:
-     * <pre>{@code
-     *     EventProperty property = new EventProperty(42);
-     *     int intValue = property.getAs(Integer.class); // Returns 42
-     * }</pre>
-     * <p></p>
-     * This method is unsafe to use, as it may throw a {@code ClassCastException}.
-     * You may use {@link #asValue(Class)} for type-safe casting instead.
-     *
-     * @param type The class of the expected return type.
-     * @return The stored value cast to the specified type.
-     * @throws ClassCastException if the stored value is not of the requested type.
-     */
-    @Deprecated
-    public <T> T getAs(Class<T> type) {
-        return type.cast(value);
-    }
-
-    /**
      * Retrieves the stored value as a String.
      * Equivalent to calling `getAs(String.class)`.
      *
@@ -95,7 +75,7 @@ public class EventProperty {
      * }</pre>
      */
     public String asString() {
-        return getAs(String.class);
+        return asValue(String.class);
     }
     /**
      * Retrieves the stored value as an int.
@@ -103,7 +83,7 @@ public class EventProperty {
      *
      * @return The stored value as an int.
      * @throws ClassCastException if the value cannot be cast to an Integer.
-     *
+     * <p>
      * Example:
      * <pre>{@code
      *     EventProperty property = new EventProperty(100);
@@ -111,7 +91,7 @@ public class EventProperty {
      * }</pre>
      */
     public int asInt() {
-        return getAs(Integer.class);
+        return asValue(Integer.class);
     }
     /**
      * Retrieves the stored value as a boolean.
@@ -119,7 +99,7 @@ public class EventProperty {
      *
      * @return The stored value as a boolean.
      * @throws ClassCastException if the value cannot be cast to a Boolean.
-     *
+     * <p>
      * Example:
      * <pre>{@code
      *     EventProperty property = new EventProperty(true);
@@ -127,7 +107,7 @@ public class EventProperty {
      * }</pre>
      */
     public boolean asBoolean() {
-        return getAs(Boolean.class);
+        return asValue(Boolean.class);
     }
     /**
      * Retrieves the stored value as a float.
@@ -135,7 +115,7 @@ public class EventProperty {
      *
      * @return The stored value as a float.
      * @throws ClassCastException if the value cannot be cast to a Float.
-     *
+     * <p>
      * Example:
      * <pre>{@code
      *     EventProperty property = new EventProperty(3.14f);
@@ -143,7 +123,7 @@ public class EventProperty {
      * }</pre>
      */
     public float asFloat() {
-        return getAs(Float.class);
+        return asValue(Float.class);
     }
     /**
      * Retrieves the stored value as a double.
@@ -151,7 +131,7 @@ public class EventProperty {
      *
      * @return The stored value as a double.
      * @throws ClassCastException if the value cannot be cast to a Double.
-     *
+     * <p>
      * Example:
      * <pre>{@code
      *     EventProperty property = new EventProperty(2.718);
@@ -159,13 +139,13 @@ public class EventProperty {
      * }</pre>
      */
     public double asDouble() {
-        return getAs(Double.class);
+        return asValue(Double.class);
     }
     /**
      * Retrieves the raw stored value without any type casting.
      *
      * @return The stored value as an Object.
-     *
+     * <p>
      * Example:
      * <pre>{@code
      *     EventProperty property = new EventProperty("Dynamic Value");
