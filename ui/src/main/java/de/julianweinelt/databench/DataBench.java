@@ -2,13 +2,16 @@ package de.julianweinelt.databench;
 
 import com.formdev.flatlaf.FlatDarkLaf;
 import de.julianweinelt.databench.api.DConnection;
+import de.julianweinelt.databench.dbx.api.Registry;
 import de.julianweinelt.databench.dbx.api.drivers.DriverManagerService;
 import de.julianweinelt.databench.api.FileManager;
 import de.julianweinelt.databench.data.ConfigManager;
 import de.julianweinelt.databench.data.Configuration;
 import de.julianweinelt.databench.data.ProjectManager;
 import de.julianweinelt.databench.dbx.api.DbxAPI;
+import de.julianweinelt.databench.dbx.api.events.Event;
 import de.julianweinelt.databench.dbx.api.plugins.PluginLoader;
+import de.julianweinelt.databench.dbx.api.ui.UIService;
 import de.julianweinelt.databench.service.UpdateChecker;
 import de.julianweinelt.databench.ui.BenchUI;
 import de.julianweinelt.databench.ui.LanguageManager;
@@ -150,6 +153,8 @@ public class DataBench {
         startSocketListener();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            Configuration.getConfiguration().setFirstStartup(false);
+            configManager.saveConfig();
             if (!shouldUpdate) return;
             ProcessBuilder pb = new ProcessBuilder(
                     "DataBench.exe",
@@ -168,6 +173,8 @@ public class DataBench {
         pluginLoader = new PluginLoader(api.getRegistry());
         pluginLoader.loadAll();
         log.info("Startup finished.");
+
+        Registry.instance().callEvent(new Event("UIServiceEnabledEvent").set("service", UIService.instance()));
 
     }
 
