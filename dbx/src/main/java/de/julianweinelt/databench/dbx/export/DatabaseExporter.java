@@ -4,6 +4,7 @@ import de.julianweinelt.databench.dbx.database.ADatabase;
 import de.julianweinelt.databench.dbx.model.Manifest;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -19,13 +20,16 @@ public class DatabaseExporter {
 
     private final ExportListener listener;
 
+    private final JDialog parent;
+
     private int totalSteps;
     private int currentStep;
 
-    public DatabaseExporter(DbxArchiveWriter archiveWriter, ADatabase database, ExportListener listener) {
+    public DatabaseExporter(DbxArchiveWriter archiveWriter, ADatabase database, ExportListener listener, JDialog parent) {
         this.archiveWriter = archiveWriter;
         this.database = database;
         this.listener = listener;
+        this.parent = parent;
     }
 
     public void retrieveBasicData() {
@@ -92,6 +96,7 @@ public class DatabaseExporter {
                             resultSet
                     );
 
+
                     listener.onLog("Finished table " + tableName);
                 } catch (SQLException e) {
                     listener.onError(
@@ -108,5 +113,7 @@ public class DatabaseExporter {
         });
 
         listener.onLog("Export finished successfully");
+        JOptionPane.showMessageDialog(parent, "Export finished successfully", "Export finished successfully", JOptionPane.INFORMATION_MESSAGE);
+        parent.dispose();
     }
 }
