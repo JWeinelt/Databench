@@ -1,6 +1,7 @@
 package de.julianweinelt.databench.ui.driver;
 
-import de.julianweinelt.databench.api.DriverShim;
+import de.julianweinelt.databench.dbx.api.DbxAPI;
+import de.julianweinelt.databench.dbx.api.drivers.DriverShim;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -182,6 +183,6 @@ public class DriverManagerDialog extends JDialog {
     }
 
     private void deleteDriverJar(Driver driver) {
-        File dir = new File("drivers");
+        File dir = DbxAPI.driversFolder();
     }
 }

@@ -1,5 +1,7 @@
 package de.julianweinelt.databench.ui.driver;
 
+import de.julianweinelt.databench.dbx.api.DbxAPI;
+
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
@@ -138,7 +140,7 @@ public class DriverDownloadDialog extends JDialog {
             DriverDownloadWrapper.DriverDownload driverDownload = DriverDownloadWrapper.getForDB(toInternalDBName(db), version);
             if (driverDownload == null) return;
 
-            new DriverDownloadProgressDialog(this, driverDownload.url(), new File("drivers"),
+            new DriverDownloadProgressDialog(this, driverDownload.url(), DbxAPI.driversFolder(),
                     driverDownload).setVisible(true);
         });
     }

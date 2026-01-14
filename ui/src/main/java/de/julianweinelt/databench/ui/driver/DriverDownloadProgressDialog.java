@@ -1,6 +1,6 @@
 package de.julianweinelt.databench.ui.driver;
 
-import de.julianweinelt.databench.api.DriverManagerService;
+import de.julianweinelt.databench.dbx.api.drivers.DriverManagerService;
 import de.julianweinelt.databench.util.ArchiveUtils;
 import lombok.extern.slf4j.Slf4j;
 

@@ -1,6 +1,6 @@
 package de.julianweinelt.databench.ui.driver;
 
-import de.julianweinelt.databench.api.DriverShim;
+import de.julianweinelt.databench.dbx.api.drivers.DriverShim;
 
 import javax.swing.*;
 import java.awt.*;
