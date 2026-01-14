@@ -1,5 +1,6 @@
 package de.julianweinelt.databench.dbx.api.plugins;
 
+import de.julianweinelt.databench.dbx.api.DbxAPI;
 import de.julianweinelt.databench.dbx.api.Registry;
 import lombok.Getter;
 import lombok.Setter;
@@ -38,25 +39,25 @@ public abstract class DbxPlugin {
     }
 
     /**
-     * Returns the data folder of the module. Typically the path is ~/data/[ModuleName].
+     * Returns the data folder of the plugin. Typically, the path is ~/data/[ModuleName].
      * @return {@link File} object of the data folder
      */
     public File getDataFolder() {
-        return new File("data/" + name);
+        return new File(DbxAPI.pluginsFolder(), "data/" + name);
     }
 
     /**
-     * Called when module is loaded. API calls should not be done here, as dependencies may not be loaded at this time.
+     * Called when plugin is loaded. API calls should not be done here, as dependencies may not be loaded at this time.
      */
-    public abstract void onLoad();
+    public abstract void preInit();
 
     /**
-     * Called when the module is enabled. All dependencies are loaded.
+     * Called when the plugin is enabled. All dependencies are loaded.
      */
-    public abstract void onEnable();
+    public abstract void init();
 
     /**
-     * Called when module is being disabled
+     * Called when plugin is being disabled
      */
     public abstract void onDisable();
 

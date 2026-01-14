@@ -13,12 +13,12 @@ package de.julianweinelt.databench.dbx.api.plugins;
 public final class SystemPlugin extends DbxPlugin {
 
     @Override
-    public void onLoad() {
+    public void preInit() {
 
     }
 
     @Override
-    public void onEnable() {
+    public void init() {
         getLogger().info("DBX System Module has been enabled.");
     }
 

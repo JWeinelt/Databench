@@ -149,7 +149,7 @@ public class PluginLoader {
                 File dataFolder = new File(DbxAPI.pluginsFolder(), "data/" + plugin.getName());
                 if (dataFolder.mkdir()) log.info("Created data folder for {}", plugin.getName());
 
-                plugin.onLoad();
+                plugin.preInit();
                 registry.callEvent(new Event("PluginLoadEvent").nonCancellable()
                         .set("name", pluginName)
                         .set("plugin", plugin)
@@ -159,7 +159,7 @@ public class PluginLoader {
                 );
                 plugin.onDefineEvents();
                 plugin.onCreateCommands();
-                plugin.onEnable();
+                plugin.init();
                 registry.callEvent(new Event("PluginEnableEvent").nonCancellable()
                         .set("name", pluginName)
                         .set("plugin", plugin)
