@@ -22,7 +22,7 @@ public class SQLBuilder {
         for (TableColumn col : newCols.values()) {
             if (!oldCols.containsKey(col.getName())) {
                 statements.add("ADD COLUMN " + columnSQL(col));
-            } else if (!col.equalsDefinition(oldCols.get(col))) {
+            } else if (!col.equalsDefinition(oldCols.get(col.getName()))) {
                 statements.add("MODIFY COLUMN " + columnSQL(col));
             }
         }
