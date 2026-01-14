@@ -59,9 +59,13 @@ public class CreateTableTab implements IEditorTab {
 
         JButton applyButton = new JButton("💾 " + (existingTable ? "Apply" : "Create"));
         JButton revertButton = new JButton("❌ Revert");
+        JButton newCol = new JButton("+");
+        JButton remCol = new JButton("-");
 
         toolBar.add(applyButton);
         toolBar.add(revertButton);
+        toolBar.add(newCol);
+        toolBar.add(remCol);
 
         JPanel namePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         namePanel.add(new JLabel("Table name:"));
@@ -112,6 +116,35 @@ public class CreateTableTab implements IEditorTab {
         model.addTableModelListener(e -> updateSQL.run());
         updateSQL.run();
 
+        newCol.addActionListener(e -> {
+            table.addColumn(new TableColumn("", "", null, false, false, false));
+            updateSQL.run();
+            model.addRow(new Object[]{
+                    "",
+                    "",
+                    "",
+                    false,
+                    false,
+                    false
+            });
+        });
+        remCol.addActionListener(e -> {
+            int[] selectedRows = columnTable.getSelectedRows();
+
+            if (selectedRows.length == 0) {
+                JOptionPane.showMessageDialog(
+                        editorPanel,
+                        "Please select at least one column to remove.",
+                        "No selection",
+                        JOptionPane.WARNING_MESSAGE
+                );
+                return;
+            }
+            for (int i = selectedRows.length - 1; i >= 0; i--) {
+                model.removeRow(selectedRows[i]);
+            }
+        });
+
         // ===== APPLY =====
         applyButton.addActionListener(e -> {
             try {
@@ -154,8 +187,6 @@ public class CreateTableTab implements IEditorTab {
     public String getTitle() {
         return tableName == null ? "New Table" : tableName;
     }
-
-    // ===== HELPERS =====
 
     private TableDefinition deepCopy(TableDefinition src) {
         TableDefinition copy = new TableDefinition();
