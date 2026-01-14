@@ -45,6 +45,9 @@ public abstract class DbxPlugin {
     public File getDataFolder() {
         return new File(DbxAPI.pluginsFolder(), "data/" + name);
     }
+    public Registry getRegistry() {
+        return Registry.instance();
+    }
 
     /**
      * Called when plugin is loaded. API calls should not be done here, as dependencies may not be loaded at this time.
@@ -65,11 +68,6 @@ public abstract class DbxPlugin {
      * Called to define events in {@link Registry}.
      */
     public abstract void onDefineEvents();
-
-    /**
-     * Called to define commands in {@link Registry}.
-     */
-    public abstract void onCreateCommands();
 
     protected Logger getLogger() {
         return LoggerFactory.getLogger(this.getClass());
