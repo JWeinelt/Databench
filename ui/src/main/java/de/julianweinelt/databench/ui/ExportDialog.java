@@ -31,6 +31,8 @@ public class ExportDialog extends JDialog {
         setSize(700, 500);
         setLocationRelativeTo(owner);
         setLayout(new BorderLayout(8, 8));
+        setModal(false);
+        setAlwaysOnTop(false);
 
         add(createSettingsPanel(), BorderLayout.NORTH);
         add(createConsolePanel(), BorderLayout.CENTER);
@@ -61,7 +63,7 @@ public class ExportDialog extends JDialog {
             log.info("Initializing DB connection...");
             DBMySQL db = (DBMySQL) ADatabase.of(
                     project.getServer().split(":")[0],
-                    Integer.parseInt(project.getServer().split(":")[1]),
+                    Integer.parseInt((project.getServer().contains(":") ? project.getServer().split(":")[1] : "3306")),
                     project.getUsername(),
                     project.getPassword(),
                     project.getDefaultDatabase()
@@ -168,7 +170,7 @@ public class ExportDialog extends JDialog {
         new Thread(() -> {
             try {
                 DatabaseExporter exporter =
-                        new DatabaseExporter(writer, database, listener);
+                        new DatabaseExporter(writer, database, listener, ExportDialog.this);
 
                 exporter.retrieveBasicData();
                 exporter.createManifest();
