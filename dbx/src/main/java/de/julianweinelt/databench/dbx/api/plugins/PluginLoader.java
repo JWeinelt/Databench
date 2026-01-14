@@ -160,7 +160,6 @@ public class PluginLoader {
                         .set("descriptor", descriptor)
                 );
                 plugin.onDefineEvents();
-                plugin.onCreateCommands();
                 plugin.init();
                 registry.callEvent(new Event("PluginEnableEvent").nonCancellable()
                         .set("name", pluginName)
