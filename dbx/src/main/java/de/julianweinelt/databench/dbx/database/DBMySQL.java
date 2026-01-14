@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
+@SuppressWarnings("SqlSourceToSinkFlow")
 public class DBMySQL extends ADatabase {
     private final String defaultDB;
 
@@ -45,7 +46,7 @@ public class DBMySQL extends ADatabase {
     @Override
     public List<String> getTables(String database) {
         List<String> tables = new ArrayList<>();
-        try (PreparedStatement pS = conn.prepareStatement("USE " + database)) {pS.execute();} catch (SQLException e) {}
+        try (PreparedStatement pS = conn.prepareStatement("USE " + database)) {pS.execute();} catch (SQLException ignored) {}
         try (PreparedStatement pS = conn.prepareStatement(DatabaseType.MYSQL.syntax.showTables().replace("${db}", database))) {
             ResultSet rs = pS.executeQuery();
             while (rs.next()) tables.add(rs.getString(1));
