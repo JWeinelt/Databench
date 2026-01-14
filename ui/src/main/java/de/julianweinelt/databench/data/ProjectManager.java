@@ -1,7 +1,7 @@
 package de.julianweinelt.databench.data;
 
 import de.julianweinelt.databench.DataBench;
-import de.julianweinelt.databench.api.DatabaseType;
+import de.julianweinelt.databench.dbx.database.DatabaseType;
 import de.julianweinelt.databench.ui.BenchUI;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -146,6 +146,9 @@ public class ProjectManager {
 
     public boolean projectExists(String name) {
         return projects.stream().anyMatch(p -> p.getName().equals(name));
+    }
+    public Project getProject(String name) {
+        return projects.stream().filter(p -> p.getName().equals(name)).findFirst().orElse(null);
     }
 
 
