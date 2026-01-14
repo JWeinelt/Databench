@@ -1,6 +1,6 @@
 package de.julianweinelt.databench.data;
 
-import de.julianweinelt.databench.api.DatabaseType;
+import de.julianweinelt.databench.dbx.database.DatabaseType;
 import de.julianweinelt.databench.api.ImagePanel;
 import de.julianweinelt.databench.ui.BenchUI;
 import lombok.Getter;
