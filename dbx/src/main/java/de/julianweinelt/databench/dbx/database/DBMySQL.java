@@ -8,7 +8,7 @@ import java.util.List;
 
 @Slf4j
 public class DBMySQL extends ADatabase {
-    private String defaultDB;
+    private final String defaultDB;
 
     protected DBMySQL(String host, int port, String username, String password, String defaultDB) {
         super(host, port, username, password);
@@ -17,7 +17,7 @@ public class DBMySQL extends ADatabase {
 
     @Override
     public boolean connect() {
-        String DB_NAME = "jdbc:mysql://${server}/${db}?useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&autoReconnect=true";
+        String DB_NAME = "jdbc:mysql://${server}/?useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&autoReconnect=true";
         DB_NAME = DB_NAME.replace("${server}", getHost() + ":" + getPort()).replace("${db}", defaultDB);
 
         try {
