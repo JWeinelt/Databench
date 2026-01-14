@@ -1,7 +1,5 @@
 package de.julianweinelt.databench.dbx.api.ui;
 
-import de.julianweinelt.databench.dbx.api.Registry;
-import de.julianweinelt.databench.dbx.api.events.Event;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
