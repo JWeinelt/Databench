@@ -265,7 +265,7 @@ public class MenuBar {
 
             locateLogs.addActionListener(e -> {
                 if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE_FILE_DIR)) {
-                    Desktop.getDesktop().browseFileDirectory(new File("."));
+                    Desktop.getDesktop().browseFileDirectory(new File("logs"));
                 }
             });
             sqlMenu.add(helpIndex);
