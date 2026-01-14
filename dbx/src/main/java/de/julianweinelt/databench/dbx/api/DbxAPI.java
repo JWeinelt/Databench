@@ -1,6 +1,7 @@
 package de.julianweinelt.databench.dbx.api;
 
 import de.julianweinelt.databench.dbx.api.ui.UIService;
+import de.julianweinelt.databench.dbx.database.DatabaseRegistry;
 import de.julianweinelt.databench.dbx.util.DatabaseType;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -20,12 +21,15 @@ public class DbxAPI {
     private final Registry registry;
     @Getter
     private UIService uiService;
+    @Getter
+    private DatabaseRegistry dbRegistry;
 
     public DbxAPI(File apiFolder) {
         instance = this;
         this.apiFolder = apiFolder;
         if (apiFolder.mkdirs()) log.debug("API folder created");
         registry = new Registry(this);
+        dbRegistry = new DatabaseRegistry();
         uiService = new UIService();
         init();
     }
