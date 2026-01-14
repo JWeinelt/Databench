@@ -65,7 +65,7 @@ public class WelcomeTab implements IEditorTab {
         JButton button = new JButton(text);
         button.setHorizontalAlignment(SwingConstants.LEFT);
         button.setFont(button.getFont().deriveFont(Font.PLAIN, 15f));
-        button.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        button.setMaximumSize(new Dimension(400, 40));
         button.setFocusPainted(false);
 
         button.addActionListener(e -> action.run());
