@@ -1,9 +1,12 @@
 package de.julianweinelt.databench.dbx.database;
 
 import de.julianweinelt.databench.dbx.DbxArchiveWriter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 
+@Slf4j
 public abstract class ADatabase {
     private final String host;
     private final int port;
@@ -22,7 +25,14 @@ public abstract class ADatabase {
         this.archiveWriter = archiveWriter;
     }
 
-    public void connect() {
-
+    public abstract void connect();
+    public void disconnect() {
+        try {
+            if (conn != null) {
+                conn.close();
+            }
+        } catch (SQLException e) {
+            log.error(e.getMessage());
+        }
     }
 }
