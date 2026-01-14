@@ -28,6 +28,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class Registry {
     private static final Logger log = LoggerFactory.getLogger(Registry.class);
+    @Getter
     private final DbxAPI api;
 
     @Getter

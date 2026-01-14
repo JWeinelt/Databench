@@ -12,9 +12,9 @@ import java.util.List;
 
 @Slf4j
 public class DatabaseExporter {
-    private DbxArchiveWriter archiveWriter;
+    private final DbxArchiveWriter archiveWriter;
 
-    private ADatabase database;
+    private final ADatabase database;
     private final HashMap<String, List<String>> tables = new HashMap<>();
 
     private final ExportListener listener;
