@@ -6,9 +6,13 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
 import java.io.IOException;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class DatabaseImporter {
@@ -100,28 +104,78 @@ public class DatabaseImporter {
         listener.onLog("Total import steps: " + totalSteps);
     }
 
+    public void ensureTableExists(
+            String database,
+            TableDefinition table,
+            ADatabase targetDb) {
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("CREATE TABLE IF NOT EXISTS `")
+                .append(database).append("`.`")
+                .append(table.getName()).append("` (\n");
+
+        List<String> cols = new ArrayList<>();
+
+        for (ColumnDefinition c : table.getColumns()) {
+            String col =
+                    "`" + c.getName() + "` " + c.getType() +
+                            (c.isNullable() ? "" : " NOT NULL") +
+                            (c.isAutoIncrement() ? " AUTO_INCREMENT" : "");
+            cols.add(col);
+        }
+
+        if (!table.getPrimaryKey().isEmpty()) {
+            cols.add("PRIMARY KEY (" +
+                    table.getPrimaryKey().stream()
+                            .map(k -> "`" + k + "`")
+                            .collect(Collectors.joining(", ")) +
+                    ")");
+        }
+
+        sql.append(String.join(",\n", cols));
+        sql.append("\n) ENGINE=").append(table.getEngine());
+
+        try (PreparedStatement ps = targetDb.prepareStatement(sql.toString())) {
+            ps.execute();
+        } catch (SQLException e) {
+            log.error(e.getMessage());
+        }
+    }
+
     public void importData() {
         schemas.forEach((db, tables) -> {
             listener.onLog("Importing database: " + db);
+            listener.message("Importing database: " + db);
+            switch (db) {
+                case "information_schema", "mysql", "performance_schema", "sys" -> {
+                    return;
+                }
+            }
 
             prepareDatabase(db);
 
             for (ADatabase.TableInfo table : tables) {
+                TableDefinition def = archiveReader.getTableDefinition(db, table.name());
+                listener.onLog("Creating table " + db + "." + table.name());
+                listener.message("Creating table " + db + "." + table.name());
+                ensureTableExists(db, def, targetDatabase);
                 currentStep++;
 
                 listener.onProgress(
                         currentStep,
-                        totalSteps,
-                        "Importing " + db + "." + table.name()
+                        totalSteps
                 );
 
                 try {
-                    listener.onLog("Importing table " + table.name());
+                    listener.onLog("Importing table " + db + "." + table.name());
+                    listener.message("Importing table " + db + "." + table.name());
 
                     archiveReader.importTableData(
                             db,
                             table.name(),
-                            targetDatabase
+                            targetDatabase,
+                            listener,
+                            def
                     );
 
                     listener.onLog("Finished table " + table.name());
@@ -134,14 +188,18 @@ public class DatabaseImporter {
             }
         });
 
+        listener.message("Finished import; committing changes");
         listener.onLog("Import finished successfully");
+        listener.onLog("Committing...");
+        targetDatabase.commit();
         JOptionPane.showMessageDialog(
                 parent,
                 "Import finished successfully",
                 "Import finished",
                 JOptionPane.INFORMATION_MESSAGE
         );
-        parent.dispose();
+        listener.message("Import finished successfully");
+        //parent.dispose();
     }
     private void prepareDatabase(String db) {
         listener.onLog("Preparing database '" + db + "'");
