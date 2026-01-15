@@ -24,12 +24,20 @@ public class DBMySQL extends ADatabase {
 
         try {
             conn = DriverManager.getConnection(DB_NAME, getUsername(), getPassword());
-            conn.setAutoCommit(false);
             return true;
         } catch (SQLException ex) {
             // Log any exception that occurs during the connection process
             log.warn("SQL connection failed: {}", ex.getMessage());
             return false;
+        }
+    }
+
+    @Override
+    public void setStreaming(boolean streaming) {
+        try {
+            conn.setAutoCommit(!streaming);
+        } catch (SQLException e) {
+            log.error(e.getMessage());
         }
     }
 
