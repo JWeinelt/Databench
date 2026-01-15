@@ -2,11 +2,11 @@ package de.julianweinelt.databench.ui;
 
 import de.julianweinelt.databench.data.Project;
 import de.julianweinelt.databench.data.ProjectManager;
-import de.julianweinelt.databench.dbx.database.ADatabase;
-import de.julianweinelt.databench.dbx.database.DBMySQL;
 import de.julianweinelt.databench.dbx.backup.DatabaseExporter;
 import de.julianweinelt.databench.dbx.backup.DbxArchiveWriter;
 import de.julianweinelt.databench.dbx.backup.ExportListener;
+import de.julianweinelt.databench.dbx.database.ADatabase;
+import de.julianweinelt.databench.dbx.database.DBMySQL;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
@@ -25,6 +25,8 @@ public class ExportDialog extends JDialog {
     private final JTextArea console = new JTextArea();
     private final JButton startButton = new JButton("Start Export");
     private final JButton closeButton = new JButton("Close");
+    private final Taskbar taskbar;
+    private final Frame parent;
 
     private DbxArchiveWriter writer = null;
     private ADatabase database = null;
@@ -32,6 +34,11 @@ public class ExportDialog extends JDialog {
 
     public ExportDialog(Frame owner) {
         super(owner, "DataBench Export", true);
+        taskbar = Taskbar.getTaskbar();
+        this.parent = owner;
+        if (taskbar.isSupported(Taskbar.Feature.PROGRESS_STATE_WINDOW))
+            taskbar.setWindowProgressState(owner, Taskbar.State.NORMAL);
+        else taskbar.setWindowProgressState(owner, Taskbar.State.INDETERMINATE);
         setSize(700, 500);
         setLocationRelativeTo(owner);
         setLayout(new BorderLayout(8, 8));
@@ -181,6 +188,7 @@ public class ExportDialog extends JDialog {
                 exporter.exportData();
 
                 listener.onLog("Export completed successfully.");
+                taskbar.setWindowProgressState(ExportDialog.this, Taskbar.State.OFF);
             } catch (Exception e) {
                 listener.onError("Export failed", e);
                 log.error(e.getMessage(), e);
@@ -203,10 +211,13 @@ public class ExportDialog extends JDialog {
 
             @Override
             public void onProgress(int current, int total, String message) {
+                int pr = Math.min(100, Math.max(0, (int) (current * 100.0 / total)));
                 SwingUtilities.invokeLater(() -> {
                     progressBar.setMaximum(total);
                     progressBar.setValue(current);
                     progressBar.setString(message + " (" + current + "/" + total + ")");
+                    if (taskbar.isSupported(Taskbar.Feature.PROGRESS_VALUE))
+                        taskbar.setWindowProgressValue(ExportDialog.this, pr);
                 });
             }
 
