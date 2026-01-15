@@ -88,6 +88,13 @@ public class DatabaseExporter {
 
                 try {
                     listener.onLog("Exporting table " + tableName + "...");
+
+                    database.setStreaming(false);
+                    TableDefinition tableDef = database.extractTableMeta(db, tableName);
+                    archiveWriter.writeJson("databases/" + db + "/tables/" + tableName + ".table.json", tableDef);
+
+                    database.setStreaming(true);
+
                     ResultSet resultSet = database.getTableData(db, tableName);
 
                     archiveWriter.exportTableData(
@@ -114,6 +121,6 @@ public class DatabaseExporter {
 
         listener.onLog("Export finished successfully");
         JOptionPane.showMessageDialog(parent, "Export finished successfully", "Export finished successfully", JOptionPane.INFORMATION_MESSAGE);
-        parent.dispose();
+        //parent.dispose();
     }
 }
