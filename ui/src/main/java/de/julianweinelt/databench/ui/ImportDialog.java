@@ -22,11 +22,21 @@ public class ImportDialog extends JDialog implements ImportListener {
     private final JButton startButton = new JButton("Start Import");
     private final JButton cancelButton = new JButton("Cancel");
     private final JButton browseButton = new JButton("...");
+    private final Taskbar taskbar;
+
+    private Thread importThread;
 
     private ADatabase targetDatabase = null;
 
     public ImportDialog(Frame owner) {
         super(owner, "Import DBX Archive", true);
+
+        taskbar = Taskbar.getTaskbar();
+        if (!taskbar.isSupported(Taskbar.Feature.PROGRESS_STATE_WINDOW)) {
+            taskbar.setWindowProgressState(owner, Taskbar.State.INDETERMINATE);
+        } else {
+            taskbar.setWindowProgressState(owner, Taskbar.State.NORMAL);
+        }
 
         setSize(700, 450);
         setLocationRelativeTo(owner);
@@ -107,7 +117,16 @@ public class ImportDialog extends JDialog implements ImportListener {
 
     private void wireActions() {
         browseButton.addActionListener(e -> chooseArchive());
-        cancelButton.addActionListener(e -> dispose());
+        cancelButton.addActionListener(e -> {
+            int val = JOptionPane.showConfirmDialog(ImportDialog.this,
+                    "Are you sure you want to cancel the import? All imported data will be lost.",
+                    "Cancel Import?", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null);
+            if (val == JOptionPane.YES_OPTION) {
+                if (importThread != null && importThread.isAlive()) importThread.interrupt();
+                targetDatabase.rollback();
+                dispose();
+            }
+        });
         startButton.addActionListener(e -> startImport());
     }
 
@@ -141,7 +160,7 @@ public class ImportDialog extends JDialog implements ImportListener {
         logArea.setText("");
         progressBar.setValue(0);
 
-        new Thread(() -> {
+        importThread = new Thread(() -> {
             try {
                 DbxArchiveReader reader =
                         new DbxArchiveReader(new File(archiveField.getText()).toPath());
@@ -149,24 +168,35 @@ public class ImportDialog extends JDialog implements ImportListener {
                 DatabaseImporter importer =
                         new DatabaseImporter(reader, targetDatabase, this, this);
 
+                message("Reading manifest...");
                 importer.readManifest();
+                message("Validating data...");
                 importer.validate();
+                message("Connecting to target database...");
                 importer.connectTarget();
+                message("Loading schema information...");
                 importer.loadSchemas();
+                message("Importing data...");
                 importer.importData();
+                taskbar.setWindowProgressState(this, Taskbar.State.OFF);
 
             } catch (Exception ex) {
+                taskbar.setWindowProgressState(this, Taskbar.State.ERROR);
                 onError("Import failed", ex);
-                SwingUtilities.invokeLater(() ->
+                message("Import failed: " + ex.getMessage());
+                SwingUtilities.invokeLater(() -> {
                         JOptionPane.showMessageDialog(
                                 this,
                                 ex.getMessage(),
                                 "Import failed",
                                 JOptionPane.ERROR_MESSAGE
-                        )
+                        );
+                    taskbar.setWindowProgressState(this, Taskbar.State.OFF);
+                    }
                 );
             }
-        }, "dbx-import-thread").start();
+        }, "dbx-import-thread");
+        importThread.start();
     }
 
     @Override
@@ -178,13 +208,19 @@ public class ImportDialog extends JDialog implements ImportListener {
     }
 
     @Override
-    public void onProgress(int current, int total, String message) {
+    public void onProgress(int current, int total) {
         SwingUtilities.invokeLater(() -> {
             progressBar.setMaximum(total);
             progressBar.setValue(current);
             progressBar.setStringPainted(true);
-            progressBar.setString(message);
+            if (taskbar.isSupported(Taskbar.Feature.PROGRESS_VALUE))
+                taskbar.setWindowProgressValue(this, current * 100 / total);
         });
+    }
+
+    @Override
+    public void message(String message) {
+        progressBar.setString(message);
     }
 
     @Override
