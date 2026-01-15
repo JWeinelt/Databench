@@ -4,16 +4,20 @@ import de.julianweinelt.databench.data.Project;
 import de.julianweinelt.databench.data.ProjectManager;
 import de.julianweinelt.databench.dbx.database.ADatabase;
 import de.julianweinelt.databench.dbx.database.DBMySQL;
-import de.julianweinelt.databench.dbx.export.DatabaseExporter;
-import de.julianweinelt.databench.dbx.export.DbxArchiveWriter;
-import de.julianweinelt.databench.dbx.export.ExportListener;
+import de.julianweinelt.databench.dbx.backup.DatabaseExporter;
+import de.julianweinelt.databench.dbx.backup.DbxArchiveWriter;
+import de.julianweinelt.databench.dbx.backup.ExportListener;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.time.Instant;
+import java.util.Calendar;
+import java.util.Date;
 
 @Slf4j
 public class ExportDialog extends JDialog {
@@ -223,6 +227,24 @@ public class ExportDialog extends JDialog {
                         console.append(element.toString() + "\n");
                     }
                 });
+            }
+
+            @Override
+            public void save() {
+                String text = console.getText();
+                Date date = Date.from(Instant.now());
+                Calendar c = Calendar.getInstance();
+                c.setTime(date);
+                String dateName = c.get(Calendar.HOUR) + "_" + c.get(Calendar.MINUTE) + "_" + c.get(Calendar.SECOND)
+                        + "_" + c.get(Calendar.DAY_OF_MONTH) + "_" + (c.get(Calendar.MONTH) + 1)
+                        + "_" + c.get(Calendar.YEAR);
+                File saveFile = new File("export_log_" + dateName + ".txt");
+                try (FileWriter fw = new FileWriter(saveFile)) {
+                    fw.write(text);
+                } catch (IOException e) {
+                    log.error(e.getMessage(), e);
+                    onError("Error saving log file", e);
+                }
             }
         };
     }

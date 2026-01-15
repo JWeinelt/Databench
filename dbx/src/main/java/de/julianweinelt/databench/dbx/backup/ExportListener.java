@@ -1,4 +1,4 @@
-package de.julianweinelt.databench.dbx.export;
+package de.julianweinelt.databench.dbx.backup;
 
 public interface ExportListener {
 
@@ -16,4 +16,6 @@ public interface ExportListener {
     void onLog(String message);
 
     void onError(String message, Throwable throwable);
+
+    void save();
 }

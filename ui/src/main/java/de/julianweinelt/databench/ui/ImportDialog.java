@@ -3,8 +3,9 @@ package de.julianweinelt.databench.ui;
 import de.julianweinelt.databench.data.Project;
 import de.julianweinelt.databench.data.ProjectManager;
 import de.julianweinelt.databench.dbx.database.ADatabase;
-import de.julianweinelt.databench.dbx.export.DbxArchiveReader;
-import de.julianweinelt.databench.dbx.export.ImportListener;
+import de.julianweinelt.databench.dbx.backup.DatabaseImporter;
+import de.julianweinelt.databench.dbx.backup.DbxArchiveReader;
+import de.julianweinelt.databench.dbx.backup.ImportListener;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;

@@ -116,11 +116,27 @@ public class DBMySQL extends ADatabase {
 
     @Override
     public String getDatabaseProductName() {
-        return "MySQL";
+        try (PreparedStatement pS = conn.prepareStatement("SELECT @@version_comment;")) {
+            ResultSet set = pS.executeQuery();
+            if (set.next()) {
+                return set.getString(1);
+            }
+        } catch (SQLException e) {
+            log.error(e.getMessage());
+        }
+        return "MySQL - Unknown Edition";
     }
 
     @Override
     public String getDatabaseProductVersion() {
-        return "";
+        try (PreparedStatement pS = conn.prepareStatement("SELECT VERSION();")) {
+            ResultSet set = pS.executeQuery();
+            if (set.next()) {
+                return set.getString(1);
+            }
+        } catch (SQLException e) {
+            log.error(e.getMessage());
+        }
+        return "unknown";
     }
 }

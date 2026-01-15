@@ -1,4 +1,4 @@
-package de.julianweinelt.databench.dbx.export;
+package de.julianweinelt.databench.dbx.backup;
 
 import de.julianweinelt.databench.dbx.database.ADatabase;
 import de.julianweinelt.databench.dbx.model.Manifest;
