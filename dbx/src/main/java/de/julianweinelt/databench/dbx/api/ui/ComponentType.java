@@ -7,5 +7,7 @@ public enum ComponentType {
     NUMBER,
     COMBOBOX,
     BUTTON,
-    LABEL, COLOR;
+    LABEL,
+    COLOR,
+    SEPARATOR;
 }
