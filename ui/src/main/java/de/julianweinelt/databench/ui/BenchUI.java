@@ -37,8 +37,7 @@ public class BenchUI {
 
     private JPanel cardsContainer;
 
-    public void start() {
-        Image icon = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/icon.png"));
+    public void preInit() {
         String selected = Configuration.getConfiguration().getSelectedTheme();
         FlatLaf laf = switch (selected) {
             case "Light" -> new FlatLightLaf();
@@ -49,10 +48,15 @@ public class BenchUI {
             default -> new FlatDarkLaf();
         };
         ThemeSwitcher.switchTheme(laf);
+    }
+
+    public void init() {
+        Image icon = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/icon.png"));
 
         tabbedPane = new JTabbedPane();
 
         frame = new JFrame();
+        frame.setFont(Configuration.getConfiguration().getEditorFontObject());
         frame.setIconImage(icon);
         frame.setSize(1024, 600);
         frame.setLocationRelativeTo(null);
