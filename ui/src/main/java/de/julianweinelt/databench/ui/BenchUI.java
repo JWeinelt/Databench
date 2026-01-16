@@ -38,6 +38,7 @@ public class BenchUI {
     private JPanel cardsContainer;
 
     public void preInit() {
+        log.info("Set theme");
         String selected = Configuration.getConfiguration().getSelectedTheme();
         FlatLaf laf = switch (selected) {
             case "Light" -> new FlatLightLaf();
