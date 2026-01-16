@@ -141,7 +141,7 @@ public class DriverDownloadDialog extends JDialog {
             if (driverDownload == null) return;
 
             new DriverDownloadProgressDialog(this, driverDownload.url(), DbxAPI.driversFolder(),
-                    driverDownload).setVisible(true);
+                    driverDownload, db, version).setVisible(true);
         });
     }
 

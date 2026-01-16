@@ -20,7 +20,8 @@ public class DriverDownloadProgressDialog extends JDialog {
     private final JProgressBar progressBar;
     private final JLabel statusLabel;
 
-    public DriverDownloadProgressDialog(Window parent, String fileUrl, File saveFolder, DriverDownloadWrapper.DriverDownload download) {
+    public DriverDownloadProgressDialog(Window parent, String fileUrl, File saveFolder, DriverDownloadWrapper.DriverDownload download,
+                                        String database, String version) {
         super(parent, translate("dialog.driver.download.progress.title"), ModalityType.APPLICATION_MODAL);
         File saveFile = new File(saveFolder, download.fileName());
         saveFolder.mkdirs();
@@ -48,8 +49,8 @@ public class DriverDownloadProgressDialog extends JDialog {
             @Override
             protected Void doInBackground() throws Exception {
                 statusLabel.setText(translate("dialog.driver.download.progress.description", Map.of(
-                        "dbtype", "MySQL", //TODO: Make dynamic
-                        "version", "unknown" // TODO: Make dynamic
+                        "dbtype", database,
+                        "version", version
                 )));
                 log.info("Downloading driver from {}", fileUrl);
                 log.info("Saving to {}", saveFile.getAbsolutePath());
@@ -110,7 +111,7 @@ public class DriverDownloadProgressDialog extends JDialog {
                     DriverManagerService.instance().preloadDrivers();
                     JOptionPane.showMessageDialog(DriverDownloadProgressDialog.this,
                             translate("dialog.driver.download.success.description", Map.of(
-                                    "dbtype", saveFile.getName() //TODO: Use DB Type
+                                    "dbtype", database
                             )),
                             translate("dialog.driver.download.success.title"),
                             JOptionPane.INFORMATION_MESSAGE);
@@ -118,8 +119,8 @@ public class DriverDownloadProgressDialog extends JDialog {
                     statusLabel.setText("Download failed.");
                     JOptionPane.showMessageDialog(DriverDownloadProgressDialog.this,
                             translate("dialog.driver.download.error.description", Map.of(
-                                    "dbtype", "MySQL", //TODO: Use DB Type
-                                    "version", "unknown", // TODO: Make dynamic
+                                    "dbtype", database,
+                                    "version", version,
                                     "error", e.getMessage()
                             )),
                             translate("dialog.driver.download.error.title"),
