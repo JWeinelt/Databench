@@ -1,6 +1,8 @@
 package de.julianweinelt.databench.ui;
 
 import com.formdev.flatlaf.FlatLaf;
+import de.julianweinelt.databench.DataBench;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -12,8 +14,9 @@ public class ThemeSwitcher {
 
             for (Window window : Window.getWindows()) {
                 SwingUtilities.updateComponentTreeUI(window);
-                window.pack();
+                //window.pack();
             }
+            DataBench.getInstance().getUi().updateProjectCards();
         } catch (UnsupportedLookAndFeelException e) {
             e.printStackTrace();
         }

@@ -125,6 +125,7 @@ public class SettingsDialog extends JDialog {
 
     private @NotNull JComboBox<String> getThemeComboBox() {
         JComboBox<String> themes = new JComboBox<>(new String[]{"Dark", "Light", "Darcula", "Dark (MacOS)", "Light (MacOS)", "IntelliJ"});
+        themes.setSelectedItem(Configuration.getConfiguration().getSelectedTheme());
         themes.addActionListener(e -> {
             String selected = (String) themes.getSelectedItem();
             if (selected == null) return;
@@ -138,9 +139,14 @@ public class SettingsDialog extends JDialog {
             };
             setNonSaved();
             toSaveRuns.add(() -> {
-                ThemeSwitcher.switchTheme(laf);
                 Configuration.getConfiguration().setSelectedTheme(selected);
                 ConfigManager.getInstance().saveConfig();
+                int val = JOptionPane.showConfirmDialog(SettingsDialog.this, "You need to restart DataBench to make" +
+                        " the changes take effect. Would you like to restart now?", "Restart required",
+                        JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+                if (val == JOptionPane.YES_OPTION) {
+                    // TODO: Close and restart
+                }
             });
         });
         return themes;
