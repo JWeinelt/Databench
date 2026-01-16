@@ -124,6 +124,8 @@ public class DataBench {
         projectManager.loadAllProjects(configManager.getConfiguration().getEncryptionPassword());
 
         fileManager = new FileManager();
+        ui = new BenchUI();
+        ui.preInit();
         languageManager = new LanguageManager();
         log.info("Loading language data...");
         languageManager.preload().thenAccept(v -> latch.countDown());
@@ -132,8 +134,6 @@ public class DataBench {
             latch.await();
 
             log.info("Initializing UI...");
-            ui = new BenchUI();
-            ui.preInit();
             new DefaultUI(UIService.instance()).init();
             updateChecker = new UpdateChecker(ui);
             ui.init();
