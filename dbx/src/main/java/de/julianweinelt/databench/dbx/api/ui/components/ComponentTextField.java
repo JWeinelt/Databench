@@ -5,11 +5,13 @@ import de.julianweinelt.databench.dbx.api.ui.ComponentType;
 
 import javax.swing.*;
 
-public class ComponentTextField extends Component {
+public class ComponentTextField extends Component<String, ComponentTextField> {
     private String placeholder = "";
+    protected JTextField field;
 
     protected ComponentTextField() {
         super(ComponentType.TEXT);
+        field = new JTextField();
     }
 
     public ComponentTextField placeholder(String placeholder) {
@@ -18,8 +20,25 @@ public class ComponentTextField extends Component {
     }
 
     @Override
+    public ComponentTextField initialValue(Object val) {
+        if (val instanceof String) {
+            field.setText((String) val);
+        }
+        return this;
+    }
+
+    @Override
+    public String value() {
+        return field.getText();
+    }
+
+    @Override
+    public boolean expandHorizontally() {
+        return true;
+    }
+
+    @Override
     public JComponent create() {
-        JTextField field = new JTextField();
         if (!placeholder.isBlank()) field.setText(placeholder);
         return field;
     }
