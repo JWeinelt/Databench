@@ -63,6 +63,7 @@ public class DefaultUI {
                 .label("Save files when closing project")
                 //TODO: Add action
         );
+        panel.add(new ComponentHorizontalLine());
         panel.add(new ComponentLabel(true).text("Updates").font(new Font("Arial", Font.BOLD, 15)));
         panel.add(new ComponentCheckbox().label("Check for updates on startup"));
         panel.add(new ComponentComboBox()
@@ -121,6 +122,7 @@ public class DefaultUI {
         RSyntaxTextArea areaTemp = new RSyntaxTextArea(20, 60);
         areaTemp.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_SQL);
 
+        panel.add(new ComponentHorizontalLine());
         panel.add(new ComponentLabel(true).text("Colors").font(new Font("Arial", Font.BOLD, 15)));
         Map<String, Integer> tokenTypes = Configuration.ColorSettings.TOKEN_TYPES;
         for (String t : tokenTypes.keySet()) {
