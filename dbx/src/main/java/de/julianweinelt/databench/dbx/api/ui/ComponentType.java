@@ -6,5 +6,6 @@ public enum ComponentType {
     CHECKBOX,
     NUMBER,
     COMBOBOX,
-    BUTTON;
+    BUTTON,
+    LABEL, COLOR;
 }
