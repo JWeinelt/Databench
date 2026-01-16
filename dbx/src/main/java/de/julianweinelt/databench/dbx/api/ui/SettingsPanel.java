@@ -29,16 +29,36 @@ public class SettingsPanel {
 
     public void add(Component component) {
         c.gridy++;
+
         if (component.hasLabel()) {
             c.gridx = 0;
-            panel.add(component.createLabel());
+            c.anchor = GridBagConstraints.WEST;
+            panel.add(component.createLabel(), c.clone());
+
             c.gridx = 1;
-            panel.add(component.create());
+            c.anchor = GridBagConstraints.WEST;
+            c.weightx = component.expandHorizontally() ? 1.0 : 0.0;
+            c.fill = component.expandHorizontally() ? GridBagConstraints.HORIZONTAL : GridBagConstraints.NONE;
+            panel.add(component.create(), c.clone());
+
+            c.weightx = 0;
+            c.fill = GridBagConstraints.NONE;
         } else {
             c.gridx = 0;
-            panel.add(component.create());
+            c.gridwidth = 2;
+            c.anchor = GridBagConstraints.WEST;
+            c.weightx = component.expandHorizontally() ? 1.0 : 0.0;
+            c.fill = component.expandHorizontally() ? GridBagConstraints.HORIZONTAL : GridBagConstraints.NONE;
+            panel.add(component.create(), c.clone());
+
+            c.gridwidth = 1;
+            c.weightx = 0;
+            c.fill = GridBagConstraints.NONE;
+            c.anchor = GridBagConstraints.NORTHWEST;
         }
     }
+
+
     public void setTitle(String title) {
         this.title = title;
         panel.setName(title);
@@ -48,5 +68,15 @@ public class SettingsPanel {
     }
     public String title() {
         return title;
+    }
+
+    public void finish() {
+        GridBagConstraints spacer = baseConstraints();
+        spacer.gridx = 0;
+        spacer.gridy = c.gridy + 1;
+        spacer.weighty = 1.0;
+        spacer.fill = GridBagConstraints.VERTICAL;
+
+        panel.add(Box.createVerticalGlue(), spacer);
     }
 }
