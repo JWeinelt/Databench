@@ -20,7 +20,7 @@
 
     <distributionManagement>
         <repository>
-            <id>unifiedvision-public</id>
+            <id>unifiedvision-releases</id>
             <url>https://repo.codeblocksmc.de/public</url>
             <name>Maven Repository</name>
         </repository>
@@ -31,6 +31,7 @@
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>1.5.19</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>

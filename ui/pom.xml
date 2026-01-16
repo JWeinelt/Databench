@@ -18,6 +18,16 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+
+
+    <distributionManagement>
+        <repository>
+            <id>unifiedvision-releases</id>
+            <url>https://repo.codeblocksmc.de/public</url>
+            <name>Maven Repository</name>
+        </repository>
+    </distributionManagement>
+
     <build>
         <finalName>DataBench</finalName>
         <resources>
