@@ -105,6 +105,13 @@
             <artifactId>autocomplete</artifactId>
             <version>3.3.2</version>
         </dependency>
+        <!-- Source: https://mvnrepository.com/artifact/com.fifesoft/spellchecker -->
+        <dependency>
+            <groupId>com.fifesoft</groupId>
+            <artifactId>spellchecker</artifactId>
+            <version>3.4.1</version>
+            <scope>compile</scope>
+        </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-compress</artifactId>
