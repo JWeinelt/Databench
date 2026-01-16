@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://databench.de/schema/plugin-configuration.json",
+  "title": "PluginConfiguration",
+  "description": "Configuration schema for DataBench plugins (plugin.json)",
+  "type": "object",
+  "additionalProperties": false,
+
+  "required": [
+    "pluginName",
+    "authors",
+    "version",
+    "mainClass",
+    "description",
+    "minAPIVersion",
+    "usesEncryption",
+    "usesDatabase",
+    "storesSensitiveData"
+  ],
+
+  "properties": {
+    "pluginName": {
+      "type": "string",
+      "description": "Human-readable name of the plugin",
+      "minLength": 1
+    },
+
+    "authors": {
+      "type": "array",
+      "description": "List of plugin authors",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+
+    "version": {
+      "type": "string",
+      "description": "Plugin version",
+      "pattern": "^[0-9]+(\\.[0-9]+)*(-[a-zA-Z0-9]+)?$"
+    },
+
+    "mainClass": {
+      "type": "string",
+      "description": "Fully qualified main class name",
+      "pattern": "^[a-zA-Z_$][a-zA-Z\\d_$]*(\\.[a-zA-Z_$][a-zA-Z\\d_$]*)*$"
+    },
+
+    "description": {
+      "type": "string",
+      "description": "Short plugin description"
+    },
+
+    "minAPIVersion": {
+      "type": "string",
+      "description": "Minimum required DataBench API version"
+    },
+
+    "usesEncryption": {
+      "type": "boolean",
+      "description": "Whether the plugin uses encryption"
+    },
+
+    "usesDatabase": {
+      "type": "boolean",
+      "description": "Whether the plugin accesses a database"
+    },
+
+    "storesSensitiveData": {
+      "type": "boolean",
+      "description": "Whether the plugin stores sensitive data"
+    },
+
+    "requires": {
+      "type": "array",
+      "description": "List of required plugin IDs or capabilities",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    }
+  }
+}

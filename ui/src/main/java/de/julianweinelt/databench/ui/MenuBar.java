@@ -10,6 +10,7 @@ import de.julianweinelt.databench.service.UpdateChecker;
 import de.julianweinelt.databench.ui.admin.AdministrationDialog;
 import de.julianweinelt.databench.ui.driver.DriverDownloadDialog;
 import de.julianweinelt.databench.ui.driver.DriverManagerDialog;
+import de.julianweinelt.databench.ui.plugins.PluginDialog;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
@@ -119,10 +120,35 @@ public class MenuBar {
                 ui.createLightEdit();
                 lightEditButton.setEnabled(!ui.hasLightEdit());
             });
+
+            JMenuItem preferencesButton = new JMenuItem(translate("menu.cat.edit.preferences"));
+            preferencesButton.setAccelerator(
+                    Configuration.getConfiguration().getShortcut(
+                            ShortcutAction.PREFERENCES.name(),
+                            ShortcutAction.PREFERENCES.getDefaultKey()
+                    )
+            );
+            preferencesButton.addActionListener(e -> new SettingsDialog(frame).setVisible(true));
+            JMenuItem pluginsButton = new JMenuItem("Plugins");
+            pluginsButton.addActionListener(e -> {
+                new PluginDialog(frame).setVisible(true);
+            });
+
+
+            JMenuItem restartButton = new JMenuItem("Restart IDE");
+            JMenuItem exitButton = new JMenuItem("Exit");
+
             fileMenu.add(openButton);
             fileMenu.add(saveButton);
             fileMenu.add(saveAsButton);
             fileMenu.add(lightEditButton);
+            fileMenu.addSeparator();
+            fileMenu.add(preferencesButton);
+            fileMenu.add(pluginsButton);
+            fileMenu.addSeparator();
+            fileMenu.add(restartButton);
+            fileMenu.add(exitButton);
+
             bar.add(fileMenu);
             menus.put("file", fileMenu);
         } else {
@@ -162,18 +188,9 @@ public class MenuBar {
                     KeyStroke.getKeyStroke(KeyEvent.VK_X, InputEvent.CTRL_DOWN_MASK)
             );
             cutButton.setEnabled(!disable);
-            JMenuItem preferencesButton = new JMenuItem(translate("menu.cat.edit.preferences"));
-            preferencesButton.setAccelerator(
-                    Configuration.getConfiguration().getShortcut(
-                            ShortcutAction.PREFERENCES.name(),
-                            ShortcutAction.PREFERENCES.getDefaultKey()
-                    )
-            );
-            preferencesButton.addActionListener(e -> new SettingsDialog(frame).setVisible(true));
             editMenu.add(undoButton);
             editMenu.add(redoButton);
             editMenu.add(cutButton);
-            editMenu.add(preferencesButton);
             bar.add(editMenu);
             menus.put("edit", editMenu);
         } else {
