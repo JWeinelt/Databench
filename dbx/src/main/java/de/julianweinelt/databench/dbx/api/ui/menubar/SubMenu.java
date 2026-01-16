@@ -8,7 +8,7 @@ public class SubMenu extends MenuComponent<JMenu> {
     private final String name;
     private final List<MenuComponent> children = new ArrayList<>();
 
-    protected SubMenu(String name) {
+    public SubMenu(String name) {
         this.name = name;
     }
     public SubMenu add(MenuComponent child) {
