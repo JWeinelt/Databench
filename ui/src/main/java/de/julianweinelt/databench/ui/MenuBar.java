@@ -315,7 +315,7 @@ public class MenuBar {
     }
 
     public void registerCustomCategories() {
-        for (Menu m : MenuManager.instance().getMenus()) {
+        for (Menu m : MenuManager.instance().getAllMenus()) {
             log.debug("Found menu {}", m.getCategoryName());
             JMenu menu = m.create();
             bar.add(menu);
