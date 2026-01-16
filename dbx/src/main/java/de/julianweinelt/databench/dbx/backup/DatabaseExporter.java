@@ -8,6 +8,7 @@ import javax.swing.*;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -17,6 +18,7 @@ public class DatabaseExporter {
 
     private final ADatabase database;
     private final HashMap<String, List<String>> tables = new HashMap<>();
+    private final List<String> dbToExport = new ArrayList<>();
 
     private final ExportListener listener;
 
@@ -32,12 +34,16 @@ public class DatabaseExporter {
         this.parent = parent;
     }
 
+    public void setDatabasesToExport(List<String> dbs) {
+        dbToExport.addAll(dbs);
+    }
+
     public void retrieveBasicData() {
         listener.onLog("Connecting to database...");
         if (database.connect()) listener.onLog("Connected to database...");
         else listener.onLog("Failed to connect to database...");
 
-        for (String db : database.getDatabases()) {
+        for (String db : dbToExport) {
             List<String> tables = database.getTables(db);
             this.tables.put(db, tables);
             listener.onLog("Found " + tables.size() + " tables in database '" + db + "'");
