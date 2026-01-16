@@ -14,6 +14,7 @@ import de.julianweinelt.databench.dbx.api.plugins.PluginLoader;
 import de.julianweinelt.databench.dbx.api.ui.UIService;
 import de.julianweinelt.databench.service.UpdateChecker;
 import de.julianweinelt.databench.ui.BenchUI;
+import de.julianweinelt.databench.ui.DefaultUI;
 import de.julianweinelt.databench.ui.LanguageManager;
 import de.julianweinelt.databench.ui.StartScreen;
 import lombok.Getter;
@@ -132,8 +133,10 @@ public class DataBench {
 
             log.info("Initializing UI...");
             ui = new BenchUI();
+            ui.preInit();
+            new DefaultUI(UIService.instance()).init();
             updateChecker = new UpdateChecker(ui);
-            ui.start();
+            ui.init();
 
             startScreen.stop();
 
