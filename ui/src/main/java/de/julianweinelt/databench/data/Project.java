@@ -6,6 +6,8 @@ import de.julianweinelt.databench.ui.BenchUI;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,8 +15,10 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.net.URL;
 import java.util.UUID;
 
+@Slf4j
 @Getter
 @Setter
 @NoArgsConstructor
@@ -53,21 +57,33 @@ public class Project {
     }
 
     public JPanel createCard(BenchUI ui) {
-        Image img = new ImageIcon(getClass().getResource("/icons/engine/" + databaseType.engineName + ".png")).getImage();
-        JPanel card = new ImagePanel(img);
+        String theme = Configuration.getConfiguration().getSelectedTheme();
+        URL iU = getClass().getResource("/icons/engine/" + databaseType.engineName + ".png");
+        Image img;
+        JPanel card;
+        if (iU != null) {
+            img = new ImageIcon(iU).getImage();
+            card = new ImagePanel(img);
+        } else card = new JPanel();
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
         card.setPreferredSize(new Dimension(180, 120));
         card.setMaximumSize(new Dimension(180, 120));
+        Color bColor = (theme.contains("Light") ? new Color(246, 246, 246) : new Color(125, 125, 125));
         card.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(125, 125, 125)),
+                BorderFactory.createLineBorder(bColor),
                 BorderFactory.createEmptyBorder(10, 10, 10, 10)
         ));
-        card.setBackground(new Color(64, 64, 64));
+        log.debug("Project card for {} with theme {}", getName(), theme);
+        if (theme.contains("Light"))
+            card.setBackground(new Color(238, 238, 238));
+        else
+            card.setBackground(new Color(64, 64, 64));
         card.setLayout(new BorderLayout());
 
 
         JLabel titleLabel = new JLabel(name);
-        titleLabel.setForeground(Color.WHITE);
+        if (theme.contains("Light")) titleLabel.setForeground(Color.BLACK);
+        else titleLabel.setForeground(Color.WHITE);
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 16f));
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setOpaque(false);
@@ -79,39 +95,7 @@ public class Project {
         menuButton.setContentAreaFilled(false);
         menuButton.setFocusPainted(false);
 
-        JPopupMenu popupMenu = new JPopupMenu();
-        JMenuItem editItem = new JMenuItem("Edit");
-        editItem.addActionListener(e -> ProjectManager.instance().showEditProjectPopup(this, ui));
-        JMenuItem exportItem = new JMenuItem("Export");
-        exportItem.addActionListener(e -> ProjectManager.instance().showExportPopup(ui, this));
-        JMenuItem deleteItem = new JMenuItem("Delete");
-        deleteItem.addActionListener(e -> {
-            int val = JOptionPane.showConfirmDialog(ui.getFrame(), "Are you sure you want to delete this project?\nThis cannot be undone!");
-            if (val == JOptionPane.YES_OPTION) {
-                ProjectManager.instance().deleteProjectFile(this, ui);
-                ui.updateProjectCards();
-            }
-        });
-
-        JMenuItem copyConnectionString = new JMenuItem("Copy Connection String");
-        copyConnectionString.addActionListener(e -> {
-            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(username + "@" + server), null);
-        });
-        JMenuItem copyJDBC = new JMenuItem("Copy JDBC URL");
-        copyJDBC.addActionListener(e -> {
-            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection("jdbc:mysql://" + server + "/?user=" + username), null);
-        });
-        JMenuItem open = new JMenuItem("Open Project");
-        open.addActionListener(e -> {
-            ui.connect(this);
-        });
-        popupMenu.add(open);
-        popupMenu.add(editItem);
-        popupMenu.add(exportItem);
-        popupMenu.add(deleteItem);
-        popupMenu.addSeparator();
-        popupMenu.add(copyJDBC);
-        popupMenu.add(copyConnectionString);
+        JPopupMenu popupMenu = getProjectContextMenu(ui);
 
         menuButton.addActionListener(e -> popupMenu.show(menuButton, 0, menuButton.getHeight()));
 
@@ -121,12 +105,18 @@ public class Project {
         card.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent evt) {
-                card.setBackground(new Color(80, 80, 80));
+                if (theme.contains("Light"))
+                    card.setBackground(new Color(244, 244, 244));
+                else
+                    card.setBackground(new Color(80, 80, 80));
             }
 
             @Override
             public void mouseExited(MouseEvent evt) {
-                card.setBackground(new Color(64, 64, 64));
+                if (theme.contains("Light"))
+                    card.setBackground(new Color(238, 238, 238));
+                else
+                    card.setBackground(new Color(64, 64, 64));
             }
 
             @Override
@@ -145,6 +135,41 @@ public class Project {
         });
 
         return card;
+    }
+
+    private @NotNull JPopupMenu getProjectContextMenu(BenchUI ui) {
+        JPopupMenu popupMenu = new JPopupMenu();
+        JMenuItem editItem = new JMenuItem("Edit");
+        editItem.addActionListener(e -> ProjectManager.instance().showEditProjectPopup(this, ui));
+        JMenuItem exportItem = new JMenuItem("Export");
+        exportItem.addActionListener(e -> ProjectManager.instance().showExportPopup(ui, this));
+        JMenuItem deleteItem = new JMenuItem("Delete");
+        deleteItem.addActionListener(e -> {
+            int val = JOptionPane.showConfirmDialog(ui.getFrame(), "Are you sure you want to delete this project?\nThis cannot be undone!");
+            if (val == JOptionPane.YES_OPTION) {
+                ProjectManager.instance().deleteProjectFile(this, ui);
+                ui.updateProjectCards();
+            }
+        });
+
+        JMenuItem copyConnectionString = new JMenuItem("Copy Connection String");
+        copyConnectionString.addActionListener(e ->
+                Toolkit.getDefaultToolkit().getSystemClipboard()
+                        .setContents(new StringSelection(username + "@" + server), null));
+        JMenuItem copyJDBC = new JMenuItem("Copy JDBC URL");
+        copyJDBC.addActionListener(e ->
+                Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(
+                        "jdbc:mysql://" + server + "/?user=" + username), null));
+        JMenuItem open = new JMenuItem("Open Project");
+        open.addActionListener(e -> ui.connect(this));
+        popupMenu.add(open);
+        popupMenu.add(editItem);
+        popupMenu.add(exportItem);
+        popupMenu.add(deleteItem);
+        popupMenu.addSeparator();
+        popupMenu.add(copyJDBC);
+        popupMenu.add(copyConnectionString);
+        return popupMenu;
     }
 
     public static Project loadFromFile(File file, String password) {
