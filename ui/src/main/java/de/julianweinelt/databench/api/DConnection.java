@@ -1,5 +1,6 @@
 package de.julianweinelt.databench.api;
 
+import de.julianweinelt.databench.data.Configuration;
 import de.julianweinelt.databench.data.Project;
 import de.julianweinelt.databench.dbx.api.drivers.DriverManagerService;
 import de.julianweinelt.databench.dbx.database.DatabaseMetaData;
