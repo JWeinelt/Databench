@@ -53,6 +53,8 @@ public class PluginScanner {
             }
         }
 
+        log.info("Found {} plugins.", descriptors.size());
+
         return descriptors;
     }
 }
