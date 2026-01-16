@@ -25,6 +25,7 @@ public class SettingsDialog extends JDialog {
 
     public SettingsDialog(Frame owner) {
         super(owner, "Preferences", true);
+        setFont(Configuration.getConfiguration().getEditorFontObject());
         setSize(600, 420);
         setLocationRelativeTo(owner);
 
@@ -32,15 +33,11 @@ public class SettingsDialog extends JDialog {
         mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         JTabbedPane tabs = new JTabbedPane();
-        tabs.addTab("General", createGeneralPanel());
-        tabs.addTab("Appearance", createAppearancePanel());
-        tabs.addTab("Updates", createUpdatePanel());
-        tabs.addTab("Advanced", createAdvancedPanel());
-        tabs.addTab("Keyboard Shortcuts", createShortcutPanel());
 
         for (SettingsPanel p : UIService.instance().getSettingsPanels()) {
-            tabs.addTab(p.title(), p.createPanel());
+            tabs.addTab(p.title(), wrapPanel(p));
         }
+        tabs.addTab("Keyboard Shortcuts", createShortcutPanel());
 
         mainPanel.add(tabs, BorderLayout.CENTER);
         mainPanel.add(createButtonPanel(), BorderLayout.SOUTH);
@@ -48,158 +45,16 @@ public class SettingsDialog extends JDialog {
         add(mainPanel);
     }
 
-    private JPanel createGeneralPanel() {
-        JPanel panel = new JPanel(new GridBagLayout());
-        GridBagConstraints c = baseConstraints();
-        c.anchor = GridBagConstraints.NORTHWEST;
+    private JScrollPane wrapPanel(SettingsPanel settingsPanel) {
+        JPanel wrapper = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        wrapper.add(settingsPanel.createPanel());
 
-        c.gridx = 0;
-        c.gridy = 0;
-        c.weightx = 0;
-        c.fill = GridBagConstraints.NONE;
-        panel.add(new JLabel("Language:"), c);
+        JScrollPane scroll = new JScrollPane(wrapper);
 
-        c.gridx = 1;
-        JComboBox<Object> comp = new JComboBox<>(LanguageManager.instance().getFriendlyNames().toArray());
-        comp.addActionListener(e -> {
-            String selected = (String) comp.getSelectedItem();
-            String langID = LanguageManager.instance().fromFriendlyName(selected);
-            log.info("Selected language: {}", langID);
-            Configuration.getConfiguration().setLocale(langID);
-            ConfigManager.getInstance().saveConfig();
-        });
-        panel.add(comp, c);
-
-        c.gridx = 0;
-        c.gridy++;
-        c.gridwidth = 2;
-        c.weightx = 0;
-        c.fill = GridBagConstraints.HORIZONTAL;
-        panel.add(new JCheckBox("Open last project on startup"), c);
-
-        c.gridy++;
-        panel.add(new JCheckBox("Show start page on startup"), c);
-
-        c.gridy++;
-        c.weighty = 1;
-        panel.add(Box.createVerticalGlue(), c);
-
-        return panel;
-    }
-
-
-    private JPanel createAppearancePanel() {
-        JPanel panel = new JPanel(new GridBagLayout());
-        GridBagConstraints c = baseConstraints();
-
-        c.gridx = 0;
-        c.gridy = 0;
-        c.weightx = 0;
-        panel.add(new JLabel("Theme:"), c);
-
-        c.gridx = 1;
-        c.weightx = 1;
-        JComboBox<String> themes = getThemeComboBox();
-        panel.add(themes, c);
-
-        c.gridx = 0;
-        c.gridy++;
-        c.weightx = 0;
-        panel.add(new JLabel("Font size:"), c);
-
-        c.gridx = 1;
-        c.weightx = 1;
-        panel.add(new JSpinner(new SpinnerNumberModel(13, 10, 20, 1)), c);
-
-        c.gridx = 0;
-        c.gridy++;
-        c.gridwidth = 2;
-        panel.add(new JCheckBox("Use Animations"), c);
-
-        c.gridy++;
-        c.weighty = 1;
-        panel.add(Box.createVerticalGlue(), c);
-
-        return panel;
-    }
-
-    private @NotNull JComboBox<String> getThemeComboBox() {
-        JComboBox<String> themes = new JComboBox<>(new String[]{"Dark", "Light", "Darcula", "Dark (MacOS)", "Light (MacOS)", "IntelliJ"});
-        themes.setSelectedItem(Configuration.getConfiguration().getSelectedTheme());
-        themes.addActionListener(e -> {
-            String selected = (String) themes.getSelectedItem();
-            if (selected == null) return;
-            FlatLaf laf = switch (selected) {
-                case "Light" -> new FlatLightLaf();
-                case "Darcula" -> new FlatDarculaLaf();
-                case "Dark (MacOS)" -> new FlatMacDarkLaf();
-                case "Light (MacOS)" -> new FlatMacLightLaf();
-                case "IntelliJ" -> new FlatIntelliJLaf();
-                default -> new FlatDarkLaf();
-            };
-            setNonSaved();
-            toSaveRuns.add(() -> {
-                Configuration.getConfiguration().setSelectedTheme(selected);
-                ConfigManager.getInstance().saveConfig();
-                int val = JOptionPane.showConfirmDialog(SettingsDialog.this, "You need to restart DataBench to make" +
-                        " the changes take effect. Would you like to restart now?", "Restart required",
-                        JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-                if (val == JOptionPane.YES_OPTION) {
-                    // TODO: Close and restart
-                }
-            });
-        });
-        return themes;
-    }
-
-    private JPanel createUpdatePanel() {
-        JPanel panel = new JPanel(new GridBagLayout());
-        GridBagConstraints c = baseConstraints();
-
-        panel.add(new JCheckBox("Automatically search for updates"), c);
-
-        c.gridy++;
-        panel.add(new JLabel("Update Channel:"), c);
-
-        c.gridy++;
-        panel.add(new JComboBox<>(new String[]{"stable", "nightly", "beta"}), c);
-
-        c.gridy++;
-        c.weighty = 1;
-        panel.add(Box.createVerticalGlue(), c);
-
-        return panel;
-    }
-
-    private JPanel createAdvancedPanel() {
-        JPanel panel = new JPanel(new GridBagLayout());
-        GridBagConstraints c = baseConstraints();
-
-        JCheckBox automaticallySendErrorProtocols = new JCheckBox("Automatically send error protocols");
-        automaticallySendErrorProtocols.addActionListener(e -> {
-            setNonSaved();
-            runAfterSave(() -> Configuration.getConfiguration().setSendErrorProtocols(automaticallySendErrorProtocols.isSelected()));
-        });
-        panel.add(automaticallySendErrorProtocols, c);
-        c.gridy++;
-        JCheckBox sendAnonymousStatistics = new JCheckBox("Send anonymous statistics");
-        sendAnonymousStatistics.addActionListener(e -> {
-            setNonSaved();
-            runAfterSave(() -> Configuration.getConfiguration().setSendAnonymousData(sendAnonymousStatistics.isSelected()));
-        });
-        panel.add(sendAnonymousStatistics, c);
-
-        c.gridy++;
-        panel.add(new JCheckBox("Use Debug logging"), c);
-
-        c.gridx++;
-        panel.add(new JButton("Reset preferences"), c);
-
-        c.gridy++;
-        c.weighty = 1;
-        panel.add(Box.createVerticalGlue(), c);
-
-        return panel;
+        scroll.getVerticalScrollBar().setUnitIncrement(16);
+        scroll.getVerticalScrollBar().setBlockIncrement(64);
+        scroll.setBorder(null);
+        return scroll;
     }
 
     private JPanel createShortcutPanel() {
