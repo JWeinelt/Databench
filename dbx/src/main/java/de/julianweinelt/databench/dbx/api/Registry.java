@@ -43,6 +43,7 @@ public class Registry {
     public Registry(DbxAPI api) {
         this.api = api;
         systemPlugin = new SystemPlugin();
+        systemPlugin.preInit();
     }
 
     public static Registry instance() {
@@ -168,5 +169,17 @@ public class Registry {
         events.forEach(event -> listeners.getOrDefault(event, new ArrayList<>()).clear());
         events.forEach(listeners::remove);
         plugins.removeIf(m -> m.getName().equals(name));
+    }
+
+    /**
+     * Removes a plugin and all its associated event registrations.
+     *
+     * @param plugin The {@link DbxPlugin} instance to remove
+     */
+    public void removePlugin(DbxPlugin plugin) {
+        List<String> events = eventsRegisteredByPlugin.getOrDefault(plugin, new ArrayList<>());
+        events.forEach(event -> listeners.getOrDefault(event, new ArrayList<>()).clear());
+        events.forEach(listeners::remove);
+        plugins.removeIf(m -> m.getName().equals(plugin.getName()));
     }
 }
