@@ -1,6 +1,9 @@
 package de.julianweinelt.databench.dbx.api.plugins;
 
 
+import de.julianweinelt.databench.dbx.api.ui.menubar.Menu;
+import de.julianweinelt.databench.dbx.api.ui.menubar.MenuItem;
+import de.julianweinelt.databench.dbx.api.ui.menubar.MenuManager;
 import org.jetbrains.annotations.ApiStatus;
 
 /**
@@ -24,6 +27,14 @@ public final class SystemPlugin extends DbxPlugin {
     public void init() {
         getLogger().info("DBX System Module has been enabled.");
         getRegistry().registerListener(this, this);
+
+        getLogger().info("Registering custom menu items.");
+
+        MenuManager.instance().register(
+                new Menu("Test", "test").child(new MenuItem("Test2").action(() ->
+                        getLogger().info("Test"))),
+                this);
+        //TODO: Add all other built-in menus to this
     }
 
     @Override
