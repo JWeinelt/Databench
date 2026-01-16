@@ -29,8 +29,8 @@ public abstract class ADatabase {
         this.username = username;
         this.password = password;
     }
-    public static ADatabase of(String host, int port, String username, String password, String db) {
-        return new DBMySQL(host, port, username, password, db);
+    public static ADatabase of(DatabaseType type, String host, int port, String username, String password) {
+        return DatabaseRegistry.instance().instantiate(type.name(), host, port, username, password);
     }
 
     public abstract boolean connect();

@@ -1,23 +1,41 @@
 package de.julianweinelt.databench.dbx.database;
 
 import java.util.HashMap;
-import java.util.Optional;
+import java.util.Map;
 
 public class DatabaseRegistry {
-    private final HashMap<String, ADatabase> databases = new HashMap<>();
+    private final Map<String, DatabaseFactory> databases = new HashMap<>();
 
-    public static DatabaseRegistry instance;
+    @FunctionalInterface
+    public interface DatabaseFactory {
+        ADatabase create(String host, int port, String username, String password);
+    }
+
+    private static DatabaseRegistry instance;
+
     public static DatabaseRegistry instance() {
         return instance;
     }
+
     public DatabaseRegistry() {
         instance = this;
     }
 
-    public void addDatabase(String name, ADatabase database) {
-        databases.put(name.toUpperCase(), database);
+    public void registerMapping(String name, DatabaseFactory factory) {
+        databases.put(name.toUpperCase(), factory);
     }
-    public Optional<ADatabase> getDatabase(String name) {
-        return Optional.ofNullable(databases.getOrDefault(name.toUpperCase(), null));
+
+    public ADatabase instantiate(
+            String type,
+            String host,
+            int port,
+            String username,
+            String password
+    ) {
+        DatabaseFactory factory = databases.get(type.toUpperCase());
+        if (factory == null) {
+            throw new IllegalArgumentException("Unknown database type: " + type);
+        }
+        return factory.create(host, port, username, password);
     }
 }

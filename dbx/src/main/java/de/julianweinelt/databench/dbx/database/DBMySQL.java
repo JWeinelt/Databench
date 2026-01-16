@@ -9,18 +9,15 @@ import java.util.List;
 @Slf4j
 @SuppressWarnings("SqlSourceToSinkFlow")
 public class DBMySQL extends ADatabase {
-    private final String defaultDB;
-
-    protected DBMySQL(String host, int port, String username, String password, String defaultDB) {
+    public DBMySQL(String host, int port, String username, String password) {
         super(host, port, username, password);
-        this.defaultDB = defaultDB;
     }
 
     @Override
     public boolean connect() {
         String DB_NAME = "jdbc:mysql://${server}/?useJDBCCompliantTimezoneShift=true&useLegacyDatetime" +
                 "Code=false&serverTimezone=UTC&autoReconnect=true&zeroDateTimeBehavior=convertToNull";
-        DB_NAME = DB_NAME.replace("${server}", getHost() + ":" + getPort()).replace("${db}", defaultDB);
+        DB_NAME = DB_NAME.replace("${server}", getHost() + ":" + getPort());
 
         try {
             conn = DriverManager.getConnection(DB_NAME, getUsername(), getPassword());

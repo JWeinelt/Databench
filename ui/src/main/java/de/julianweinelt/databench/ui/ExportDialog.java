@@ -323,8 +323,7 @@ public class ExportDialog extends JDialog {
                 Integer.parseInt(project.getServer().contains(":")
                         ? project.getServer().split(":")[1] : "3306"),
                 project.getUsername(),
-                project.getPassword(),
-                project.getDefaultDatabase()
+                project.getPassword()
         );
 
         if (database.connect()) {

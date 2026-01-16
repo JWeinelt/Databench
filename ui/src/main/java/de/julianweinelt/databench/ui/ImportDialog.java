@@ -69,11 +69,11 @@ public class ImportDialog extends JDialog implements ImportListener {
             Project project = ProjectManager.instance().getProject(selected);
 
             targetDatabase = ADatabase.of(
+                    project.getDatabaseType(),
                     project.getServer().split(":")[0],
                     (project.getServer().split(":").length == 1) ? 3306 : Integer.parseInt(project.getServer().split(":")[1]),
                     project.getUsername(),
-                    project.getPassword(),
-                    project.getDefaultDatabase()
+                    project.getPassword()
             );
             if (!archiveField.getText().isEmpty())
                 startButton.setEnabled(true);
