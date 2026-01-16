@@ -1,19 +1,6 @@
 package de.julianweinelt.databench.dbx.api.plugins;
 
 
-import de.julianweinelt.databench.dbx.api.events.Event;
-import de.julianweinelt.databench.dbx.api.events.Subscribe;
-import de.julianweinelt.databench.dbx.api.ui.SettingsPanel;
-import de.julianweinelt.databench.dbx.api.ui.UIService;
-import de.julianweinelt.databench.dbx.api.ui.components.ComponentCheckbox;
-import de.julianweinelt.databench.dbx.api.ui.components.ComponentComboBox;
-import de.julianweinelt.databench.dbx.database.*;
-import de.julianweinelt.databench.dbx.database.providers.DBMetaMSSQL;
-import de.julianweinelt.databench.dbx.database.providers.DBMetaMariaDB;
-import de.julianweinelt.databench.dbx.database.providers.DBMetaMySQL;
-import de.julianweinelt.databench.dbx.database.providers.db.DBMSSQL;
-import de.julianweinelt.databench.dbx.database.providers.db.DBMariaDB;
-import de.julianweinelt.databench.dbx.database.providers.db.DBMySQL;
 import org.jetbrains.annotations.ApiStatus;
 
 /**
@@ -47,15 +34,5 @@ public final class SystemPlugin extends DbxPlugin {
     @Override
     public void onDefineEvents() {
         getRegistry().registerEvents(this, "UIServiceEnabledEvent");
-    }
-
-    @Subscribe(value = "UIServiceEnabledEvent")
-    public void onUIReady(Event event) {
-        getLogger().info("Registering settings dialogs...");
-        UIService service = event.get("service").asValue(UIService.class);
-        SettingsPanel examplePage = new SettingsPanel("Example");
-        examplePage.add(new ComponentCheckbox().label("Test"));
-        examplePage.add(new ComponentComboBox().option("Test", () -> getLogger().info("Test2")).option("Test2", () -> getLogger().info("Test3")));
-        service.addSettingsPanel(examplePage);
     }
 }
