@@ -1,7 +1,11 @@
 package de.julianweinelt.databench.ui;
 
 import de.julianweinelt.databench.data.Configuration;
-import de.julianweinelt.databench.data.ProjectManager;
+import de.julianweinelt.databench.dbx.api.Registry;
+import de.julianweinelt.databench.dbx.api.events.Event;
+import de.julianweinelt.databench.dbx.api.events.Subscribe;
+import de.julianweinelt.databench.dbx.api.ui.menubar.Menu;
+import de.julianweinelt.databench.dbx.api.ui.menubar.MenuManager;
 import de.julianweinelt.databench.service.UpdateChecker;
 import de.julianweinelt.databench.ui.admin.AdministrationDialog;
 import de.julianweinelt.databench.ui.driver.DriverDownloadDialog;
@@ -37,6 +41,8 @@ public class MenuBar {
         this.ui = ui;
         bar = new JMenuBar();
         createFileCategory(false);
+        log.info("Creating menu bar");
+        Registry.instance().registerListener(this, Registry.instance().getSystemPlugin());
     }
 
     private void resetBar() {
@@ -63,6 +69,7 @@ public class MenuBar {
         createEditCategory(!categoryEnabled.getOrDefault("edit", false));
         createSQLCategory(!categoryEnabled.getOrDefault("sql", false));
         createHelpCategory(!categoryEnabled.getOrDefault("help", false));
+        registerCustomCategories();
     }
 
     public void createFileCategory(boolean disable) {
@@ -307,6 +314,16 @@ public class MenuBar {
         updateMenuBar();
     }
 
+    public void registerCustomCategories() {
+        for (Menu m : MenuManager.instance().getMenus()) {
+            log.debug("Found menu {}", m.getCategoryName());
+            JMenu menu = m.create();
+            bar.add(menu);
+            menus.put(m.getCategoryName(), menu);
+        }
+        updateMenuBar();
+    }
+
     private static @NotNull JMenuItem getHelpIndexItem(String name, String url) {
         JMenuItem helpIndex = new JMenuItem(name);
         helpIndex.addActionListener(e -> {
@@ -326,5 +343,11 @@ public class MenuBar {
         frame.setJMenuBar(bar);
         frame.revalidate();
         frame.repaint();
+    }
+
+    @Subscribe(value = "UIMenuBarRevalidateEvent")
+    public void revalidate(Event event) {
+        log.debug("Got signal to revalidate menu bar");
+        updateAll();
     }
 }
