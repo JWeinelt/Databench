@@ -1,5 +1,6 @@
 package de.julianweinelt.databench.dbx.api.events;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.ApiStatus;
 
 /**
@@ -9,6 +10,7 @@ import org.jetbrains.annotations.ApiStatus;
  * This class is useful for handling dynamic event properties where the type is not known beforehand.
  */
 
+@Slf4j
 @SuppressWarnings("unused")
 public class EventProperty {
     private final Object value;
@@ -26,7 +28,11 @@ public class EventProperty {
      */
     public EventProperty(Object value) {
         this.value = value;
-        this.valueClass = value.getClass();
+        if (value != null) this.valueClass = value.getClass();
+        else {
+            this.valueClass = null;
+            log.warn("EventProperty created with null value");
+        }
     }
 
     /**
