@@ -5,6 +5,7 @@ import com.google.gson.reflect.TypeToken;
 import de.julianweinelt.databench.dbx.api.DbxAPI;
 import de.julianweinelt.databench.dbx.api.Registry;
 import de.julianweinelt.databench.dbx.api.events.Event;
+import de.julianweinelt.databench.dbx.api.ui.menubar.MenuManager;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.ApiStatus;
 
@@ -77,19 +78,19 @@ public class PluginLoader {
         }
     }
 
-    /**
-     * Unloads a plugin by name.
-     * @param name The name of the plugin to unload.
-     * @apiNote Using this method is experimental and may lead to issues with dependencies.
-     */
-    @ApiStatus.Experimental
     public void unload(String name) {
         DbxPlugin plugin = registry.getPlugin(name);
-        if (plugin == null) return;
+        unload(plugin);
+    }
+
+    @ApiStatus.Experimental
+    public void unload(DbxPlugin plugin) {
+        log.info("Unloading plugin '{}'", plugin.getName());
         plugin.onDisable();
-        registry.removePlugin(name);
-        registry.callEvent(new Event("PluginDisableEvent").nonCancellable().set("plugin", name));
-        log.info("Unloaded plugin: {}", name);
+        MenuManager.instance().unregister(plugin);
+        registry.removePlugin(plugin);
+        registry.callEvent(new Event("PluginDisableEvent").nonCancellable().set("plugin", plugin.getName()));
+        log.info("Unloaded plugin: {}", plugin.getName());
     }
 
     /**
