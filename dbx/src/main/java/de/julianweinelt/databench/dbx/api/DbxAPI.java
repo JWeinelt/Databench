@@ -52,6 +52,8 @@ public class DbxAPI {
                 "UTC&autoReconnect=true", "Oracle"));
 
 
+        registry.registerEvents("UIMenuBarRevalidateEvent");
+
         log.info("Registering database handlers...");
         DatabaseRegistry.instance().registerMapping("mysql", DBMySQL::new, new DBMetaMySQL());
         DatabaseRegistry.instance().registerMapping("mssql", DBMSSQL::new, new DBMetaMSSQL());
