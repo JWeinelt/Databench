@@ -100,6 +100,7 @@ public class PluginLoader {
      */
     @ApiStatus.Experimental
     public void loadPlugin(String name) {
+        log.info("Loading plugin '{}'", name);
         if (pluginFileNames.containsKey(name)) name = pluginFileNames.get(name);
         File pluginFile = new File(DbxAPI.pluginsFolder(), name.endsWith(".jar") ? name : name + ".jar");
 
