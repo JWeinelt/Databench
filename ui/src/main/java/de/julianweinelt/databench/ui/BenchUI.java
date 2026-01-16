@@ -223,6 +223,8 @@ public class BenchUI {
             JPanel card = p.createCard(this);
             cardsContainer.add(card);
         }
+        cardsContainer.revalidate();
+        cardsContainer.repaint();
     }
 
     private void createStartPage() {
@@ -259,7 +261,7 @@ public class BenchUI {
         cardsScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         cardsScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 
-        mainPanel.add(cardsScroll, BorderLayout.CENTER);
+        JComponent newsPanel = createNewsPanel();
 
         JPanel tipsPanel = new JPanel();
         tipsPanel.setLayout(new BoxLayout(tipsPanel, BoxLayout.Y_AXIS));
@@ -268,15 +270,81 @@ public class BenchUI {
 
         JLabel tip1 = new JLabel("• Create a new query by clicking on a project.");
         JLabel tip2 = new JLabel("• Explore your tables and schemas.");
-        JLabel tip3 = new JLabel("<html>• Check <a href='https://github.com/JWeinelt/DataBench/wiki'>documentation</a> for SQL tips.</html>");
+        JLabel tip3 = new JLabel("<html>• Check the <a href='https://github.com/JWeinelt/DataBench/wiki'>documentation</a> for SQL tips.</html>");
 
         tipsPanel.add(tip1);
         tipsPanel.add(tip2);
         tipsPanel.add(tip3);
 
-        mainPanel.add(tipsPanel, BorderLayout.SOUTH);
+        JSplitPane bottomSplit = new JSplitPane(
+                JSplitPane.VERTICAL_SPLIT,
+                newsPanel,
+                tipsPanel
+        );
+        bottomSplit.setResizeWeight(0.7);
+        bottomSplit.setOneTouchExpandable(true);
+        bottomSplit.setDividerSize(8);
+
+        JSplitPane mainSplit = new JSplitPane(
+                JSplitPane.VERTICAL_SPLIT,
+                cardsScroll,
+                bottomSplit
+        );
+        mainSplit.setResizeWeight(0.75);
+        mainSplit.setDividerSize(10);
+        mainSplit.setOneTouchExpandable(false);
+
+        mainPanel.add(mainSplit, BorderLayout.CENTER);
 
         addNonClosableTab(tabbedPane, translate("screen.main.home"), mainPanel);
+    }
+
+    private JComponent createNewsPanel() {
+        JPanel panel = new JPanel(new BorderLayout(8, 8));
+        panel.setBorder(BorderFactory.createTitledBorder("Latest news"));
+
+        JPanel header = new JPanel(new BorderLayout());
+        JLabel titleLabel = new JLabel("Example");
+        titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 16f));
+
+        JLabel dateLabel = new JLabel("2026-01-15");
+        dateLabel.setFont(dateLabel.getFont().deriveFont(Font.PLAIN, 11f));
+
+        JPanel titleBox = new JPanel();
+        titleBox.setLayout(new BoxLayout(titleBox, BoxLayout.Y_AXIS));
+        titleBox.setOpaque(false);
+        titleBox.add(titleLabel);
+        titleBox.add(dateLabel);
+
+        JButton toggleButton = new JButton("−");
+        toggleButton.setMargin(new Insets(2, 8, 2, 8));
+
+        header.add(titleBox, BorderLayout.WEST);
+        header.add(toggleButton, BorderLayout.EAST);
+
+        JEditorPane editorPane = new JEditorPane();
+        editorPane.setContentType("text/html");
+        editorPane.setEditable(false);
+        editorPane.setText("""
+        <html>
+            <body style='font-family:Segoe UI;'>
+                <p>This is <b>HTML content</b>.</p>
+                <p>You can show images:</p>
+                <img src="https://via.placeholder.com/300x120"/>
+            </body>
+        </html>
+    """);
+
+        editorPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
+
+        JScrollPane scrollPane = new JScrollPane(editorPane);
+
+        panel.add(header, BorderLayout.NORTH);
+        panel.add(scrollPane, BorderLayout.CENTER);
+
+        panel.putClientProperty("toggleButton", toggleButton);
+
+        return panel;
     }
 
 
@@ -447,8 +515,6 @@ public class BenchUI {
 
                 JPanel card = project.createCard(this);
                 cardsContainer.add(card);
-                cardsContainer.revalidate();
-                cardsContainer.repaint();
                 updateProjectCards();
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
