@@ -6,9 +6,7 @@ import de.julianweinelt.databench.ui.BenchUI;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.fife.ui.autocomplete.*;
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
-import org.fife.ui.rsyntaxtextarea.Theme;
+import org.fife.ui.rsyntaxtextarea.*;
 import org.fife.ui.rtextarea.RTextScrollPane;
 
 import javax.swing.*;
@@ -79,6 +77,7 @@ public class EditorTab implements IEditorTab {
         editorArea = new RSyntaxTextArea(20, 60);
         editorArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_SQL);
         editorArea.setCodeFoldingEnabled(true);
+        applyOption(editorArea);
         editorArea.setAnimateBracketMatching(true);
         editorArea.setHighlightCurrentLine(true);
         editorArea.setMarkOccurrences(true);
@@ -142,7 +141,7 @@ public class EditorTab implements IEditorTab {
 
         JTextArea messageArea = new JTextArea();
         messageArea.setEditable(false);
-        messageArea.setFont(new Font("Consolas", Font.PLAIN, 12));
+        messageArea.setFont(Configuration.getConfiguration().getEditorFontObject());
         JScrollPane messageScroll = new JScrollPane(messageArea);
 
         bottomTabs.addTab(translate("connection.editor.result.tabs.message"), messageScroll);
@@ -338,6 +337,29 @@ public class EditorTab implements IEditorTab {
                     Map.of("error", "Internal error. Code 1403")), translate("dialog.title.error")
                     , JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void applyOption(RSyntaxTextArea area) {
+        SyntaxScheme scheme = area.getSyntaxScheme();
+        Configuration.ColorSettings editorColors = Configuration.getConfiguration().getEditorColors();
+        for (String s : editorColors.getAppliedColors()) {
+            Color color = editorColors.getColorForName(s);
+            if (color == null) continue;
+            Style style = new Style(color);
+            //style.font = new Font(Configuration.getConfiguration().getEditorFont(),
+              //  Font.PLAIN, Configuration.getConfiguration().getEditorFontSize());
+            int key = editorColors.getKey(s);
+            if (key == -1) continue;
+            scheme.setStyle(key, style);
+        }
+        area.setFont(new Font(
+                Configuration.getConfiguration().getEditorFont(),
+                Font.PLAIN,
+                Configuration.getConfiguration().getEditorFontSize()
+        ));
+        area.setSyntaxScheme(scheme);
+        area.revalidate();
+        area.repaint();
     }
 
     private void autoCompleter(RSyntaxTextArea editorArea) {
