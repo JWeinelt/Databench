@@ -97,7 +97,7 @@ public class DataBench {
     public void start(String[] filesToOpen) {
         StartScreen startScreen = new StartScreen();
         startScreen.start();
-        try {Thread.sleep(1000);} catch (InterruptedException ignored) { /* Ignored */ }
+        //try {Thread.sleep(1000);} catch (InterruptedException ignored) { /* Ignored */ }
         driverManagerService = new DriverManagerService();
         try {
             driverManagerService.preloadDrivers();

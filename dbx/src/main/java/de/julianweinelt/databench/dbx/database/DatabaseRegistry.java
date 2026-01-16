@@ -1,10 +1,17 @@
 package de.julianweinelt.databench.dbx.database;
 
-import java.util.HashMap;
-import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Slf4j
 public class DatabaseRegistry {
     private final Map<String, DatabaseFactory> databases = new HashMap<>();
+    private final Map<String, DatabaseMetaData> metaData = new HashMap<>();
 
     @FunctionalInterface
     public interface DatabaseFactory {
@@ -21,8 +28,16 @@ public class DatabaseRegistry {
         instance = this;
     }
 
-    public void registerMapping(String name, DatabaseFactory factory) {
+    public void registerMapping(String name, DatabaseFactory factory, DatabaseMetaData meta) {
         databases.put(name.toUpperCase(), factory);
+        metaData.put(name.toUpperCase(), meta);
+        log.info("Registered mapping for {}", name);
+    }
+    public DatabaseMetaData getMeta(String name) {
+        return metaData.getOrDefault(name.toUpperCase(), null);
+    }
+    public List<DatabaseMetaData> getDatabaseTypes() {
+        return new ArrayList<>(metaData.values());
     }
 
     public ADatabase instantiate(

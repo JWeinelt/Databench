@@ -7,8 +7,13 @@ import de.julianweinelt.databench.dbx.api.ui.SettingsPanel;
 import de.julianweinelt.databench.dbx.api.ui.UIService;
 import de.julianweinelt.databench.dbx.api.ui.components.ComponentCheckbox;
 import de.julianweinelt.databench.dbx.api.ui.components.ComponentComboBox;
-import de.julianweinelt.databench.dbx.database.DBMySQL;
-import de.julianweinelt.databench.dbx.database.DatabaseRegistry;
+import de.julianweinelt.databench.dbx.database.*;
+import de.julianweinelt.databench.dbx.database.providers.DBMetaMSSQL;
+import de.julianweinelt.databench.dbx.database.providers.DBMetaMariaDB;
+import de.julianweinelt.databench.dbx.database.providers.DBMetaMySQL;
+import de.julianweinelt.databench.dbx.database.providers.db.DBMSSQL;
+import de.julianweinelt.databench.dbx.database.providers.db.DBMariaDB;
+import de.julianweinelt.databench.dbx.database.providers.db.DBMySQL;
 import org.jetbrains.annotations.ApiStatus;
 
 /**
@@ -32,9 +37,6 @@ public final class SystemPlugin extends DbxPlugin {
     public void init() {
         getLogger().info("DBX System Module has been enabled.");
         getRegistry().registerListener(this, this);
-
-        getLogger().info("Registering database handlers...");
-        DatabaseRegistry.instance().registerMapping("mysql", DBMySQL::new);
     }
 
     @Override

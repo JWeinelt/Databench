@@ -6,10 +6,7 @@ import de.julianweinelt.databench.dbx.backup.TableDefinition;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.*;
 
 @Slf4j
@@ -21,6 +18,7 @@ public abstract class ADatabase {
     private final String password;
 
     public Connection conn;
+    private DatabaseMetaData metaData;
 
 
     protected ADatabase(String host, int port, String username, String password) {
@@ -28,12 +26,36 @@ public abstract class ADatabase {
         this.port = port;
         this.username = username;
         this.password = password;
+
+        metaData = DatabaseRegistry.instance().getMeta(internalName());
     }
-    public static ADatabase of(DatabaseType type, String host, int port, String username, String password) {
-        return DatabaseRegistry.instance().instantiate(type.name(), host, port, username, password);
+    public static ADatabase of(String type, String host, int port, String username, String password) {
+        return DatabaseRegistry.instance().instantiate(type, host, port, username, password);
     }
 
-    public abstract boolean connect();
+    public abstract String internalName();
+
+    // CONNECTION
+
+    public boolean connect() {
+        return connect(metaData.defaultParameters());
+    }
+
+    public boolean connect(ParameterBuilder builder) {
+        String DB_NAME = metaData.jdbcURL().replace("${server}", host + ":" + port);
+        DB_NAME = DB_NAME.replace("${database}", "")
+                .replace("${parameters}", metaData.parameters(builder.build()));
+
+        try {
+            conn = DriverManager.getConnection(DB_NAME, getUsername(), getPassword());
+            return true;
+        } catch (SQLException ex) {
+            // Log any exception that occurs during the connection process
+            log.warn("SQL connection failed: {}", ex.getMessage());
+            return false;
+        }
+    }
+
     public void disconnect() {
         try {
             if (conn != null) {
@@ -211,4 +233,16 @@ public abstract class ADatabase {
 
     public record SchemaInfo(String database, String defaultCharset, String defaultCollation, List<TableInfo> tables) {}
     public record TableInfo(String name, int rowCount, String engine) {}
+
+    public static class ParameterBuilder {
+        private Map<String, String> parameters = new LinkedHashMap<>();
+
+        public ParameterBuilder parameter(String name, String value) {
+            parameters.put(name, value);
+            return this;
+        }
+        public Map<String, String> build() {
+            return parameters;
+        }
+    }
 }

@@ -5,11 +5,11 @@ import com.formdev.flatlaf.themes.FlatMacDarkLaf;
 import com.formdev.flatlaf.themes.FlatMacLightLaf;
 import de.julianweinelt.databench.DataBench;
 import de.julianweinelt.databench.api.DConnection;
-import de.julianweinelt.databench.dbx.database.DatabaseType;
 import de.julianweinelt.databench.data.ConfigManager;
 import de.julianweinelt.databench.data.Configuration;
 import de.julianweinelt.databench.data.Project;
 import de.julianweinelt.databench.data.ProjectManager;
+import de.julianweinelt.databench.dbx.database.DatabaseRegistry;
 import de.julianweinelt.databench.service.UpdateChecker;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -360,9 +360,9 @@ public class BenchUI {
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
 
-        String[] dbTypes = new String[DatabaseType.values().length];
+        String[] dbTypes = new String[DatabaseRegistry.instance().getDatabaseTypes().size()];
         for (int i = 0; i < dbTypes.length; i++) {
-            dbTypes[i] = DatabaseType.values()[i].name();
+            dbTypes[i] = DatabaseRegistry.instance().getDatabaseTypes().get(i).engineName();
         }
         JLabel typeLabel = new JLabel("Database Type:");
         JComboBox<String> dbType = new JComboBox<>(dbTypes);
@@ -394,12 +394,12 @@ public class BenchUI {
 
 
         dbType.addActionListener(e -> {
-            DatabaseType type = DatabaseType.valueOf((dbType.getSelectedItem() == null) ? DatabaseType.MYSQL.name() : dbType.getSelectedItem().toString());
+            String type = (dbType.getSelectedItem() == null) ? "MySQL" : dbType.getSelectedItem().toString();
 
-            userField.setEditable(!type.equals(DatabaseType.MSSQL));
-            passwordField.setEditable(!type.equals(DatabaseType.MSSQL));
-            winAuthField.setVisible(type.equals(DatabaseType.MSSQL));
-            useWinAuthLabel.setVisible(type.equals(DatabaseType.MSSQL));
+            userField.setEditable(!type.equalsIgnoreCase("mssql"));
+            passwordField.setEditable(!type.equalsIgnoreCase("mssql"));
+            winAuthField.setVisible(type.equalsIgnoreCase("mssql"));
+            useWinAuthLabel.setVisible(type.equalsIgnoreCase("mssql"));
         });
 
         JButton createButton = new JButton(translate("screen.main.profile.ui.form.button.create"));
@@ -475,7 +475,7 @@ public class BenchUI {
         popup.add(testButton, gbc);
 
         createButton.addActionListener(e -> {
-            DatabaseType type = DatabaseType.valueOf((dbType.getSelectedItem() == null) ? DatabaseType.MYSQL.name() : dbType.getSelectedItem().toString());
+            String type = (dbType.getSelectedItem() == null) ? "MySQL" : dbType.getSelectedItem().toString();
             if (nameField.getText().isBlank()) {
                 resultLabel.setText(translate("screen.main.profile.ui.feedback.noName"));
                 return;
@@ -484,11 +484,11 @@ public class BenchUI {
                 resultLabel.setText(translate("screen.main.profile.ui.feedback.noHost"));
                 return;
             }
-            if (userField.getText().isBlank() && !type.equals(DatabaseType.MSSQL)) {
+            if (userField.getText().isBlank() && !type.equalsIgnoreCase("mssql")) {
                 resultLabel.setText(translate("screen.main.profile.ui.feedback.noUser"));
                 return;
             }
-            if (passwordField.getPassword().length == 0 && !type.equals(DatabaseType.MSSQL)) {
+            if (passwordField.getPassword().length == 0 && !type.equalsIgnoreCase("mssql")) {
                 resultLabel.setText(translate("screen.main.profile.ui.feedback.noPassword"));
                 return;
             }
@@ -528,7 +528,7 @@ public class BenchUI {
             String password = new String(passwordField.getPassword());
             boolean useSSL = sslCheck.isSelected();
             String defaultDB = dbField.getText().isBlank() ? null : dbField.getText();
-            DatabaseType type = DatabaseType.valueOf((dbType.getSelectedItem() == null) ? DatabaseType.MYSQL.name() : dbType.getSelectedItem().toString());
+            String type = (dbType.getSelectedItem() == null) ? "MySQL" : dbType.getSelectedItem().toString();
 
             Project testProject = new Project(
                     nameField.getText(),

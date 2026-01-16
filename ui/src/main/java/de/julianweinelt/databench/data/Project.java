@@ -1,7 +1,7 @@
 package de.julianweinelt.databench.data;
 
-import de.julianweinelt.databench.dbx.database.DatabaseType;
 import de.julianweinelt.databench.api.ImagePanel;
+import de.julianweinelt.databench.dbx.database.DatabaseRegistry;
 import de.julianweinelt.databench.ui.BenchUI;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -30,11 +30,11 @@ public class Project {
     private String password;
     private String defaultDatabase = "";
     private boolean useSSL = false;
-    private DatabaseType databaseType = DatabaseType.MYSQL;
+    private String databaseType;
 
     private final int formatVersion = 1;
 
-    public Project(String name, String server, String username, String password, boolean useSSL, String defaultDatabase, DatabaseType databaseType) {
+    public Project(String name, String server, String username, String password, boolean useSSL, String defaultDatabase, String databaseType) {
         this.databaseType = databaseType;
         this.uuid = UUID.randomUUID();
         this.name = name;
@@ -45,7 +45,7 @@ public class Project {
         this.defaultDatabase = defaultDatabase;
     }
 
-    public Project(UUID uuid, String name, String server, String username, String password, String defaultDatabase, boolean useSSL, DatabaseType databaseType) {
+    public Project(UUID uuid, String name, String server, String username, String password, String defaultDatabase, boolean useSSL, String databaseType) {
         this.databaseType = databaseType;
         this.uuid = uuid;
         this.name = name;
@@ -58,7 +58,7 @@ public class Project {
 
     public JPanel createCard(BenchUI ui) {
         String theme = Configuration.getConfiguration().getSelectedTheme();
-        URL iU = getClass().getResource("/icons/engine/" + databaseType.engineName + ".png");
+        URL iU = getClass().getResource("/icons/engine/" + DatabaseRegistry.instance().getMeta(databaseType).engineName() + ".png");
         Image img;
         JPanel card;
         if (iU != null) {

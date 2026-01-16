@@ -1,11 +1,12 @@
 package de.julianweinelt.databench.api;
 
 import de.julianweinelt.databench.data.Project;
-import de.julianweinelt.databench.dbx.database.DatabaseType;
+import de.julianweinelt.databench.dbx.api.drivers.DriverManagerService;
+import de.julianweinelt.databench.dbx.database.DatabaseMetaData;
+import de.julianweinelt.databench.dbx.database.DatabaseRegistry;
 import de.julianweinelt.databench.ui.BenchUI;
 import de.julianweinelt.databench.ui.editor.*;
 import de.julianweinelt.databench.util.FileUtil;
-import de.julianweinelt.databench.dbx.api.drivers.DriverManagerService;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -50,17 +51,20 @@ public class DConnection {
     private JPanel panel;
 
     private final boolean lightEdit;
+    private final DatabaseMetaData databaseTypeMeta;
 
     public DConnection(Project project, BenchUI benchUI) {
         this.lightEdit = false;
         this.benchUI = benchUI;
         this.project = project;
+        databaseTypeMeta = DatabaseRegistry.instance().getMeta(project.getDatabaseType());
     }
 
     public DConnection(Project project, BenchUI benchUI, boolean lightEdit) {
         this.lightEdit = lightEdit;
         this.benchUI = benchUI;
         this.project = project;
+        databaseTypeMeta = DatabaseRegistry.instance().getMeta(project.getDatabaseType());
     }
 
     public void createNewConnectionTab() {
@@ -317,15 +321,16 @@ public class DConnection {
         ClassLoader previous = current.getContextClassLoader();
         current.setContextClassLoader(DriverManagerService.instance().getDriverLoader());
 
-        log.info("Project {} is {}", project.getUuid(), project.getDatabaseType().name());
+        log.info("Project {} is {}", project.getUuid(), databaseTypeMeta.engineName());
 
         CompletableFuture<Connection> future = new CompletableFuture<>();
-        String DB_NAME = project.getDatabaseType().jdbcURL.replace("${server}", project.getServer())
-                .replace("${database}", project.getDefaultDatabase());
+        String DB_NAME = databaseTypeMeta.jdbcURL().replace("${server}", project.getServer())
+                .replace("${database}", project.getDefaultDatabase())
+                .replace("${parameters}", databaseTypeMeta.parameters(databaseTypeMeta.defaultParameters().build()));
 
         try {
             // Establish a connection using the provided connection details
-            if (!project.getDatabaseType().equals(DatabaseType.MSSQL)) {
+            if (!project.getDatabaseType().equalsIgnoreCase("mssql")) {
                 conn = DriverManager.getConnection(DB_NAME, project.getUsername(), project.getPassword());
                 future.complete(conn);
             } else {
@@ -335,7 +340,7 @@ public class DConnection {
         } catch (SQLException ex) {
             // Log any exception that occurs during the connection process
             log.warn("SQL connection failed: {}", ex.getMessage());
-            if (project.getDatabaseType().equals(DatabaseType.MSSQL)) {
+            if (project.getDatabaseType().equalsIgnoreCase("mssql")) {
                 log.warn("SQL Server (Windows Auth) connection failed: {}", ex.getMessage());
             }
             future.completeExceptionally(ex);
@@ -365,10 +370,10 @@ public class DConnection {
 
     public List<DBObject> getDatabases() {
         List<DBObject> databases = new ArrayList<>();
-        try (PreparedStatement pS = conn.prepareStatement(project.getDatabaseType().syntax.showDatabases())) {
+        try (PreparedStatement pS = conn.prepareStatement(databaseTypeMeta.syntax().showDatabases())) {
             ResultSet rs = pS.executeQuery();
             while (rs.next()) {
-                if (project.getDatabaseType().equals(DatabaseType.MSSQL)) {
+                if (project.getDatabaseType().equalsIgnoreCase("mssql")) {
                     DBObject object = new DBObject(rs.getString(1), rs.getString(2).equals("OFFLINE"));
                     databases.add(object);
                 } else {
@@ -388,7 +393,7 @@ public class DConnection {
     public List<String> getTables(String database) {
         List<String> tables = new ArrayList<>();
         try (PreparedStatement pS = conn.prepareStatement("USE " + database)) {pS.execute();} catch (SQLException ignored) {}
-        try (PreparedStatement pS = conn.prepareStatement(project.getDatabaseType().syntax.showTables().replace("${db}", database))) {
+        try (PreparedStatement pS = conn.prepareStatement(databaseTypeMeta.syntax().showTables().replace("${db}", database))) {
             ResultSet rs = pS.executeQuery();
             while (rs.next()) tables.add(rs.getString(1));
         } catch (SQLException e) {
@@ -411,7 +416,7 @@ public class DConnection {
 
     public List<String> getViews(String database) {
         List<String> views = new ArrayList<>();
-        try (PreparedStatement pS = conn.prepareStatement(project.getDatabaseType().syntax.showViews().replace("${db}", database))) {
+        try (PreparedStatement pS = conn.prepareStatement(databaseTypeMeta.syntax().showViews().replace("${db}", database))) {
             ResultSet rs = pS.executeQuery();
             while (rs.next()) views.add(rs.getString(1));
         } catch (SQLException e) {
@@ -422,7 +427,7 @@ public class DConnection {
 
     @SuppressWarnings("SqlResolve")
     private List<JobObject> getSQLJobs() {
-        if (!project.getDatabaseType().equals(DatabaseType.MSSQL)) return new ArrayList<>();
+        if (!project.getDatabaseType().equalsIgnoreCase("mssql")) return new ArrayList<>();
         List<JobObject> jobs = new ArrayList<>();
         try {conn.createStatement().execute("USE msdb;");} catch (SQLException ignored) {}
         // noinspection SqlResolve
@@ -586,7 +591,7 @@ public class DConnection {
             JMenuItem createProcedure = new JMenuItem("Create new Procedure");
 
             // MSSQL Specific
-            if (project.getDatabaseType().equals(DatabaseType.MSSQL)) {
+            if (project.getDatabaseType().equalsIgnoreCase("mssql")) {
                 JMenu tasks = new JMenu("Tasks");
                 JMenuItem takeOffline = new JMenuItem("Take offline");
                 JMenuItem takeOnline = new JMenuItem("Take online");

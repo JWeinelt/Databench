@@ -7,7 +7,6 @@ import de.julianweinelt.databench.dbx.backup.DatabaseExporter;
 import de.julianweinelt.databench.dbx.backup.DbxArchiveWriter;
 import de.julianweinelt.databench.dbx.backup.ExportListener;
 import de.julianweinelt.databench.dbx.database.ADatabase;
-import de.julianweinelt.databench.dbx.database.DBMySQL;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;

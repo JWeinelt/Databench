@@ -2,6 +2,12 @@ package de.julianweinelt.databench.dbx.api;
 
 import de.julianweinelt.databench.dbx.api.ui.UIService;
 import de.julianweinelt.databench.dbx.database.DatabaseRegistry;
+import de.julianweinelt.databench.dbx.database.providers.DBMetaMSSQL;
+import de.julianweinelt.databench.dbx.database.providers.DBMetaMariaDB;
+import de.julianweinelt.databench.dbx.database.providers.DBMetaMySQL;
+import de.julianweinelt.databench.dbx.database.providers.db.DBMSSQL;
+import de.julianweinelt.databench.dbx.database.providers.db.DBMariaDB;
+import de.julianweinelt.databench.dbx.database.providers.db.DBMySQL;
 import de.julianweinelt.databench.dbx.util.DatabaseType;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +50,12 @@ public class DbxAPI {
         types.add(new DatabaseType("MySQL", "jdbc:mysql://${server}/${database}" +
                 "?useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=" +
                 "UTC&autoReconnect=true", "Oracle"));
+
+
+        log.info("Registering database handlers...");
+        DatabaseRegistry.instance().registerMapping("mysql", DBMySQL::new, new DBMetaMySQL());
+        DatabaseRegistry.instance().registerMapping("mssql", DBMSSQL::new, new DBMetaMSSQL());
+        DatabaseRegistry.instance().registerMapping("mariadb", DBMariaDB::new, new DBMetaMariaDB());
     }
 
     // API Methods

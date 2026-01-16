@@ -1,8 +1,11 @@
-package de.julianweinelt.databench.dbx.database;
+package de.julianweinelt.databench.dbx.database.providers.db;
 
+import de.julianweinelt.databench.dbx.database.ADatabase;
 import lombok.extern.slf4j.Slf4j;
 
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,19 +17,8 @@ public class DBMySQL extends ADatabase {
     }
 
     @Override
-    public boolean connect() {
-        String DB_NAME = "jdbc:mysql://${server}/?useJDBCCompliantTimezoneShift=true&useLegacyDatetime" +
-                "Code=false&serverTimezone=UTC&autoReconnect=true&zeroDateTimeBehavior=convertToNull";
-        DB_NAME = DB_NAME.replace("${server}", getHost() + ":" + getPort());
-
-        try {
-            conn = DriverManager.getConnection(DB_NAME, getUsername(), getPassword());
-            return true;
-        } catch (SQLException ex) {
-            // Log any exception that occurs during the connection process
-            log.warn("SQL connection failed: {}", ex.getMessage());
-            return false;
-        }
+    public String internalName() {
+        return "mysql";
     }
 
     @Override
@@ -41,7 +33,7 @@ public class DBMySQL extends ADatabase {
     @Override
     public List<String> getDatabases() {
         List<String> list = new ArrayList<>();
-        try (PreparedStatement pS = conn.prepareStatement("SHOW DATABASES;")) {
+        try (PreparedStatement pS = conn.prepareStatement(getMetaData().syntax().showDatabases())) {
             ResultSet s = pS.executeQuery();
             while (s.next()) list.add(s.getString(1));
         } catch (SQLException ex) {
@@ -54,7 +46,7 @@ public class DBMySQL extends ADatabase {
     public List<String> getTables(String database) {
         List<String> tables = new ArrayList<>();
         try (PreparedStatement pS = conn.prepareStatement("USE " + database)) {pS.execute();} catch (SQLException ignored) {}
-        try (PreparedStatement pS = conn.prepareStatement(DatabaseType.MYSQL.syntax.showTables().replace("${db}", database))) {
+        try (PreparedStatement pS = conn.prepareStatement(getMetaData().syntax().showTables().replace("${db}", database))) {
             ResultSet rs = pS.executeQuery();
             while (rs.next()) tables.add(rs.getString(1));
         } catch (SQLException e) {

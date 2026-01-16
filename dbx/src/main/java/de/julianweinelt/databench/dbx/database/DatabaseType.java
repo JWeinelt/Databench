@@ -1,5 +1,6 @@
 package de.julianweinelt.databench.dbx.database;
 
+@Deprecated
 public enum DatabaseType {
     MYSQL("mysql", "mysql", "jdbc:mysql://${server}/${database}" +
             "?useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&autoReconnect=true", DatabaseSyntax.MYSQL),
