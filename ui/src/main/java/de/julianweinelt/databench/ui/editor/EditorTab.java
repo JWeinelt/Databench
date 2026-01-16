@@ -114,12 +114,21 @@ public class EditorTab implements IEditorTab {
         });
 
         try {
-            Theme theme = Theme.load(
-                    getClass().getResourceAsStream(
-                            "/org/fife/ui/rsyntaxtextarea/themes/dark.xml"
-                    )
-            );
-            theme.apply(editorArea);
+            if (Configuration.getConfiguration().getSelectedTheme().contains("Light")) {
+                Theme theme = Theme.load(
+                        getClass().getResourceAsStream(
+                                "/org/fife/ui/rsyntaxtextarea/themes/light.xml"
+                        )
+                );
+                theme.apply(editorArea);
+            } else {
+                Theme theme = Theme.load(
+                        getClass().getResourceAsStream(
+                                "/org/fife/ui/rsyntaxtextarea/themes/dark.xml"
+                        )
+                );
+                theme.apply(editorArea);
+            }
         } catch (Exception e) {
             log.error(e.getMessage());
         }
