@@ -7,6 +7,7 @@ import de.julianweinelt.databench.dbx.backup.DatabaseExporter;
 import de.julianweinelt.databench.dbx.backup.DbxArchiveWriter;
 import de.julianweinelt.databench.dbx.backup.ExportListener;
 import de.julianweinelt.databench.dbx.database.ADatabase;
+import de.julianweinelt.databench.dbx.util.HomeDirectories;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
@@ -216,7 +217,7 @@ public class ExportDialog extends JDialog {
         if (!pathField.getText().isBlank()) {
             chooser.setSelectedFile(new File(pathField.getText()));
         } else {
-            chooser.setCurrentDirectory(new File(System.getProperty("user.home")));
+            chooser.setCurrentDirectory(HomeDirectories.instance().get("Export"));
         }
 
         int result = chooser.showSaveDialog(this);
@@ -244,6 +245,8 @@ public class ExportDialog extends JDialog {
             }
             updateStartButtonState();
         }
+
+        HomeDirectories.instance().put("Export", selectedFile.getParent());
 
         pathField.setText(selectedFile.getAbsolutePath());
 
