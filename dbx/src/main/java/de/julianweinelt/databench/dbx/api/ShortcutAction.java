@@ -1,7 +1,8 @@
-package de.julianweinelt.databench.ui;
+package de.julianweinelt.databench.dbx.api;
 
 import javax.swing.*;
 
+@Deprecated
 public enum ShortcutAction {
     NEW_FILE("New File", KeyStroke.getKeyStroke("control N")),
     PREFERENCES("Preferences", KeyStroke.getKeyStroke("control P")),
