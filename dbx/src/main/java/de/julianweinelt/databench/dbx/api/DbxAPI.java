@@ -9,6 +9,7 @@ import de.julianweinelt.databench.dbx.database.providers.db.DBMSSQL;
 import de.julianweinelt.databench.dbx.database.providers.db.DBMariaDB;
 import de.julianweinelt.databench.dbx.database.providers.db.DBMySQL;
 import de.julianweinelt.databench.dbx.util.DatabaseType;
+import de.julianweinelt.databench.dbx.util.HomeDirectories;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,9 +27,11 @@ public class DbxAPI {
     @Getter
     private final Registry registry;
     @Getter
-    private UIService uiService;
+    private final UIService uiService;
     @Getter
-    private DatabaseRegistry dbRegistry;
+    private final DatabaseRegistry dbRegistry;
+    @Getter
+    private final HomeDirectories homeDirectories;
 
     public DbxAPI(File apiFolder) {
         instance = this;
@@ -37,6 +40,7 @@ public class DbxAPI {
         registry = new Registry(this);
         dbRegistry = new DatabaseRegistry();
         uiService = new UIService();
+        homeDirectories = new HomeDirectories();
         init();
     }
 
