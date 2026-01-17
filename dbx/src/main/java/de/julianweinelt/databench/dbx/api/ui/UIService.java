@@ -14,6 +14,8 @@ public class UIService {
 
     @Getter
     private final MenuManager menuManager;
+    @Getter
+    private final ShortcutManager shortcutManager;
 
     private static UIService instance;
     public static UIService instance() {
@@ -23,6 +25,7 @@ public class UIService {
     public UIService() {
         instance = this;
         log.info("UIService instance created");
+        shortcutManager = new ShortcutManager();
         menuManager = new MenuManager();
     }
 
