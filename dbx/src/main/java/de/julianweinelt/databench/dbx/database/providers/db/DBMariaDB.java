@@ -57,12 +57,13 @@ public class DBMariaDB extends ADatabase {
 
     @Override
     public ResultSet getTableData(String database, String table) throws SQLException {
+        setStreaming(true);
         PreparedStatement pS = conn.prepareStatement(
                 "SELECT * FROM " + database + "." + table,
                 ResultSet.TYPE_FORWARD_ONLY,
                 ResultSet.CONCUR_READ_ONLY
         );
-        pS.setFetchSize(Integer.MIN_VALUE);
+        //pS.setFetchSize(Integer.MIN_VALUE);
 
         return pS.executeQuery();
     }
