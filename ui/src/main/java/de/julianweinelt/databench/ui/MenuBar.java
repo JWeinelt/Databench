@@ -22,7 +22,9 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 
 import static de.julianweinelt.databench.ui.LanguageManager.translate;
 
@@ -41,7 +43,6 @@ public class MenuBar {
         this.frame = frame;
         this.ui = ui;
         bar = new JMenuBar();
-        createFileCategory(false);
         log.info("Creating menu bar");
         Registry.instance().registerListener(this, Registry.instance().getSystemPlugin());
     }
@@ -66,101 +67,9 @@ public class MenuBar {
 
     public void updateAll() {
         resetBar();
-        createFileCategory(!categoryEnabled.getOrDefault("file", false));
-        createEditCategory(!categoryEnabled.getOrDefault("edit", false));
         createSQLCategory(!categoryEnabled.getOrDefault("sql", false));
         createHelpCategory(!categoryEnabled.getOrDefault("help", false));
         registerCustomCategories();
-    }
-
-    public void createFileCategory(boolean disable) {
-        JMenu fileMenu;
-        if (!menus.containsKey("file")) {
-            fileMenu = new JMenu(translate("menu.cat.file"));
-            JMenuItem openButton = new JMenuItem(translate("menu.cat.file.open"));
-            openButton.setAccelerator(
-                    Configuration.getConfiguration().getShortcut(
-                            ShortcutAction.OPEN_FILE.name(),
-                            ShortcutAction.OPEN_FILE.getDefaultKey()
-                    )
-            );
-            openButton.addActionListener(e -> {
-                JFileChooser fileChooser = new JFileChooser();
-                fileChooser.setDialogTitle("Open File");
-                fileChooser.addChoosableFileFilter(new FileNameExtensionFilter(
-                        "DataBench Project Files (*.dbproj), SQL Files (*.sql)", "dbproj", "sql"));
-                fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("SQL Files (*.sql)", "sql"));
-                fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("DataBench Project Files (*.dbproj)", "dbproj"));
-                fileChooser.setAcceptAllFileFilterUsed(true);
-                fileChooser.setDialogType(JFileChooser.FILES_ONLY);
-                int returnValue = fileChooser.showOpenDialog(frame);
-                if (returnValue == JFileChooser.APPROVE_OPTION) {
-                    JOptionPane.showMessageDialog(frame, "Opened: " + fileChooser.getSelectedFile().getAbsolutePath());
-                }
-            });
-            JMenuItem saveButton = new JMenuItem(translate("menu.cat.file.save"));
-            saveButton.setAccelerator(
-                    Configuration.getConfiguration().getShortcut(
-                            ShortcutAction.SAVE_FILE.name(),
-                            ShortcutAction.SAVE_FILE.getDefaultKey()
-                    )
-            );
-            saveButton.setEnabled(!disable);
-            JMenuItem saveAsButton = new JMenuItem(translate("menu.cat.file.saveAs"));
-            saveAsButton.setAccelerator(
-                    Configuration.getConfiguration().getShortcut(
-                            ShortcutAction.SAVE_FILE_AS.name(),
-                            ShortcutAction.SAVE_FILE_AS.getDefaultKey()
-                    )
-            );
-            saveAsButton.setEnabled(!disable);
-
-            JMenuItem lightEditButton = new JMenuItem(translate("menu.cat.file.lightEdit"));
-            lightEditButton.addActionListener(e -> {
-                ui.createLightEdit();
-                lightEditButton.setEnabled(!ui.hasLightEdit());
-            });
-
-            JMenuItem preferencesButton = new JMenuItem(translate("menu.cat.edit.preferences"));
-            preferencesButton.setAccelerator(
-                    Configuration.getConfiguration().getShortcut(
-                            ShortcutAction.PREFERENCES.name(),
-                            ShortcutAction.PREFERENCES.getDefaultKey()
-                    )
-            );
-            preferencesButton.addActionListener(e -> new SettingsDialog(frame).setVisible(true));
-            JMenuItem pluginsButton = new JMenuItem("Plugins");
-            pluginsButton.addActionListener(e -> {
-                new PluginDialog(frame).setVisible(true);
-            });
-
-
-            JMenuItem restartButton = new JMenuItem("Restart IDE");
-            JMenuItem exitButton = new JMenuItem("Exit");
-
-            fileMenu.add(openButton);
-            fileMenu.add(saveButton);
-            fileMenu.add(saveAsButton);
-            fileMenu.add(lightEditButton);
-            fileMenu.addSeparator();
-            fileMenu.add(preferencesButton);
-            fileMenu.add(pluginsButton);
-            fileMenu.addSeparator();
-            fileMenu.add(restartButton);
-            fileMenu.add(exitButton);
-
-            bar.add(fileMenu);
-            menus.put("file", fileMenu);
-        } else {
-            fileMenu = menus.get("file");
-            for (int i = 0; i < fileMenu.getItemCount(); i++) {
-                JMenuItem item = fileMenu.getItem(i);
-                if (item != null) {
-                    item.setEnabled(!disable);
-                }
-            }
-        }
-        updateMenuBar();
     }
 
     public void createEditCategory(boolean disable) {
@@ -170,16 +79,16 @@ public class MenuBar {
             JMenuItem undoButton = new JMenuItem(translate("menu.cat.edit.undo"));
             undoButton.setAccelerator(
                     Configuration.getConfiguration().getShortcut(
-                            ShortcutAction.UNDO.name(),
-                            ShortcutAction.UNDO.getDefaultKey()
+                            de.julianweinelt.databench.dbx.api.ShortcutAction.UNDO.name(),
+                            de.julianweinelt.databench.dbx.api.ShortcutAction.UNDO.getDefaultKey()
                     )
             );
             undoButton.setEnabled(!disable);
             JMenuItem redoButton = new JMenuItem(translate("menu.cat.edit.redo"));
             redoButton.setAccelerator(
                     Configuration.getConfiguration().getShortcut(
-                            ShortcutAction.REDO.name(),
-                            ShortcutAction.REDO.getDefaultKey()
+                            de.julianweinelt.databench.dbx.api.ShortcutAction.REDO.name(),
+                            de.julianweinelt.databench.dbx.api.ShortcutAction.REDO.getDefaultKey()
                     )
             );
             redoButton.setEnabled(!disable);
@@ -221,8 +130,8 @@ public class MenuBar {
             JMenuItem export = new JMenuItem("Export");
             export.setAccelerator(
                     Configuration.getConfiguration().getShortcut(
-                            ShortcutAction.BACKUPS_EXPORT.name(),
-                            ShortcutAction.BACKUPS_EXPORT.getDefaultKey()
+                            de.julianweinelt.databench.dbx.api.ShortcutAction.BACKUPS_EXPORT.name(),
+                            de.julianweinelt.databench.dbx.api.ShortcutAction.BACKUPS_EXPORT.getDefaultKey()
                     )
             );
             export.addActionListener(e -> new ExportDialog(frame).setVisible(true)); // Temporary
@@ -233,8 +142,8 @@ public class MenuBar {
             });
             importItem.setAccelerator(
                     Configuration.getConfiguration().getShortcut(
-                            ShortcutAction.BACKUPS_IMPORT.name(),
-                            ShortcutAction.BACKUPS_IMPORT.getDefaultKey()
+                            de.julianweinelt.databench.dbx.api.ShortcutAction.BACKUPS_IMPORT.name(),
+                            de.julianweinelt.databench.dbx.api.ShortcutAction.BACKUPS_IMPORT.getDefaultKey()
                     )
             );
 
@@ -246,8 +155,8 @@ public class MenuBar {
             adminButton.setEnabled(!disable);
             adminButton.setAccelerator(
                     Configuration.getConfiguration().getShortcut(
-                            ShortcutAction.ADMINISTRATION.name(),
-                            ShortcutAction.ADMINISTRATION.getDefaultKey()
+                            de.julianweinelt.databench.dbx.api.ShortcutAction.ADMINISTRATION.name(),
+                            de.julianweinelt.databench.dbx.api.ShortcutAction.ADMINISTRATION.getDefaultKey()
                     )
             );
 
@@ -258,8 +167,8 @@ public class MenuBar {
 
             manageDriverButton.setAccelerator(
                     Configuration.getConfiguration().getShortcut(
-                            ShortcutAction.MANAGE_DRIVERS.name(),
-                            ShortcutAction.MANAGE_DRIVERS.getDefaultKey()
+                            de.julianweinelt.databench.dbx.api.ShortcutAction.MANAGE_DRIVERS.name(),
+                            de.julianweinelt.databench.dbx.api.ShortcutAction.MANAGE_DRIVERS.getDefaultKey()
                     )
             );
             manageDriverButton.addActionListener(e -> new DriverManagerDialog(frame).setVisible(true));
@@ -332,7 +241,9 @@ public class MenuBar {
     }
 
     public void registerCustomCategories() {
-        for (Menu m : MenuManager.instance().getAllMenus()) {
+        List<Menu> men = MenuManager.instance().getAllMenus();
+        men.sort(Comparator.comparingInt(Menu::getPriority));
+        for (Menu m : men) {
             log.debug("Found menu {}", m.getCategoryName());
             JMenu menu = m.create();
             bar.add(menu);
@@ -364,7 +275,20 @@ public class MenuBar {
 
     @Subscribe(value = "UIMenuBarRevalidateEvent")
     public void revalidate(Event event) {
-        log.debug("Got signal to revalidate menu bar");
+        log.info("Got signal to revalidate menu bar");
         updateAll();
+    }
+
+    @Subscribe(value = "UIMenuBarItemClickEvent")
+    public void onMenuItemClick(Event event) {
+        String menuID = event.get("id").asString();
+        switch (menuID) {
+            case "file_preferences" -> new SettingsDialog(frame).setVisible(true);
+            case "file_plugins" -> new PluginDialog(frame).setVisible(true);
+            case "file_light_edit" -> {
+                ui.createLightEdit();
+                //TODO: Disable button
+            }
+        }
     }
 }

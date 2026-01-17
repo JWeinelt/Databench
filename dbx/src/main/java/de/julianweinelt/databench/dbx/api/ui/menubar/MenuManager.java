@@ -7,6 +7,7 @@ import de.julianweinelt.databench.dbx.api.ui.UIService;
 import lombok.Getter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,6 +30,16 @@ public class MenuManager {
         }
         revalidate();
     }
+    public void register(DbxPlugin plugin, Menu... m) {
+        if (menus.containsKey(plugin)) {
+            menus.get(plugin).addAll(Arrays.asList(m));
+        } else {
+            List<Menu> menuList = new ArrayList<>(Arrays.asList(m));
+            menus.putIfAbsent(plugin, menuList);
+        }
+        revalidate();
+    }
+
     public List<Menu> getAllMenus() {
         List<Menu> menus = new ArrayList<>();
         for (DbxPlugin pl : this.menus.keySet()) {
