@@ -57,6 +57,7 @@ public class BenchUI {
         tabbedPane = new JTabbedPane();
 
         frame = new JFrame();
+        createMenuBar();
         frame.setFont(Configuration.getConfiguration().getEditorFontObject());
         frame.setIconImage(icon);
         frame.setSize(1024, 600);
@@ -84,8 +85,6 @@ public class BenchUI {
                 }
             }
         });
-
-        createMenuBar();
         createStartPage();
         frame.add(tabbedPane, BorderLayout.CENTER);
 
@@ -100,8 +99,8 @@ public class BenchUI {
 
     private void registerShortcuts(JFrame frame) {
         frame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-                .put(Configuration.getConfiguration().getShortcut(ShortcutAction.NEW_FILE.name()
-                        , ShortcutAction.NEW_FILE.getDefaultKey()), "create-object");
+                .put(Configuration.getConfiguration().getShortcut(de.julianweinelt.databench.dbx.api.ShortcutAction.NEW_FILE.name()
+                        , de.julianweinelt.databench.dbx.api.ShortcutAction.NEW_FILE.getDefaultKey()), "create-object");
 
         frame.getRootPane().getActionMap()
                 .put("create-object", new AbstractAction() {
