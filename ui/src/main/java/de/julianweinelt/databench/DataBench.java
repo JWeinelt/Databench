@@ -118,6 +118,7 @@ public class DataBench {
         if (configManager == null) configManager = new ConfigManager();
         log.info("Loading configuration...");
         configManager.loadConfig();
+        configManager.getConfiguration().initHomeDirectories();
 
         log.info("Loading project data...");
         projectManager = new ProjectManager();
@@ -137,6 +138,7 @@ public class DataBench {
             new DefaultUI(UIService.instance()).init();
             updateChecker = new UpdateChecker(ui);
             ui.init();
+            Registry.instance().setMainFrame(ui.getFrame());
 
             startScreen.stop();
 
