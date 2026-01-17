@@ -30,7 +30,6 @@ public class PluginListPanel extends JPanel {
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         add(scrollPane, BorderLayout.CENTER);
 
-        // Demo-Daten
         for (int i = 1; i <= 10; i++) {
             PluginDescriptor p = new PluginDescriptor(
                     "plugin-" + i,
