@@ -2,12 +2,15 @@ package de.julianweinelt.databench.data;
 
 import de.julianweinelt.databench.DataBench;
 import de.julianweinelt.databench.dbx.util.ColorUtil;
+import de.julianweinelt.databench.dbx.util.HomeDirectories;
 import lombok.Getter;
 import lombok.Setter;
 import org.fife.ui.rsyntaxtextarea.TokenTypes;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -39,12 +42,27 @@ public class Configuration {
     private String editorTheme = "software";
     private ColorSettings editorColors = new ColorSettings();
 
+    private final HashMap<String, String> homeDirectories = new HashMap<>();
+
     private boolean checkForUpdates = true;
     private String updateChannel = "stable";
     private final int configVersion = 2;
 
     public static Configuration getConfiguration() {
         return DataBench.getInstance().getConfigManager().getConfiguration();
+    }
+
+    public void loadHomeDirectories() {
+        homeDirectories.clear();
+        for (String name : HomeDirectories.instance().names()) {
+            homeDirectories.put(name, HomeDirectories.instance().get(name).getAbsolutePath());
+        }
+    }
+    public void initHomeDirectories() {
+        HomeDirectories.instance().clear();
+        for (String name : homeDirectories.keySet()) {
+            HomeDirectories.instance().put(name, homeDirectories.get(name));
+        }
     }
 
     public KeyStroke getShortcut(String action, KeyStroke defaultKey) {
@@ -72,12 +90,12 @@ public class Configuration {
     private String toPersistedString(KeyStroke ks) {
         StringBuilder sb = new StringBuilder();
 
-        if ((ks.getModifiers() & java.awt.event.InputEvent.CTRL_DOWN_MASK) != 0) sb.append("control ");
-        if ((ks.getModifiers() & java.awt.event.InputEvent.SHIFT_DOWN_MASK) != 0) sb.append("shift ");
-        if ((ks.getModifiers() & java.awt.event.InputEvent.ALT_DOWN_MASK) != 0) sb.append("alt ");
-        if ((ks.getModifiers() & java.awt.event.InputEvent.META_DOWN_MASK) != 0) sb.append("meta ");
+        if ((ks.getModifiers() & InputEvent.CTRL_DOWN_MASK) != 0) sb.append("control ");
+        if ((ks.getModifiers() & InputEvent.SHIFT_DOWN_MASK) != 0) sb.append("shift ");
+        if ((ks.getModifiers() & InputEvent.ALT_DOWN_MASK) != 0) sb.append("alt ");
+        if ((ks.getModifiers() & InputEvent.META_DOWN_MASK) != 0) sb.append("meta ");
 
-        sb.append(java.awt.event.KeyEvent.getKeyText(ks.getKeyCode()));
+        sb.append(KeyEvent.getKeyText(ks.getKeyCode()));
         return sb.toString().trim();
     }
 
