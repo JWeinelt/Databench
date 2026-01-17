@@ -1,14 +1,10 @@
 package de.julianweinelt.databench.ui;
 
-import com.formdev.flatlaf.*;
-import com.formdev.flatlaf.themes.FlatMacDarkLaf;
-import com.formdev.flatlaf.themes.FlatMacLightLaf;
 import de.julianweinelt.databench.data.ConfigManager;
 import de.julianweinelt.databench.data.Configuration;
 import de.julianweinelt.databench.dbx.api.ui.SettingsPanel;
 import de.julianweinelt.databench.dbx.api.ui.UIService;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -60,12 +56,12 @@ public class SettingsDialog extends JDialog {
     private JPanel createShortcutPanel() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
 
-        DefaultListModel<ShortcutAction> model = new DefaultListModel<>();
-        for (ShortcutAction action : ShortcutAction.values()) {
+        DefaultListModel<de.julianweinelt.databench.dbx.api.ShortcutAction> model = new DefaultListModel<>();
+        for (de.julianweinelt.databench.dbx.api.ShortcutAction action : de.julianweinelt.databench.dbx.api.ShortcutAction.values()) {
             model.addElement(action);
         }
 
-        JList<ShortcutAction> actionList = new JList<>(model);
+        JList<de.julianweinelt.databench.dbx.api.ShortcutAction> actionList = new JList<>(model);
         actionList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         actionList.setLayoutOrientation(JList.VERTICAL);
         actionList.setVisibleRowCount(-1);
@@ -86,7 +82,7 @@ public class SettingsDialog extends JDialog {
         return panel;
     }
 
-    private JPanel createShortcutDetailPanel(JList<ShortcutAction> list) {
+    private JPanel createShortcutDetailPanel(JList<de.julianweinelt.databench.dbx.api.ShortcutAction> list) {
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints c = baseConstraints();
         c.fill = GridBagConstraints.HORIZONTAL;
@@ -111,7 +107,7 @@ public class SettingsDialog extends JDialog {
         panel.add(reset, c);
 
         list.addListSelectionListener(e -> {
-            ShortcutAction action = list.getSelectedValue();
+            de.julianweinelt.databench.dbx.api.ShortcutAction action = list.getSelectedValue();
             if (action == null) return;
 
             actionName.setText(action.getDisplayName());
@@ -123,7 +119,7 @@ public class SettingsDialog extends JDialog {
         });
 
         change.addActionListener(e -> {
-            ShortcutAction action = list.getSelectedValue();
+            de.julianweinelt.databench.dbx.api.ShortcutAction action = list.getSelectedValue();
             if (action == null) return;
 
             KeyStroke ks = captureKeyStroke(panel);
@@ -136,7 +132,7 @@ public class SettingsDialog extends JDialog {
         });
 
         reset.addActionListener(e -> {
-            ShortcutAction action = list.getSelectedValue();
+            de.julianweinelt.databench.dbx.api.ShortcutAction action = list.getSelectedValue();
             if (action == null) return;
 
             Configuration.getConfiguration().removeShortcut(action.name());
