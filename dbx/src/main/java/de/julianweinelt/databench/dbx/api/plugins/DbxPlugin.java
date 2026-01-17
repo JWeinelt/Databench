@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.*;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -47,6 +48,9 @@ public abstract class DbxPlugin {
     }
     public Registry getRegistry() {
         return Registry.instance();
+    }
+    public JFrame getMainFrame() {
+        return Registry.instance().getMainFrame();
     }
 
     /**
