@@ -159,8 +159,12 @@ public class PluginLoader {
                         .set("classLoader", loader)
                         .set("descriptor", descriptor)
                 );
-                plugin.onDefineEvents();
-                plugin.init();
+                try {
+                    plugin.onDefineEvents();
+                    plugin.init();
+                } catch (NoSuchMethodError e) {
+                    log.error("Plugin {} is missing an onDefineEvents method.", pluginName);
+                }
                 registry.callEvent(new Event("PluginEnableEvent").nonCancellable()
                         .set("name", pluginName)
                         .set("plugin", plugin)
