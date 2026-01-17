@@ -5,9 +5,11 @@ import de.julianweinelt.databench.dbx.api.events.EventListener;
 import de.julianweinelt.databench.dbx.api.plugins.DbxPlugin;
 import de.julianweinelt.databench.dbx.api.plugins.SystemPlugin;
 import lombok.Getter;
+import org.jetbrains.annotations.ApiStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.*;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -39,11 +41,18 @@ public class Registry {
 
     private final Map<String, List<EventListener>> listeners = new HashMap<>();
     private final Map<DbxPlugin, List<String>> eventsRegisteredByPlugin = new HashMap<>();
+    @Getter
+    private JFrame mainFrame;
 
     public Registry(DbxAPI api) {
         this.api = api;
         systemPlugin = new SystemPlugin();
         systemPlugin.preInit();
+    }
+
+    @ApiStatus.Internal
+    public void setMainFrame(JFrame mainFrame) {
+        this.mainFrame = mainFrame;
     }
 
     public static Registry instance() {
