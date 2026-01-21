@@ -76,13 +76,17 @@ public class BenchUI {
                 ConfigManager.getInstance().saveConfig();
 
                 if (connections.isEmpty()) {
+                    log.info("No Connections found. Exiting...");
                     frame.dispose();
+                    System.exit(0);
                     return;
                 }
+                log.info("Closing connections...");
                 for (Project project : connections.keySet()) {
                     DConnection connection = connections.get(project);
                     connection.handleWindowClosing(frame);
                 }
+                System.exit(0);
             }
         });
         createStartPage();

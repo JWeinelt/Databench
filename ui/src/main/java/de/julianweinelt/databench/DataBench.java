@@ -170,7 +170,7 @@ public class DataBench {
             } catch (IOException e) {
                 log.error(e.getMessage(), e);
             }
-            System.exit(0);
+            log.info("Goodbye!");
         }));
 
         log.info("Starting plugin service...");
