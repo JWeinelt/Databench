@@ -6,10 +6,19 @@ import de.julianweinelt.databench.ui.BenchUI;
 import javax.swing.*;
 import java.awt.*;
 import java.util.Map;
+import java.util.UUID;
 
 import static de.julianweinelt.databench.ui.LanguageManager.translate;
 
 public class WelcomeTab implements IEditorTab {
+    private final UUID id = UUID.randomUUID();
+
+
+    @Override
+    public UUID getId() {
+        return id;
+    }
+
     @Override
     public JPanel getTabComponent(BenchUI ui, DConnection connection) {
         JPanel root = new JPanel(new BorderLayout());

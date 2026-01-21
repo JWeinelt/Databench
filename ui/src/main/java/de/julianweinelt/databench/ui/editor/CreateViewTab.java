@@ -14,8 +14,10 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class CreateViewTab implements IEditorTab {
+    private final UUID id = UUID.randomUUID();
 
     private TableDefinition table;
     private TableDefinition originalTable;
@@ -51,6 +53,11 @@ public class CreateViewTab implements IEditorTab {
         this.tableData = toTableData(table.getColumns());
         this.existingTable = false;
         return this;
+    }
+
+    @Override
+    public UUID getId() {
+        return id;
     }
 
     @Override
