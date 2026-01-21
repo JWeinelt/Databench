@@ -1,6 +1,5 @@
 package de.julianweinelt.databench.api;
 
-import de.julianweinelt.databench.data.Configuration;
 import de.julianweinelt.databench.data.Project;
 import de.julianweinelt.databench.dbx.api.drivers.DriverManagerService;
 import de.julianweinelt.databench.dbx.database.DatabaseMetaData;
@@ -34,7 +33,7 @@ import static de.julianweinelt.databench.ui.LanguageManager.translate;
 @Slf4j
 @Getter
 @SuppressWarnings({"SqlSourceToSinkFlow", "SqlResolve"})
-public class DConnection {
+public class DConnection implements IFileWatcherListener {
     private final Pattern PLACEHOLDER_PATTERN =
         Pattern.compile("\\$\\{([a-zA-Z0-9_]+)}");
     private final Project project;
@@ -48,6 +47,14 @@ public class DConnection {
     private DefaultMutableTreeNode treeRoot;
     @Setter
     private JTree tree;
+    @Setter
+    private JTree fileTree;
+
+    private FileWatcher fileWatcher;
+
+    @Setter
+    private DefaultMutableTreeNode fileTreeRoot;
+
     @Getter
     private JPanel panel;
 
@@ -128,9 +135,9 @@ public class DConnection {
                         menu = createContextMenu(node, benchUI);
                     } else {
                         menu = new JPopupMenu();
-                        JMenuItem newDB = new JMenuItem(translate("connection.tree.node.database.create"));
-                        newDB.addActionListener(a -> addEditorTab("CREATE DATABASE ${name};"));
-                        menu.add(newDB);
+                        JMenuItem noObj = new JMenuItem("Please select an object...");
+                        noObj.setEnabled(false);
+                        menu.add(noObj);
                     }
                     if (menu != null && menu.getComponentCount() > 0) {
                         menu.show(tree, e.getX(), e.getY());
@@ -139,25 +146,163 @@ public class DConnection {
             });
         }
 
-        JScrollPane treeScroll = new JScrollPane(tree);
+        JScrollPane projectTreeScroll = new JScrollPane(tree);
 
-        JSplitPane splitPane =
-                new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, treeScroll, workTabs);
-        splitPane.setDividerLocation(250);
+        createProjectFolder();
+        JScrollPane fileTreeScroll = new JScrollPane(fileTree);
+
+        JTabbedPane leftTabs = new JTabbedPane();
+        if (!lightEdit) leftTabs.addTab(translate("project.tabs.database"), projectTreeScroll);
+        leftTabs.addTab(translate("project.tabs.files"), fileTreeScroll);
+
+        JSplitPane splitPane = new JSplitPane(
+                JSplitPane.HORIZONTAL_SPLIT,
+                leftTabs,
+                workTabs
+        );
+        splitPane.setDividerLocation(280);
         splitPane.setResizeWeight(0);
 
         panel.add(toolBar, BorderLayout.NORTH);
         panel.add(splitPane, BorderLayout.CENTER);
 
-        benchUI.addClosableTab(benchUI.getTabbedPane(), getProject().getName(), panel);
+        benchUI.addClosableTab(
+                benchUI.getTabbedPane(),
+                getProject().getName(),
+                panel
+        );
+
         benchUI.getTabbedPane().setSelectedIndex(1);
-        benchUI.getMenuBar().enable("file")
+        benchUI.getMenuBar()
+                .enable("file")
                 .enable("edit")
-                .enable("sql").updateAll();
+                .enable("sql")
+                .updateAll();
 
         addTab(new WelcomeTab());
 
         FileManager.instance().getProjectData(project, benchUI).forEach(this::addTab);
+    }
+
+    private void createProjectFolder() {
+        //TODO: Use another folder in users home
+        File folder = new File("projects", project.getUuid().toString());
+        if (folder.mkdirs()) log.debug("Created workspace folder for project {}", project.getName());
+        fileWatcher = new FileWatcher(folder, this);
+        fileTreeRoot = new DefaultMutableTreeNode();
+        fileWatcher.scanTree();
+        fileTree = new JTree(fileTreeRoot);
+        createFileSystemContextMenus();
+        updateProjectFileTree();
+    }
+
+    private void updateProjectFileTree() {
+        fileTreeRoot.removeAllChildren();
+        fileWatcher.createTree(fileTreeRoot);
+
+        fileTree.setCellRenderer(new DefaultTreeCellRenderer() {
+            @Override
+            public Component getTreeCellRendererComponent(JTree tree, Object value,
+                                                          boolean selected, boolean expanded,
+                                                          boolean leaf, int row, boolean hasFocus) {
+                super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
+
+                if (value instanceof DefaultMutableTreeNode node) {
+                    Object user = node.getUserObject();
+                    if (user instanceof FileObject file) {
+                        setText(file.name());
+                        setIcon(getIconForType(file.type()));
+                    }
+                }
+
+                return this;
+            }
+        });
+
+        DefaultTreeModel model = (DefaultTreeModel) fileTree.getModel();
+        model.reload();
+    }
+
+    private void createFileSystemContextMenus() {
+        fileTree.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (SwingUtilities.isRightMouseButton(e)) {
+                    TreePath path = fileTree.getPathForLocation(e.getX(), e.getY());
+                    if (path != null) {
+                        fileTree.setSelectionPath(path);
+                        DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+                        showPopup(e, node);
+                    } else {
+                        showPopup(e, null);
+                    }
+                } else if (SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 2) {
+                    TreePath path = fileTree.getPathForLocation(e.getX(), e.getY());
+                    if (path != null) {
+                        DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+                        FileObject o = (FileObject) node.getUserObject();
+                        if (o.directory()) {
+                            fileTree.expandPath(path);
+                        } else
+                            openFileFromFileSystem(o);
+                    }
+
+                }
+            }
+
+            private void showPopup(MouseEvent e, DefaultMutableTreeNode node) {
+                JPopupMenu menu;
+                if (node != null) {
+                    menu = createFileContext(node, benchUI);
+                } else {
+                    menu = new JPopupMenu();
+                    JMenuItem noObj = new JMenuItem("Please select an object...");
+                    noObj.setEnabled(false);
+                    menu.add(noObj);
+                }
+                if (menu.getComponentCount() > 0) {
+                    menu.show(fileTree, e.getX(), e.getY());
+                }
+            }
+        });
+    }
+
+    private JPopupMenu createFileContext(DefaultMutableTreeNode node, BenchUI ui) {
+        JPopupMenu menu = new JPopupMenu();
+        JMenu newMenu = new JMenu("New");
+        newMenu.add(new JMenuItem("File"));
+        newMenu.add(new JMenuItem("Directory"));
+        newMenu.addSeparator();
+        newMenu.add(new JMenuItem("SQL Query File"));
+        newMenu.add(new JMenuItem("CSV from Query"));
+        newMenu.add(new JMenuItem("XLSX File"));
+        newMenu.add(new JMenuItem("JSON File"));
+
+        menu.add(newMenu);
+
+        menu.addSeparator();
+
+        menu.add(new JMenuItem("Cut"));
+        menu.add(new JMenuItem("Copy"));
+        menu.add(new JMenuItem("Copy Path/Reference..."));
+        menu.add(new JMenuItem("Paste"));
+        menu.addSeparator();
+        menu.add(new JMenuItem("Rename"));
+        menu.addSeparator();
+        JMenu openIn = new JMenu("Open In");
+        openIn.add(new JMenuItem("Open In Explorer"));
+        openIn.add(new JMenuItem("Open In Associated Application"));
+        openIn.add(new JMenuItem("Open In..."));
+        menu.add(openIn);
+
+        JMenu gitMenu = new JMenu("Git");
+        gitMenu.add(new JMenuItem("Coming soon..."));
+        menu.add(gitMenu);
+        return menu;
+    }
+
+    private Icon getIconForType(FileType type) {
+        return loadIcon("/icons/editor/files/" + type.displayFile + ".png", 20);
     }
 
     public void handleFileEvent(File file) {
@@ -197,13 +342,13 @@ public class DConnection {
                 content = content.replace("${" + entry.getKey() + "}", entry.getValue());
             }
         } else if (content.contains("${")) {
-            EditorTab tab = new EditorTab("-- You've entered an invalid value.", benchUI);
+            EditorTab tab = new EditorTab(this, "-- You've entered an invalid value.", benchUI);
             addTab(tab);
             return tab;
         }
 
 
-        EditorTab tab = new EditorTab(content, benchUI);
+        EditorTab tab = new EditorTab(this, content, benchUI);
         addTab(tab);
         return tab;
     }
@@ -269,6 +414,18 @@ public class DConnection {
         editorTabs.add(tab);
         workTabs.addTab(tab.getTitle(), p);
         workTabs.setSelectedIndex(workTabs.getTabCount() - 1);
+    }
+
+    public void updateTitle(IEditorTab tab) {
+        int idx = 0;
+        for (IEditorTab t : editorTabs) {
+            if (tab.getId().equals(t.getId())) {
+                log.debug("Updating title at {} to {}", idx, t.getTitle());
+                workTabs.setTitleAt(idx, t.getTitle());
+                break;
+            }
+            idx++;
+        }
     }
 
     public void handleWindowClosing(JFrame frame) {
@@ -523,9 +680,9 @@ public class DConnection {
                         Object parentObject = parent.getUserObject();
                         if (translate("connection.tree.node.database.title").equals(parentObject.toString())) {
                             if (userObject.toString().endsWith("(offline)")) {
-                                setIcon(new ImageIcon(getClassURL("/icons/app/schema_offline.png")));
+                                setIcon(loadIcon("/icons/editor/database-offline.png", 24));
                             } else
-                                setIcon(new ImageIcon(getClassURL("/icons/app/schema.png")));
+                                setIcon(loadIcon("/icons/editor/database.png", 24));
                         } else if (translate("connection.tree.node.tables.title").equals(parentObject.toString())) {
                             setIcon(new ImageIcon(getClassURL("/icons/app/table.png")));
                         } else if (translate("connection.tree.node.views.title").equals(parentObject.toString())) {
@@ -546,6 +703,12 @@ public class DConnection {
         model.reload();
         tree.expandPath(new TreePath(databases.getPath()));
         benchUI.getFrame().setCursor(Cursor.getDefaultCursor());
+    }
+
+    private Icon loadIcon(String path, int size) {
+        ImageIcon icon = new ImageIcon(getClassURL(path));
+        Image image = icon.getImage().getScaledInstance(size, size, Image.SCALE_SMOOTH);
+        return new ImageIcon(image);
     }
 
     public URL getClassURL(String file) {
@@ -831,10 +994,22 @@ public class DConnection {
             int columnCount = meta.getColumnCount();
             String[] columns = new String[columnCount];
             for (int i = 0; i < columnCount; i++) {
-                columns[i] = meta.getColumnLabel(i + 1); // getColumnName oder getColumnLabel
+                columns[i] = meta.getColumnLabel(i + 1);
             }
             return columns;
         }
+    }
+
+    @Override
+    public void fileTreeUpdate(FileTree tree) {
+        updateProjectFileTree();
+    }
+
+    public void openFileFromFileSystem(FileObject o) {
+        File f = new File(o.path());
+        if (!f.exists()) return;
+        String content = FileUtil.readFile(f);
+        addTab(new EditorTxtTab(content, benchUI, f, o.type()));
     }
 
     public record SQLAnswer(boolean success, ResultSet resultSet, int updateCount, String message, long executionTimeMs) {
