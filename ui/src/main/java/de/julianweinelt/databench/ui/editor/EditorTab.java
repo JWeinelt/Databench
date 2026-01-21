@@ -10,6 +10,8 @@ import org.fife.ui.rsyntaxtextarea.*;
 import org.fife.ui.rtextarea.RTextScrollPane;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -22,11 +24,15 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
 import static de.julianweinelt.databench.ui.LanguageManager.translate;
 
 @Slf4j
 public class EditorTab implements IEditorTab {
+    private final UUID id = UUID.randomUUID();
+    private final DConnection connection;
+
     private final String content;
     private final BenchUI ui;
     private RSyntaxTextArea editorArea;
@@ -40,11 +46,19 @@ public class EditorTab implements IEditorTab {
     private JButton runButton;
 
     public EditorTab(String content, BenchUI ui) {
+        this.connection = null;
         this.content = content;
         this.ui = ui;
     }
 
-    public EditorTab(String content, BenchUI ui, File saveFile) {
+    public EditorTab(DConnection connection, String content, BenchUI ui) {
+        this.connection = connection;
+        this.content = content;
+        this.ui = ui;
+    }
+
+    public EditorTab(DConnection connection, String content, BenchUI ui, File saveFile) {
+        this.connection = connection;
         this.content = content;
         this.ui = ui;
         this.saveFile = saveFile;
@@ -57,6 +71,11 @@ public class EditorTab implements IEditorTab {
 
     public String getEditorContent() {
         return editorArea.getText();
+    }
+
+    @Override
+    public UUID getId() {
+        return id;
     }
 
     @Override
@@ -84,6 +103,30 @@ public class EditorTab implements IEditorTab {
         editorArea.setAutoIndentEnabled(true);
         editorArea.setAntiAliasingEnabled(true);
         editorArea.setText(content);
+
+        editorArea.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                if (!fileSaved) return;
+                fileSaved = false;
+                connection.updateTitle(EditorTab.this);
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                if (!fileSaved) return;
+                fileSaved = false;
+                connection.updateTitle(EditorTab.this);
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                if (!fileSaved) return;
+                fileSaved = false;
+                connection.updateTitle(EditorTab.this);
+            }
+        });
+
         editorArea.getInputMap().put(
                 KeyStroke.getKeyStroke("ctrl ENTER"), "execute"
         );
@@ -285,7 +328,7 @@ public class EditorTab implements IEditorTab {
 
     @Override
     public String getTitle() {
-        return (saveFile == null) ? "New Query" : saveFile.getName() + ((fileSaved) ? " *" : "");
+        return (saveFile == null) ? "New Query" : saveFile.getName() + ((!fileSaved) ? " *" : "");
     }
 
     public void saveFile(boolean forceSaveAs) {
@@ -326,6 +369,8 @@ public class EditorTab implements IEditorTab {
                     JOptionPane.showMessageDialog(ui.getFrame(), translate("dialog.save.wrong-format"),
                             translate("dialog.title.warn"), JOptionPane.WARNING_MESSAGE);
                     fileSaved = true;
+                    if (connection != null)
+                        connection.updateTitle(this);
                 } catch (IOException e) {
                     log.error(e.getMessage());
                     JOptionPane.showMessageDialog(ui.getFrame(), translate("dialog.title.error.message", Map.of("error", e.getMessage())),
