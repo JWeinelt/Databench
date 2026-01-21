@@ -147,5 +147,8 @@
   "dialog.update.download.success.title": "Download Successful",
   "dialog.update.download.success.description": "The update has been downloaded successfully.",
   "dialog.update.download.error.title": "Download Failed",
-  "dialog.update.download.error.description": "Failed to download: ${error}"
+  "dialog.update.download.error.description": "Failed to download: ${error}",
+
+  "project.tabs.files": "File System",
+  "project.tabs.database": "Database"
 }
