@@ -94,7 +94,7 @@ public class FileManager {
                 while ((line = br.readLine()) != null) sb.append(line);
 
                 if (f.getState().equals(FileState.SAVED))
-                    tabs.add(new EditorTab(sb.toString(), ui, new File(f.filePath)));
+                    tabs.add(new EditorTab(null, sb.toString(), ui, new File(f.filePath)));
                 else tabs.add(new EditorTab(sb.toString(), ui));
             } catch (IOException ex) {
                 log.error(ex.getMessage(), ex);
