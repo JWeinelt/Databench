@@ -67,9 +67,9 @@ public class MenuBar {
 
     public void updateAll() {
         resetBar();
-        createSQLCategory(!categoryEnabled.getOrDefault("sql", false));
-        createHelpCategory(!categoryEnabled.getOrDefault("help", false));
         registerCustomCategories();
+        //createSQLCategory(!categoryEnabled.getOrDefault("sql", false));
+        //createHelpCategory(!categoryEnabled.getOrDefault("help", false));
     }
 
     public void createEditCategory(boolean disable) {
@@ -245,6 +245,10 @@ public class MenuBar {
         men.sort(Comparator.comparingInt(Menu::getPriority));
         for (Menu m : men) {
             log.debug("Found menu {}", m.getCategoryName());
+            if (menus.containsKey(m.getCategoryName())) {
+                bar.remove(menus.get(m.getCategoryName()));
+                menus.remove(m.getCategoryName());
+            }
             JMenu menu = m.create();
             bar.add(menu);
             menus.put(m.getCategoryName(), menu);
