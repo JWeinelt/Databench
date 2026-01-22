@@ -2,11 +2,13 @@ package de.julianweinelt.databench.dbx.api.ui.components;
 
 import de.julianweinelt.databench.dbx.api.ui.Component;
 import de.julianweinelt.databench.dbx.api.ui.ComponentType;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
 import java.util.HashMap;
 import java.util.function.Consumer;
 
+@Slf4j
 public class ComponentComboBox extends Component<String, ComponentComboBox> {
     private final JComboBox<String> comboBox;
     private final HashMap<String, Runnable> options = new HashMap<>();
@@ -68,11 +70,14 @@ public class ComponentComboBox extends Component<String, ComponentComboBox> {
 
     @Override
     public JComponent create() {
+        log.debug("Adding event listener to combobox");
         comboBox.addActionListener(e -> {
             String selected = (String) comboBox.getSelectedItem();
             if (selected == null) return;
+            log.debug("Selecting action for {}", selected);
             Runnable action = options.getOrDefault(selected, null);
             if (action == null) return;
+            log.debug("Executing action for {}", selected);
             action.run();
         });
         return comboBox;

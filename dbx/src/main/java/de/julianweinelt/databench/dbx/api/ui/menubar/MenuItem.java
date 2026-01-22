@@ -4,11 +4,13 @@ import de.julianweinelt.databench.dbx.api.Registry;
 import de.julianweinelt.databench.dbx.api.events.Event;
 import de.julianweinelt.databench.dbx.api.ui.ShortcutAction;
 import de.julianweinelt.databench.dbx.api.ui.ShortcutManager;
+import lombok.Getter;
 
 import javax.swing.*;
 
 public class MenuItem extends MenuComponent<JMenuItem> {
     private final String text;
+    @Getter
     private final String id;
     private final JMenuItem item;
 

@@ -28,7 +28,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static de.julianweinelt.databench.ui.LanguageManager.translate;
+import static de.julianweinelt.databench.dbx.util.LanguageManager.translate;
 
 @Slf4j
 @Getter
@@ -174,9 +174,7 @@ public class DConnection implements IFileWatcherListener {
 
         benchUI.getTabbedPane().setSelectedIndex(1);
         benchUI.getMenuBar()
-                .enable("file")
-                .enable("edit")
-                .enable("sql")
+                .enable("file", "edit", "sql")
                 .updateAll();
 
         addTab(new WelcomeTab());

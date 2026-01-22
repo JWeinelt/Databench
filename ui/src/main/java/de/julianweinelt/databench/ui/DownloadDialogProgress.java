@@ -12,7 +12,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
 
-import static de.julianweinelt.databench.ui.LanguageManager.translate;
+import static de.julianweinelt.databench.dbx.util.LanguageManager.translate;
 
 @Slf4j
 public class DownloadDialogProgress extends JDialog {
