@@ -17,37 +17,38 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
+import java.util.*;
 import java.util.List;
+
+import static de.julianweinelt.databench.dbx.util.LanguageManager.translate;
 
 @Slf4j
 public class ExportDialog extends JDialog {
+
     private final JProgressBar progressBar = new JProgressBar();
     private final JTextArea console = new JTextArea();
-    private final JButton startButton = new JButton("Start Export");
-    private final JButton closeButton = new JButton("Close");
+    private final JButton startButton = new JButton(translate("dialog.export.button.start"));
+    private final JButton closeButton = new JButton(translate("dialog.export.button.cancel"));
     private final Taskbar taskbar;
-    private List<String> databasesToExport = new ArrayList<>();
-
-    private DbxArchiveWriter writer = null;
     private final Frame parent;
-    private ADatabase database = null;
 
+    private List<String> databasesToExport = new ArrayList<>();
+    private DbxArchiveWriter writer;
+    private ADatabase database;
 
     public ExportDialog(Frame owner) {
-        super(owner, "DataBench Export", true);
-        taskbar = Taskbar.getTaskbar();
+        super(owner, translate("dialog.export.title"), true);
         parent = owner;
-        if (taskbar.isSupported(Taskbar.Feature.PROGRESS_STATE_WINDOW))
-            taskbar.setWindowProgressState(owner, Taskbar.State.NORMAL);
-        else taskbar.setWindowProgressState(owner, Taskbar.State.INDETERMINATE);
+        taskbar = Taskbar.getTaskbar();
+
         setSize(700, 500);
         setLocationRelativeTo(owner);
         setLayout(new BorderLayout(8, 8));
         setModal(false);
-        setAlwaysOnTop(false);
+
+        if (taskbar.isSupported(Taskbar.Feature.PROGRESS_STATE_WINDOW)) {
+            taskbar.setWindowProgressState(owner, Taskbar.State.NORMAL);
+        }
 
         add(createSettingsPanel(), BorderLayout.NORTH);
         add(createConsolePanel(), BorderLayout.CENTER);
@@ -55,69 +56,52 @@ public class ExportDialog extends JDialog {
 
         startButton.setEnabled(false);
         startButton.addActionListener(e -> {
-            if (!validateExportState()) {
+            if (!isExportReady()) {
                 JOptionPane.showMessageDialog(
                         this,
-                        "Please select a project, at least one database and an export path.",
-                        "Export not ready",
+                        translate("dialog.export.error.not_ready"),
+                        translate("dialog.export.error.title"),
                         JOptionPane.WARNING_MESSAGE
                 );
                 return;
             }
-
-            startExport(writer, database);
+            startExport();
         });
+
+        closeButton.addActionListener(e -> dispose());
     }
 
-    private boolean validateExportState() {
-        return writer != null
-                && database != null
-                && databasesToExport != null
-                && !databasesToExport.isEmpty();
+    private boolean isExportReady() {
+        return writer != null && database != null && !databasesToExport.isEmpty();
     }
 
-    private void startExport(
-            DbxArchiveWriter writer,
-            ADatabase database
-    ) {
+    private void startExport() {
         startButton.setEnabled(false);
         console.setText("");
         progressBar.setValue(0);
-        progressBar.setString("Starting export...");
+        progressBar.setString(translate("dialog.export.progress.start"));
 
         ExportListener listener = createListener();
 
-        if (taskbar.isSupported(Taskbar.Feature.PROGRESS_STATE_WINDOW)) {
-            taskbar.setWindowProgressState(this, Taskbar.State.NORMAL);
-        }
-
         new Thread(() -> {
             try {
-                DatabaseExporter exporter = new DatabaseExporter(
-                        writer,
-                        database,
-                        listener,
-                        this
-                );
+                DatabaseExporter exporter = new DatabaseExporter(writer, database, listener, this);
                 exporter.setDatabasesToExport(databasesToExport);
-
                 exporter.retrieveBasicData();
                 exporter.createManifest();
                 exporter.exportData();
 
-                listener.onLog("Export completed successfully.");
+                listener.onLog(translate("dialog.export.console.success"));
                 taskbar.setWindowProgressState(this, Taskbar.State.OFF);
-
             } catch (Exception e) {
-                listener.onError("Export failed", e);
+                listener.onError(translate("dialog.export.console.failed"), e);
                 log.error("Export failed", e);
             } finally {
                 try {
-                    writer.close();
+                    if (writer != null) writer.close();
                 } catch (IOException e) {
-                    log.error("Failed to close archive writer", e);
+                    log.error("Failed to close writer", e);
                 }
-
                 SwingUtilities.invokeLater(() -> startButton.setEnabled(true));
             }
         }, "dbx-export-thread").start();
@@ -125,23 +109,25 @@ public class ExportDialog extends JDialog {
 
     private JPanel createSettingsPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(BorderFactory.createTitledBorder("Export Settings"));
+        panel.setBorder(BorderFactory.createTitledBorder(translate("dialog.export.settings.title")));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(4, 6, 4, 6);
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        gbc.gridx = 0; gbc.gridy = 0;
-        panel.add(new JLabel("Export mode:"), gbc);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        panel.add(new JLabel(translate("dialog.export.label.mode")), gbc);
 
         JComboBox<String> modeBox = new JComboBox<>(new String[]{
-                "DBX Archive",
-                "MySQL Dump (single file)",
-                "MySQL Dump (folder)"
+                translate("dialog.export.mode.dbx"),
+                translate("dialog.export.mode.mysql.single"),
+                translate("dialog.export.mode.mysql.folder")
         });
 
-        gbc.gridx = 1; gbc.weightx = 1;
+        gbc.gridx = 1;
+        gbc.weightx = 1;
         panel.add(modeBox, gbc);
 
         JTextArea modeInfo = new JTextArea(4, 20);
@@ -151,57 +137,62 @@ public class ExportDialog extends JDialog {
         modeInfo.setBackground(UIManager.getColor("Label.background"));
         modeInfo.setBorder(BorderFactory.createEtchedBorder());
 
-        gbc.gridx = 2; gbc.gridy = 0;
+        gbc.gridx = 2;
+        gbc.gridy = 0;
         gbc.gridheight = 3;
         gbc.weightx = 0.6;
         panel.add(modeInfo, gbc);
 
         modeBox.addActionListener(e ->
-                modeInfo.setText(getModeDescription((String) modeBox.getSelectedItem()))
+                modeInfo.setText(getModeDescription(modeBox.getSelectedIndex()))
         );
         modeBox.setSelectedIndex(0);
 
         gbc.gridheight = 1;
         gbc.weightx = 0;
-        gbc.gridx = 0; gbc.gridy = 1;
-        panel.add(new JLabel("Project:"), gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        panel.add(new JLabel(translate("dialog.export.label.project")), gbc);
 
         JComboBox<String> projectBox = new JComboBox<>();
         ProjectManager.instance().getProjects()
                 .forEach(p -> projectBox.addItem(p.getName()));
 
-        gbc.gridx = 1; gbc.weightx = 1;
+        gbc.gridx = 1;
+        gbc.weightx = 1;
         panel.add(projectBox, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 2; gbc.weightx = 0;
-        panel.add(new JLabel("Databases:"), gbc);
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        panel.add(new JLabel(translate("dialog.export.label.databases")), gbc);
 
-        JButton selectDbButton = new JButton("Select…");
-        JLabel selectedDbLabel = new JLabel("No databases selected");
+        JButton selectDbButton = new JButton(translate("dialog.export.button.select"));
+        JLabel selectedDbLabel = new JLabel(translate("dialog.export.label.none_selected"));
 
         JPanel dbPanel = new JPanel(new BorderLayout(6, 0));
         dbPanel.add(selectDbButton, BorderLayout.WEST);
         dbPanel.add(selectedDbLabel, BorderLayout.CENTER);
 
-        gbc.gridx = 1; gbc.weightx = 1;
+        gbc.gridx = 1;
         panel.add(dbPanel, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 3; gbc.weightx = 0;
-        panel.add(new JLabel("Export path:"), gbc);
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        panel.add(new JLabel(translate("dialog.export.label.path")), gbc);
 
         JTextField pathField = new JTextField();
-        JButton browseButton = new JButton("...");
+        JButton browseButton = new JButton(translate("dialog.export.button.browse"));
 
         JPanel pathPanel = new JPanel(new BorderLayout(6, 0));
         pathPanel.add(pathField, BorderLayout.CENTER);
         pathPanel.add(browseButton, BorderLayout.EAST);
 
-        gbc.gridx = 1; gbc.weightx = 1;
+        gbc.gridx = 1;
         panel.add(pathPanel, gbc);
 
         projectBox.addActionListener(e -> loadDatabases(projectBox, selectedDbLabel));
         selectDbButton.addActionListener(e -> openDatabaseDialog(selectedDbLabel));
-
         browseButton.addActionListener(e -> chooseExportPath(pathField));
 
         return panel;
@@ -209,10 +200,10 @@ public class ExportDialog extends JDialog {
 
     private void chooseExportPath(JTextField pathField) {
         JFileChooser chooser = new JFileChooser();
-        chooser.setDialogTitle("Choose export file");
+        chooser.setDialogTitle(translate("dialog.export.choose.title"));
         chooser.setDialogType(JFileChooser.SAVE_DIALOG);
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        chooser.setFileFilter(new FileNameExtensionFilter("DataBench export (*.dbx)", "dbx"));
+        chooser.setFileFilter(new FileNameExtensionFilter("DBX (*.dbx)", "dbx"));
 
         if (!pathField.getText().isBlank()) {
             chooser.setSelectedFile(new File(pathField.getText()));
@@ -220,95 +211,71 @@ public class ExportDialog extends JDialog {
             chooser.setCurrentDirectory(HomeDirectories.instance().get("Export"));
         }
 
-        int result = chooser.showSaveDialog(this);
-        if (result != JFileChooser.APPROVE_OPTION) {
-            return;
+        if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
+
+        File file = chooser.getSelectedFile();
+        if (!file.getName().toLowerCase().endsWith(".dbx")) {
+            file = new File(file.getAbsolutePath() + ".dbx");
         }
 
-        File selectedFile = chooser.getSelectedFile();
-
-        if (!selectedFile.getName().toLowerCase().endsWith(".dbx")) {
-            selectedFile = new File(selectedFile.getAbsolutePath() + ".dbx");
-            updateStartButtonState();
-        }
-
-        if (selectedFile.exists()) {
-            int overwrite = JOptionPane.showConfirmDialog(
+        if (file.exists()) {
+            int result = JOptionPane.showConfirmDialog(
                     this,
-                    "The file already exists.\nDo you want to overwrite it?",
-                    "Confirm overwrite",
+                    translate("dialog.export.confirm.overwrite"),
+                    translate("dialog.export.confirm.title"),
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.WARNING_MESSAGE
             );
-            if (overwrite != JOptionPane.YES_OPTION) {
-                return;
-            }
-            updateStartButtonState();
+            if (result != JOptionPane.YES_OPTION) return;
         }
 
-        HomeDirectories.instance().put("Export", selectedFile.getParent());
-
-        pathField.setText(selectedFile.getAbsolutePath());
+        HomeDirectories.instance().put("Export", file.getParent());
+        pathField.setText(file.getAbsolutePath());
 
         try {
-            writer = new DbxArchiveWriter(selectedFile.toPath());
-            startButton.setEnabled(true);
-        } catch (IOException ex) {
+            writer = new DbxArchiveWriter(file.toPath());
+            updateStartButton();
+        } catch (IOException e) {
             JOptionPane.showMessageDialog(
                     this,
-                    ex.getMessage(),
-                    "Export initialization failed",
+                    e.getMessage(),
+                    translate("dialog.export.error.init"),
                     JOptionPane.ERROR_MESSAGE
             );
-            log.error("Failed to create DbxArchiveWriter", ex);
+            log.error("Failed to create writer", e);
         }
     }
 
     private JScrollPane createConsolePanel() {
         console.setEditable(false);
         console.setFont(new Font("Consolas", Font.PLAIN, 12));
-        console.setLineWrap(true);
-
-        JScrollPane scrollPane = new JScrollPane(console);
-        scrollPane.setBorder(BorderFactory.createTitledBorder("Export Log"));
-
-        return scrollPane;
+        JScrollPane pane = new JScrollPane(console);
+        pane.setBorder(BorderFactory.createTitledBorder(translate("dialog.export.console.title")));
+        return pane;
     }
 
     private JPanel createFooter() {
         JPanel panel = new JPanel(new BorderLayout(8, 8));
-
         progressBar.setStringPainted(true);
 
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttons.add(startButton);
         buttons.add(closeButton);
 
-        closeButton.addActionListener(e -> dispose());
-
         panel.add(progressBar, BorderLayout.CENTER);
         panel.add(buttons, BorderLayout.EAST);
-
         return panel;
     }
 
-    private void updateStartButtonState() {
-        startButton.setEnabled(
-                writer != null &&
-                        database != null &&
-                        databasesToExport != null &&
-                        !databasesToExport.isEmpty()
-        );
+    private void updateStartButton() {
+        startButton.setEnabled(isExportReady());
     }
 
-    private String getModeDescription(String mode) {
-        return switch (mode) {
-            case "DBX Archive" ->
-                    "Creates a .dbx archive containing schema, data and metadata.\nRecommended for backups and migration.";
-            case "MySQL Dump (single file)" ->
-                    "Exports all selected databases into one SQL dump file.\nThis method may lead to problems when importing!";
-            case "MySQL Dump (folder)" ->
-                    "Creates one SQL file per database in a target directory.\nThis method may lead to problems when importing!";
+    private String getModeDescription(int index) {
+        return switch (index) {
+            case 0 -> translate("dialog.export.mode.desc.dbx");
+            case 1 -> translate("dialog.export.mode.desc.mysql.single");
+            case 2 -> translate("dialog.export.mode.desc.mysql.folder");
             default -> "";
         };
     }
@@ -322,8 +289,9 @@ public class ExportDialog extends JDialog {
         database = ADatabase.of(
                 project.getDatabaseType(),
                 project.getServer().split(":")[0],
-                Integer.parseInt(project.getServer().contains(":")
-                        ? project.getServer().split(":")[1] : "3306"),
+                project.getServer().contains(":")
+                        ? Integer.parseInt(project.getServer().split(":")[1])
+                        : 3306,
                 project.getUsername(),
                 project.getPassword()
         );
@@ -345,7 +313,7 @@ public class ExportDialog extends JDialog {
         if (dialog.isConfirmed()) {
             databasesToExport = dialog.getSelectedNames();
             label.setText(String.join(", ", databasesToExport));
-            updateStartButtonState();
+            updateStartButton();
         }
     }
 
@@ -354,13 +322,14 @@ public class ExportDialog extends JDialog {
 
             @Override
             public void onProgress(int current, int total, String message) {
-                int pr = Math.min(100, Math.max(0, (int) (current * 100.0 / total)));
+                int percent = total == 0 ? 0 : (int) (current * 100.0 / total);
                 SwingUtilities.invokeLater(() -> {
                     progressBar.setMaximum(total);
                     progressBar.setValue(current);
                     progressBar.setString(message + " (" + current + "/" + total + ")");
-                    if (taskbar.isSupported(Taskbar.Feature.PROGRESS_VALUE))
-                        taskbar.setWindowProgressValue(ExportDialog.this, pr);
+                    if (taskbar.isSupported(Taskbar.Feature.PROGRESS_VALUE)) {
+                        taskbar.setWindowProgressValue(ExportDialog.this, percent);
+                    }
                 });
             }
 
@@ -376,28 +345,19 @@ public class ExportDialog extends JDialog {
             public void onError(String message, Throwable throwable) {
                 SwingUtilities.invokeLater(() -> {
                     console.append("[ERROR] " + message + "\n");
-                    console.append("Error thrown: " + throwable.getMessage() + "\n");
-                    for (StackTraceElement element : throwable.getStackTrace()) {
-                        console.append(element.toString() + "\n");
-                    }
+                    console.append(throwable.getMessage() + "\n");
                 });
             }
 
             @Override
             public void save() {
-                String text = console.getText();
-                Date date = Date.from(Instant.now());
-                Calendar c = Calendar.getInstance();
-                c.setTime(date);
-                String dateName = c.get(Calendar.HOUR) + "_" + c.get(Calendar.MINUTE) + "_" + c.get(Calendar.SECOND)
-                        + "_" + c.get(Calendar.DAY_OF_MONTH) + "_" + (c.get(Calendar.MONTH) + 1)
-                        + "_" + c.get(Calendar.YEAR);
-                File saveFile = new File("export_log_" + dateName + ".txt");
-                try (FileWriter fw = new FileWriter(saveFile)) {
-                    fw.write(text);
+                try {
+                    String name = "export_log_" + Instant.now().toEpochMilli() + ".txt";
+                    try (FileWriter fw = new FileWriter(new File(name))) {
+                        fw.write(console.getText());
+                    }
                 } catch (IOException e) {
-                    log.error(e.getMessage(), e);
-                    onError("Error saving log file", e);
+                    onError(translate("dialog.export.error.save_log"), e);
                 }
             }
         };

@@ -28,10 +28,10 @@
 
   "screen.main.welcome": "Welcome to DataBench!",
   "screen.main.home": "Home",
-  "screen.main.profile.import": "Import Profile",
-  "screen.main.profile.create": "Create Profile",
-  "screen.main.profile.ui.add": "Add Profile",
-  "screen.main.profile.ui.form.name": "Profile Name:",
+  "screen.main.profile.import": "Import Project",
+  "screen.main.profile.create": "Create Project",
+  "screen.main.profile.ui.add": "Add Project",
+  "screen.main.profile.ui.form.name": "Project Name:",
   "screen.main.profile.ui.form.host": "Server (host:port):",
   "screen.main.profile.ui.form.username": "Username:",
   "screen.main.profile.ui.form.password": "Password:",
@@ -39,7 +39,7 @@
   "screen.main.profile.ui.form.defaultDB": "Default Database:",
   "screen.main.profile.ui.form.button.create": "Create",
   "screen.main.profile.ui.form.button.test": "Test Connection",
-  "screen.main.profile.ui.feedback.noName": "Please enter a valid profile name.",
+  "screen.main.profile.ui.feedback.noName": "Please enter a valid project name.",
   "screen.main.profile.ui.feedback.noHost": "Please enter server host and port.",
   "screen.main.profile.ui.feedback.noUser": "Please enter a username.",
   "screen.main.profile.ui.feedback.noPassword": "Please enter a password.",
@@ -150,5 +150,47 @@
   "dialog.update.download.error.description": "Failed to download: ${error}",
 
   "project.tabs.files": "File System",
-  "project.tabs.database": "Database"
+  "project.tabs.database": "Database",
+
+  "anonymous-data.text": "We would like to collect anonymous usage statistics to help improve DataBench. This data includes only a randomly generated installation ID and no personal information.\n\nYour data will remain private and will be used solely for analytics.\n\nDo you agree to send anonymous usage data?",
+  "anonymous-data.deny": "Allow",
+  "anonymous-data.allow": "Deny",
+
+  "dialog.export.title": "Export",
+  "dialog.export.settings.title": "Export Settings",
+  "dialog.export.console.title": "Export Log",
+
+  "dialog.export.button.start": "Start Export",
+  "dialog.export.button.cancel": "Cancel",
+  "dialog.export.button.select": "Select…",
+  "dialog.export.button.browse": "Browse…",
+
+  "dialog.export.label.mode": "Export mode:",
+  "dialog.export.label.project": "Project:",
+  "dialog.export.label.databases": "Databases:",
+  "dialog.export.label.path": "Export path:",
+  "dialog.export.label.none_selected": "No databases selected",
+
+  "dialog.export.mode.dbx": "DBX Archive",
+  "dialog.export.mode.mysql.single": "MySQL Dump (single file)",
+  "dialog.export.mode.mysql.folder": "MySQL Dump (folder)",
+
+  "dialog.export.mode.desc.dbx": "Creates a .dbx archive containing schema, data and metadata.\nRecommended for backups and migration.",
+  "dialog.export.mode.desc.mysql.single": "Exports all selected databases into one SQL dump file.\nThis method may lead to import issues.",
+  "dialog.export.mode.desc.mysql.folder": "Creates one SQL file per database in a target directory.\nThis method may lead to import issues.",
+
+  "dialog.export.choose.title": "Choose export file",
+
+  "dialog.export.confirm.title": "Confirm overwrite",
+  "dialog.export.confirm.overwrite": "The file already exists.\nDo you want to overwrite it?",
+
+  "dialog.export.error.title": "Export not ready",
+  "dialog.export.error.not_ready": "Please select a project, at least one database and an export path.",
+  "dialog.export.error.init": "Export initialization failed",
+  "dialog.export.error.save_log": "Failed to save export log",
+
+  "dialog.export.progress.start": "Starting export…",
+  "dialog.export.console.success": "Export completed successfully.",
+  "dialog.export.console.failed": "Export failed."
+
 }
