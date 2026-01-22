@@ -15,7 +15,7 @@ import de.julianweinelt.databench.dbx.api.ui.UIService;
 import de.julianweinelt.databench.service.UpdateChecker;
 import de.julianweinelt.databench.ui.BenchUI;
 import de.julianweinelt.databench.ui.DefaultUI;
-import de.julianweinelt.databench.ui.LanguageManager;
+import de.julianweinelt.databench.dbx.util.LanguageManager;
 import de.julianweinelt.databench.ui.StartScreen;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -129,7 +129,7 @@ public class DataBench {
         ui.preInit();
         languageManager = new LanguageManager();
         log.info("Loading language data...");
-        languageManager.preload().thenAccept(v -> latch.countDown());
+        languageManager.preload(Configuration.getConfiguration().getLocale()).thenAccept(v -> latch.countDown());
 
         try {
             latch.await();

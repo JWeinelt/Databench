@@ -4,13 +4,15 @@ import de.julianweinelt.databench.data.Configuration;
 import de.julianweinelt.databench.dbx.api.ui.SettingsPanel;
 import de.julianweinelt.databench.dbx.api.ui.UIService;
 import de.julianweinelt.databench.dbx.api.ui.components.*;
+import de.julianweinelt.databench.dbx.util.LanguageManager;
+import lombok.extern.slf4j.Slf4j;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
-import org.fife.ui.rsyntaxtextarea.SyntaxScheme;
 
 import java.awt.*;
 import java.util.Map;
 
+@Slf4j
 public class DefaultUI {
     private final UIService service;
 
@@ -29,8 +31,14 @@ public class DefaultUI {
         lang.label("Language:");
 
         LanguageManager.instance().getFriendlyNames().forEach(la ->
-                lang.option(LanguageManager.instance().fromFriendlyName(la), la, () ->
-                Configuration.getConfiguration().setLocale(LanguageManager.instance().fromFriendlyName(la))));
+                lang.option(LanguageManager.instance().toId(la), la));
+        lang.action(sel -> {
+            String nLang = LanguageManager.instance().toId(sel);
+            Configuration.getConfiguration().setLocale(nLang);
+            log.info("Updated language to {}", nLang);
+        });
+
+        lang.initialValue(LanguageManager.instance().toFriendlyName(Configuration.getConfiguration().getLocale()));
 
         panel.add(lang);
 
