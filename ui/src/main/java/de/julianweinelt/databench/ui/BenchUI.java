@@ -9,8 +9,12 @@ import de.julianweinelt.databench.data.ConfigManager;
 import de.julianweinelt.databench.data.Configuration;
 import de.julianweinelt.databench.data.Project;
 import de.julianweinelt.databench.data.ProjectManager;
+import de.julianweinelt.databench.dbx.api.Registry;
+import de.julianweinelt.databench.dbx.api.events.Event;
+import de.julianweinelt.databench.dbx.api.events.Subscribe;
 import de.julianweinelt.databench.dbx.database.DatabaseRegistry;
 import de.julianweinelt.databench.service.UpdateChecker;
+import de.julianweinelt.databench.ui.plugins.PluginDialog;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -23,7 +27,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-import static de.julianweinelt.databench.ui.LanguageManager.translate;
+import static de.julianweinelt.databench.dbx.util.LanguageManager.translate;
 
 @Slf4j
 @Getter
@@ -33,11 +37,12 @@ public class BenchUI {
     private JFrame frame;
     private JTabbedPane tabbedPane;
 
-    private MenuBar menuBar;
+    private de.julianweinelt.databench.dbx.api.ui.menubar.MenuBar menuBar;
 
     private JPanel cardsContainer;
 
     public void preInit() {
+        Registry.instance().registerListener(this, Registry.instance().getSystemPlugin());
         log.info("Set theme");
         String selected = Configuration.getConfiguration().getSelectedTheme();
         FlatLaf laf = switch (selected) {
@@ -564,11 +569,8 @@ public class BenchUI {
 
 
     private void createMenuBar() {
-        menuBar = new MenuBar(frame, this);
-        menuBar.updateAll();
-        menuBar.disable("file")
-                .disable("edit")
-                .disable("sql");
+        menuBar = new de.julianweinelt.databench.dbx.api.ui.menubar.MenuBar(frame)
+                .disable("edit", "sql").disable("file", 0).updateAll();
     }
 
     public void addClosableTab(JTabbedPane tabbedPane, String title, Component content) {
@@ -922,6 +924,7 @@ public class BenchUI {
         dialog.setLayout(new BorderLayout());
         dialog.setLocationRelativeTo(frame);
 
+        //TODO: Fetch latest changelog from server
         String licenseText = """
                 
                 """;
@@ -952,31 +955,25 @@ public class BenchUI {
         dialog.setLayout(new BorderLayout());
         dialog.setLocationRelativeTo(frame);
 
-        String licenseText = """
-                We would like to collect anonymous usage statistics to help improve DataBench. This data includes only a randomly generated installation ID and no personal information.
-                
-                Your data will remain private and will be used solely for analytics.
-                
-                Do you agree to send anonymous usage data?
-                """;
+        String licenseText = translate("anonymous-data.text");
 
         JTextArea textArea = new JTextArea(licenseText);
         textArea.setEditable(false);
         textArea.setLineWrap(true);
         textArea.setWrapStyleWord(true);
-        textArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        textArea.setFont(new Font("Arial", Font.PLAIN, 12));
 
         JScrollPane scrollPane = new JScrollPane(textArea);
         dialog.add(scrollPane, BorderLayout.CENTER);
 
-        JButton allowButton = new JButton("Allow");
+        JButton allowButton = new JButton(translate("anonymous-data.allow"));
         allowButton.addActionListener(e -> {
             Configuration.getConfiguration().setSendAnonymousData(true);
             ConfigManager.getInstance().saveConfig();
             dialog.dispose();
         });
 
-        JButton denyButton = new JButton("Deny");
+        JButton denyButton = new JButton(translate("anonymous-data.deny"));
         denyButton.addActionListener(e -> dialog.dispose());
 
         JPanel buttonPanel = new JPanel();
@@ -985,5 +982,20 @@ public class BenchUI {
         dialog.add(buttonPanel, BorderLayout.SOUTH);
 
         dialog.setVisible(true);
+    }
+
+    @Subscribe(value = "UIMenuBarItemClickEvent")
+    public void onMenuBarClickItem(Event e) {
+        String id = e.get("id").asString();
+        if (id.equals("file_light_edit")) createLightEdit();
+        if (id.equals("file_preferences")) new SettingsDialog(frame).setVisible(true);
+        if (id.equals("file_plugins")) new PluginDialog(frame).setVisible(true);
+        if (id.equals("file_exit")) System.exit(0);
+        if (id.equals("help_license")) showLicenseInfo();
+        if (id.equals("help_show_changelog")) showChangelog();
+        if (id.equals("help_data_sending")) showDataSendDialog();
+
+        if (id.equals("edit_export")) new ExportDialog(frame).setVisible(true);
+        if (id.equals("edit_import")) new ImportDialog(frame).setVisible(true);
     }
 }
