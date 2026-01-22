@@ -1,47 +1,35 @@
-package de.julianweinelt.databench.ui;
+package de.julianweinelt.databench.dbx.api.ui.menubar;
 
-import de.julianweinelt.databench.data.Configuration;
 import de.julianweinelt.databench.dbx.api.Registry;
 import de.julianweinelt.databench.dbx.api.events.Event;
 import de.julianweinelt.databench.dbx.api.events.Subscribe;
-import de.julianweinelt.databench.dbx.api.ui.menubar.Menu;
-import de.julianweinelt.databench.dbx.api.ui.menubar.MenuManager;
-import de.julianweinelt.databench.service.UpdateChecker;
-import de.julianweinelt.databench.ui.admin.AdministrationDialog;
-import de.julianweinelt.databench.ui.driver.DriverDownloadDialog;
-import de.julianweinelt.databench.ui.driver.DriverManagerDialog;
-import de.julianweinelt.databench.ui.plugins.PluginDialog;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
-import static de.julianweinelt.databench.ui.LanguageManager.translate;
-
 @Slf4j
 public class MenuBar {
     private final JFrame frame;
-    private final BenchUI ui;
 
     private final JMenuBar bar;
 
-    private final HashMap<String, Boolean> categoryEnabled = new HashMap<>();
+    private final HashMap<String, Boolean> itemsEnabled = new HashMap<>();
+    private final List<MenuActivation> activations = new ArrayList<>();
 
     private final HashMap<String, JMenu> menus = new HashMap<>();
 
-    public MenuBar(JFrame frame, BenchUI ui) {
+    public MenuBar(JFrame frame) {
         this.frame = frame;
-        this.ui = ui;
         bar = new JMenuBar();
         log.info("Creating menu bar");
         Registry.instance().registerListener(this, Registry.instance().getSystemPlugin());
@@ -53,67 +41,50 @@ public class MenuBar {
         updateMenuBar();
     }
 
+    public MenuActivation getActivation(String category) {
+        for (MenuActivation a : activations) if (a.getCategory().equals(category)) return a;
+        MenuActivation a = new MenuActivation(category);
+        activations.add(a);
+        return a;
+    }
+
     public MenuBar enable(String category) {
-        categoryEnabled.put(category, true);
-        updateAll();
+        getActivation(category).setDisable(false);
+        return this;
+    }
+    public MenuBar enable(String... categories) {
+        for (String s : categories) getActivation(s).setDisable(false);
+        return this;
+    }
+
+    public MenuBar enable(String category, int idx) {
+        getActivation(category).getDisabledItems().remove(idx);
         return this;
     }
 
     public MenuBar disable(String category) {
-        categoryEnabled.put(category, false);
-        updateAll();
+        getActivation(category).setDisable(true);
+        return this;
+    }
+    public MenuBar disable(String... categories) {
+        for (String s : categories) getActivation(s).setDisable(true);
         return this;
     }
 
-    public void updateAll() {
+    public MenuBar disable(String category, int idx) {
+        getActivation(category).getDisabledItems().add(idx);
+        return this;
+    }
+
+    public MenuBar updateAll() {
         resetBar();
         registerCustomCategories();
+        return this;
         //createSQLCategory(!categoryEnabled.getOrDefault("sql", false));
         //createHelpCategory(!categoryEnabled.getOrDefault("help", false));
     }
 
-    public void createEditCategory(boolean disable) {
-        JMenu editMenu;
-        if (!menus.containsKey("edit")) {
-            editMenu = new JMenu(translate("menu.cat.edit"));
-            JMenuItem undoButton = new JMenuItem(translate("menu.cat.edit.undo"));
-            undoButton.setAccelerator(
-                    Configuration.getConfiguration().getShortcut(
-                            de.julianweinelt.databench.dbx.api.ShortcutAction.UNDO.name(),
-                            de.julianweinelt.databench.dbx.api.ShortcutAction.UNDO.getDefaultKey()
-                    )
-            );
-            undoButton.setEnabled(!disable);
-            JMenuItem redoButton = new JMenuItem(translate("menu.cat.edit.redo"));
-            redoButton.setAccelerator(
-                    Configuration.getConfiguration().getShortcut(
-                            de.julianweinelt.databench.dbx.api.ShortcutAction.REDO.name(),
-                            de.julianweinelt.databench.dbx.api.ShortcutAction.REDO.getDefaultKey()
-                    )
-            );
-            redoButton.setEnabled(!disable);
-            JMenuItem cutButton = new JMenuItem(translate("menu.cat.edit.cut"));
-            cutButton.setAccelerator(
-                    KeyStroke.getKeyStroke(KeyEvent.VK_X, InputEvent.CTRL_DOWN_MASK)
-            );
-            cutButton.setEnabled(!disable);
-            editMenu.add(undoButton);
-            editMenu.add(redoButton);
-            editMenu.add(cutButton);
-            bar.add(editMenu);
-            menus.put("edit", editMenu);
-        } else {
-            editMenu = menus.get("edit");
-            for (int i = 0; i < editMenu.getItemCount(); i++) {
-                JMenuItem item = editMenu.getItem(i);
-                if (item != null) {
-                    item.setEnabled(!disable);
-                }
-            }
-        }
-        updateMenuBar();
-    }
-
+    /*
     public void createSQLCategory(boolean disable) {
         JMenu sqlMenu;
         if (!menus.containsKey("sql")) {
@@ -239,17 +210,16 @@ public class MenuBar {
         }
         updateMenuBar();
     }
-
+*/
     public void registerCustomCategories() {
         List<Menu> men = MenuManager.instance().getAllMenus();
         men.sort(Comparator.comparingInt(Menu::getPriority));
+        bar.removeAll();
         for (Menu m : men) {
             log.debug("Found menu {}", m.getCategoryName());
-            if (menus.containsKey(m.getCategoryName())) {
-                bar.remove(menus.get(m.getCategoryName()));
-                menus.remove(m.getCategoryName());
-            }
+            menus.remove(m.getCategoryName());
             JMenu menu = m.create();
+            menu.setEnabled(!getActivation(m.getCategoryName()).isDisable());
             bar.add(menu);
             menus.put(m.getCategoryName(), menu);
         }
@@ -283,16 +253,15 @@ public class MenuBar {
         updateAll();
     }
 
-    @Subscribe(value = "UIMenuBarItemClickEvent")
-    public void onMenuItemClick(Event event) {
-        String menuID = event.get("id").asString();
-        switch (menuID) {
-            case "file_preferences" -> new SettingsDialog(frame).setVisible(true);
-            case "file_plugins" -> new PluginDialog(frame).setVisible(true);
-            case "file_light_edit" -> {
-                ui.createLightEdit();
-                //TODO: Disable button
-            }
+    @Getter
+    @Setter
+    public static class MenuActivation {
+        private final String category;
+        private boolean disable;
+        private final List<Integer> disabledItems = new ArrayList<>();
+
+        public MenuActivation(String category) {
+            this.category = category;
         }
     }
 }
