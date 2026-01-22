@@ -1,11 +1,13 @@
 package de.julianweinelt.databench.dbx.api.ui.menubar;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 public class Menu extends MenuComponent<JMenu> {
 
     private final JMenu menu;
@@ -44,13 +46,21 @@ public class Menu extends MenuComponent<JMenu> {
 
     @Override
     public JMenu create() {
+        log.debug("Started menu creation");
+        int idx = 0;
         for (MenuComponent menuComponent : children) {
-            if (menuComponent instanceof MenuSeparator) {
+            if (menuComponent instanceof MenuSeparator && idx != 0) {
                 menu.addSeparator();
+                log.debug("Separator");
                 continue;
             }
-            menu.add(menuComponent.create());
+            JMenuItem i = menuComponent.create();
+            menu.add(i);
+
+            idx++;
+            log.debug("{}", idx);
         }
+        log.debug("Created menu {}", getCategoryName());
         return menu;
     }
 }
