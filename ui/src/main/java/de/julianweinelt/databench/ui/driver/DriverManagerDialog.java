@@ -14,7 +14,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 
-import static de.julianweinelt.databench.ui.LanguageManager.translate;
+import static de.julianweinelt.databench.dbx.util.LanguageManager.translate;
 
 public class DriverManagerDialog extends JDialog {
 

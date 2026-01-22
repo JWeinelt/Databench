@@ -26,7 +26,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
-import static de.julianweinelt.databench.ui.LanguageManager.translate;
+import static de.julianweinelt.databench.dbx.util.LanguageManager.translate;
 
 @Slf4j
 public class EditorTab implements IEditorTab {

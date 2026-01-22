@@ -4,10 +4,9 @@ import de.julianweinelt.databench.dbx.api.DbxAPI;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
 import java.util.Map;
 
-import static de.julianweinelt.databench.ui.LanguageManager.translate;
+import static de.julianweinelt.databench.dbx.util.LanguageManager.translate;
 
 public class DriverDownloadDialog extends JDialog {
 
