@@ -7,18 +7,18 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.File;
 
 @Slf4j
-public class DbxWorker {
-    private static DbxWorker instance;
+public class Flow {
+    private static Flow instance;
 
     @Getter
     private LocalStorage storage;
 
     public static void main(String[] args) {
-        instance = new DbxWorker();
+        instance = new Flow();
         instance.start();
     }
 
-    public static DbxWorker instance() {
+    public static Flow instance() {
         return instance;
     }
 

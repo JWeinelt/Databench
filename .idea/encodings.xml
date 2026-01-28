@@ -3,6 +3,8 @@
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/dbx/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/dbx/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/flow/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/flow/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/launcher/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/launcher/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/server/src/main/java" charset="UTF-8" />
@@ -13,7 +15,5 @@
     <file url="file://$PROJECT_DIR$/store/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/ui/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/ui/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/worker/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/worker/src/main/resources" charset="UTF-8" />
   </component>
 </project>

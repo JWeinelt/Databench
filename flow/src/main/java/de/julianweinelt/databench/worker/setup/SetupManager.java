@@ -47,7 +47,7 @@ public class SetupManager {
         try {
             Terminal terminal = TerminalBuilder.builder().system(true).build();
 
-            String databaseType = prompt(terminal, "Welcome to the DataBench DBX Worker! Before you can get started using this" +
+            String databaseType = prompt(terminal, "Welcome to DataBench Flow! Before you can get started using this" +
                     " tool, some information for running is needed. First of all, what's your database type?", "",
                     List.of("MySQL", "SQLServer", "MariaDB", "PostgreSQL, Derby"));
             clearScreen();
@@ -61,7 +61,7 @@ public class SetupManager {
                         INFORMATION
                     ===================
                     Where can I add the host and port?
-                    --> DBX Worker is using the default values on setup. You can change it afterwards.
+                    --> Flow is using the default values on setup. You can change it afterwards.
                     
                     Your entered information:
                     DATABASE: %s
