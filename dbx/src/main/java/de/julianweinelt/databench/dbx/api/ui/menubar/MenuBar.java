@@ -3,6 +3,7 @@ package de.julianweinelt.databench.dbx.api.ui.menubar;
 import de.julianweinelt.databench.dbx.api.Registry;
 import de.julianweinelt.databench.dbx.api.events.Event;
 import de.julianweinelt.databench.dbx.api.events.Subscribe;
+import de.julianweinelt.databench.dbx.api.plugins.DbxPlugin;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -23,21 +24,17 @@ public class MenuBar {
 
     private final JMenuBar bar;
 
-    private final HashMap<String, Boolean> itemsEnabled = new HashMap<>();
     private final List<MenuActivation> activations = new ArrayList<>();
 
-    private final HashMap<String, JMenu> menus = new HashMap<>();
-
-    public MenuBar(JFrame frame) {
+    public MenuBar(JFrame frame, DbxPlugin plugin) {
         this.frame = frame;
         bar = new JMenuBar();
         log.info("Creating menu bar");
-        Registry.instance().registerListener(this, Registry.instance().getSystemPlugin());
+        Registry.instance().registerListener(this, plugin);
     }
 
     private void resetBar() {
         bar.removeAll();
-        menus.clear();
         updateMenuBar();
     }
 
@@ -217,11 +214,9 @@ public class MenuBar {
         bar.removeAll();
         for (Menu m : men) {
             log.debug("Found menu {}", m.getCategoryName());
-            menus.remove(m.getCategoryName());
             JMenu menu = m.create();
             menu.setEnabled(!getActivation(m.getCategoryName()).isDisable());
             bar.add(menu);
-            menus.put(m.getCategoryName(), menu);
         }
         updateMenuBar();
     }
