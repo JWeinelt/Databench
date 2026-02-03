@@ -1,6 +1,10 @@
 package de.julianweinelt.databench.worker;
 
+import de.julianweinelt.databench.dbx.api.DbxAPI;
+import de.julianweinelt.databench.dbx.api.plugins.PluginLoader;
+import de.julianweinelt.databench.worker.setup.SetupManager;
 import de.julianweinelt.databench.worker.storage.LocalStorage;
+import de.julianweinelt.databench.worker.util.SystemPlugin;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -10,6 +14,7 @@ import java.io.File;
 public class Flow {
     private static Flow instance;
 
+    private DbxAPI api;
     @Getter
     private LocalStorage storage;
 
@@ -23,47 +28,18 @@ public class Flow {
     }
 
     private void start() {
-        logo();
-        log.info("Welcome! Starting DbxWorker...");
+        api = new DbxAPI(new File("api"));
+        log.info("Welcome!");
+        log.info("Starting DataBench Flow...");
         storage = new LocalStorage(new File("config.json"));
         if (!storage.configCreated()) {
-
+            new SetupManager().startCLI();
+            return;
         }
+        log.info("Loading local configuration data...");
         storage.load();
-    }
-
-    private void logo() {
-        System.out.println("""
-                                      ..:=:-----:=-:..                   \s
-                          .=*###########*****++++====----:::::....       \s
-                      %%###############*****++++====----:::::.........:  \s
-                    %%@%##############****+++++====----::::........... # \s
-                    +%%@############*****++++====----:::::...........-%@ \s
-                    +-:.%%########*****+++++====----:::::.......-#%@@##% \s
-                    =-:.......+%@@@%########***+++*####@@@@@@@@###*++### \s
-                    =-:........::-==++*++===+++*#####%%@@@%#####**++*### \s
-                    =-:........::-==++*+++==+++**######%%######**+++*### \s
-                    =-:.......:::-==++*+++==+++**##############**+++*### \s
-                    =-:.......::--==++*+++==+++**##############***++*##+ \s
-                       .......::--==++*+++==+++**##############***++*  . \s
-                    =-      .:::--==++*+++=++++**##############- ...  ## \s
-                    =---:.               .:-====-:.   ............-#%### \s
-                    =-:...-*=::::.  ...... ...........:::-+###%@#+-:=*## \s
-                    =-:........:-=*##%%%#########%@@@@@@@%####+==--:=+## \s
-                    =-:..........::--===-::::---==+*#########*+==--:-+## \s
-                   .=-:..........::--==--::::---==+*########*++==--:-+## \s
-                    :-:..........::--==--:::::---=++*#######*++==--:-+*+ \s
-                   ..  ..........::---=--:::::---==+*#######*+==---:-. . \s
-                   .#*      .....::------:::::---==+*######*++=-..... ## \s
-                    ++#*=            ..::::::--------:.....:::.....##**# \s
-                    =-:.:*##=-=-......................:::-=*#####+::-=+# \s
-                   .=-:......:-+####################%@@@@@####+=--::-=+# \s
-                    =-:..........::-====--::::---=+*#########+=--::::=+# \s
-                    =-:..........::--==--:::::---==+*######*++=--::.:=+* \s
-                    --:..........::---=--::::::---==+*#####*+=--:::.:-++ \s
-                      ...........::---=--::::::---==++**#**+==--:::.::   \s
-                           ......::---=--::::::---===+****++=---.        \s
-                                   .-:----::::::--===-:-                 \s
-                """);
+        log.info("Loading DBX plugins...");
+        PluginLoader loader = new PluginLoader(api.getRegistry(), new SystemPlugin());
+        loader.loadAll();
     }
 }

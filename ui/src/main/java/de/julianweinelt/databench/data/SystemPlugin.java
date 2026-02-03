@@ -1,6 +1,7 @@
-package de.julianweinelt.databench.dbx.api.plugins;
+package de.julianweinelt.databench.data;
 
 
+import de.julianweinelt.databench.dbx.api.plugins.DbxPlugin;
 import de.julianweinelt.databench.dbx.api.ui.ShortcutManager;
 import de.julianweinelt.databench.dbx.api.ui.menubar.Menu;
 import de.julianweinelt.databench.dbx.api.ui.menubar.MenuItem;
@@ -38,8 +39,8 @@ public final class SystemPlugin extends DbxPlugin {
     public void init() {
         getLogger().info("DBX System Module has been enabled.");
         getRegistry().registerListener(this, this);
-        getRegistry().registerEvents("UIMenuBarItemClickEvent");
-        getRegistry().registerEvents("LanguageChangeEvent");
+        getRegistry().registerEvents(this, "UIMenuBarItemClickEvent");
+        getRegistry().registerEvents(this, "LanguageChangeEvent");
 
 
         ShortcutManager m = ShortcutManager.instance();

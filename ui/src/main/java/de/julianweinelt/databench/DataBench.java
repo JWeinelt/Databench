@@ -2,6 +2,7 @@ package de.julianweinelt.databench;
 
 import com.formdev.flatlaf.FlatDarkLaf;
 import de.julianweinelt.databench.api.DConnection;
+import de.julianweinelt.databench.data.SystemPlugin;
 import de.julianweinelt.databench.dbx.api.Registry;
 import de.julianweinelt.databench.dbx.api.drivers.DriverManagerService;
 import de.julianweinelt.databench.api.FileManager;
@@ -175,7 +176,7 @@ public class DataBench {
 
         log.info("Starting plugin service...");
         log.info("Loading plugins...");
-        pluginLoader = new PluginLoader(api.getRegistry());
+        pluginLoader = new PluginLoader(api.getRegistry(), new SystemPlugin());
         pluginLoader.loadAll();
         log.info("Startup finished.");
 

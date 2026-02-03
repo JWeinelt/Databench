@@ -24,6 +24,7 @@ public class PluginLoader {
     private final Gson GSON = new Gson();
 
     private final Registry registry;
+    private final DbxPlugin plugin;
     private final PluginScanner scanner = new PluginScanner();
     private final PluginInstantiator instantiator = new PluginInstantiator();
     private final PluginClassLoaderFactory loaderFactory = new PluginClassLoaderFactory(false);
@@ -32,9 +33,13 @@ public class PluginLoader {
 
     private final ClassLoader parentLoader = getClass().getClassLoader();
 
-    public PluginLoader(Registry registry) {
+    public PluginLoader(Registry registry, DbxPlugin plugin) {
         this.registry = registry;
+        this.plugin = plugin;
         registerEvents();
+
+        plugin.preInit();
+        plugin.init();
     }
 
     /**
@@ -42,6 +47,7 @@ public class PluginLoader {
      */
     private void registerEvents() {
         registry.registerEvents(
+                plugin,
                 "PluginLoadEvent",
                 "PluginEnableEvent",
                 "PluginDisableEvent",
@@ -54,8 +60,6 @@ public class PluginLoader {
      * Loads all plugins found by the scanner, resolving dependencies and load order.
      */
     public void loadAll() {
-        Registry.instance().getSystemPlugin().preInit();
-        Registry.instance().getSystemPlugin().init();
         List<PluginDescriptor> descriptors = scanner.scan();
         Map<String, PluginConfiguration> pluginConfigs = new HashMap<>();
         Map<String, File> pluginFiles = new HashMap<>();

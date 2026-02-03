@@ -3,7 +3,6 @@ package de.julianweinelt.databench.dbx.api;
 import de.julianweinelt.databench.dbx.api.events.*;
 import de.julianweinelt.databench.dbx.api.events.EventListener;
 import de.julianweinelt.databench.dbx.api.plugins.DbxPlugin;
-import de.julianweinelt.databench.dbx.api.plugins.SystemPlugin;
 import lombok.Getter;
 import org.jetbrains.annotations.ApiStatus;
 import org.slf4j.Logger;
@@ -19,8 +18,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * <ul>
  *     <li>Plugin registration and lifecycle</li>
  *     <li>Custom event handling and listener management</li>
- *     <li>Command registration</li>
- *     <li>Minecraft plugin endpoints</li>
  * </ul>
  *
  * <p>
@@ -34,9 +31,6 @@ public class Registry {
     private final DbxAPI api;
 
     @Getter
-    private final SystemPlugin systemPlugin;
-
-    @Getter
     private final ConcurrentLinkedQueue<DbxPlugin> plugins = new ConcurrentLinkedQueue<>();
 
     private final Map<String, List<EventListener>> listeners = new HashMap<>();
@@ -46,8 +40,6 @@ public class Registry {
 
     public Registry(DbxAPI api) {
         this.api = api;
-        systemPlugin = new SystemPlugin();
-        systemPlugin.preInit();
     }
 
     @ApiStatus.Internal
@@ -93,16 +85,6 @@ public class Registry {
 
         if (eventsRegisteredByPlugin.containsKey(plugin)) eventsRegisteredByPlugin.get(plugin).addAll(Arrays.asList(eventNames));
         else eventsRegisteredByPlugin.put(plugin, new ArrayList<>(Arrays.asList(eventNames)));
-    }
-
-    /**
-     * Registers multiple system event names (not bound to any plugin).
-     * Should not be used to register events
-     *
-     * @param eventNames the event names to register
-     */
-    public void registerEvents(String... eventNames) {
-        registerEvents(getSystemPlugin(), eventNames);
     }
 
     /**

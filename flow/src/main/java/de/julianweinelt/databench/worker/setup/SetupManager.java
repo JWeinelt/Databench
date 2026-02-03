@@ -46,36 +46,43 @@ public class SetupManager {
     public void startCLI() {
         try {
             Terminal terminal = TerminalBuilder.builder().system(true).build();
-
-            String databaseType = prompt(terminal, "Welcome to DataBench Flow! Before you can get started using this" +
-                    " tool, some information for running is needed. First of all, what's your database type?", "",
-                    List.of("MySQL", "SQLServer", "MariaDB", "PostgreSQL, Derby"));
-            clearScreen();
-            String userName = prompt(terminal, "You have to create a service account on your server. Please enter the username.",
-                    "", List.of());
-            clearScreen();
-            String password = prompt(terminal, "Please enter the password.", "", List.of());
-            String safePass = password.replaceAll("\\w", "*");
-            clearScreen();
-            System.out.println("""
-                        INFORMATION
-                    ===================
-                    Where can I add the host and port?
-                    --> Flow is using the default values on setup. You can change it afterwards.
-                    
-                    Your entered information:
-                    DATABASE: %s
-                    HOST: localhost:%s
-                    USERNAME: %s
-                    PASSWORD: %s
-                    """.formatted(databaseType, databaseType, userName, safePass));
-            String makeTest = prompt(terminal, "Do you want to perform a connection test?", "yes", getBooleans());
-            if (checkBoolInput(makeTest)) {
-
-            }
+            startCLI(terminal);
         } catch (IOException e) {
             log.error("Failed to start terminal CLI: {}", e.getMessage());
         }
+    }
+
+
+    public void startCLI(Terminal terminal) {
+        String databaseType = prompt(terminal, "Welcome to DataBench Flow! Before you can get started using this" +
+                " tool, some information for running is needed. First of all, what's your database type?", "",
+                List.of("MySQL", "SQLServer", "MariaDB", "PostgreSQL, Derby"));
+        clearScreen();
+        String userName = prompt(terminal, "You have to create a service account on your server. Please enter the username.",
+                "", List.of());
+        clearScreen();
+        String password = prompt(terminal, "Please enter the password.", "", List.of());
+        String safePass = password.replaceAll("\\w", "*");
+        clearScreen();
+        System.out.printf("""
+                    INFORMATION
+                ===================
+                Where can I add the host and port?
+                --> Flow is using the default values on setup. You can change it afterwards.
+                
+                Your entered information:
+                DATABASE: %s
+                HOST: localhost:%s
+                USERNAME: %s
+                PASSWORD: %s
+                %n""", databaseType, databaseType, userName, safePass);
+        String correct = prompt(terminal, "Is everything correct?", "yes", getBooleans());
+        if (checkBoolInput(correct)) {
+            clearScreen();
+            log.info("Starting Flow... This may take a moment...");
+
+        }
+
     }
 
     private String prompt(Terminal terminal, String promptMessage, String defaultValue, List<String> completions) {
