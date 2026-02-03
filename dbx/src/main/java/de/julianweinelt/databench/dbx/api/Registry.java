@@ -123,7 +123,7 @@ public class Registry {
                         listener.invoke(event);
                     }
                 } catch (Exception e) {
-                    log.error(e.getMessage());
+                    log.error(e.getMessage(), e);
                 }
             }
         }
@@ -132,10 +132,10 @@ public class Registry {
     /**
      * Adds a plugin to the internal registry.
      *
-     * @param name the plugin to register
+     * @param plugin the plugin to register
      */
-    public void addPlugin(DbxPlugin name) {
-        plugins.add(name);
+    public void addPlugin(DbxPlugin plugin) {
+        plugins.add(plugin);
     }
 
     /**
