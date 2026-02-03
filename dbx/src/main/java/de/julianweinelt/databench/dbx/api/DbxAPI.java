@@ -1,5 +1,6 @@
 package de.julianweinelt.databench.dbx.api;
 
+import de.julianweinelt.databench.dbx.api.plugins.DbxPlugin;
 import de.julianweinelt.databench.dbx.api.ui.UIService;
 import de.julianweinelt.databench.dbx.api.ui.menubar.MenuBar;
 import de.julianweinelt.databench.dbx.database.DatabaseRegistry;
@@ -33,23 +34,26 @@ public class DbxAPI {
     private final DatabaseRegistry dbRegistry;
     @Getter
     private final HomeDirectories homeDirectories;
+    @Getter
+    private final DbxPlugin systemPlugin;
 
-    public DbxAPI(File apiFolder) {
+    public DbxAPI(File apiFolder, DbxPlugin systemPlugin) {
         instance = this;
+        this.systemPlugin = systemPlugin;
         this.apiFolder = apiFolder;
         if (apiFolder.mkdirs()) log.debug("API folder created");
         registry = new Registry(this);
         dbRegistry = new DatabaseRegistry();
         uiService = new UIService();
         homeDirectories = new HomeDirectories();
-        init();
+        init(systemPlugin);
     }
 
     public static DbxAPI instance() {
         return instance;
     }
 
-    private void init() {
+    private void init(DbxPlugin systemPlugin) {
         if (new File(apiFolder, "plugins").mkdirs()) log.debug("API plugins folder created");
         if (new File(apiFolder, "drivers").mkdirs()) log.debug("API drivers folder created");
         types.add(new DatabaseType("MySQL", "jdbc:mysql://${server}/${database}" +
@@ -57,7 +61,7 @@ public class DbxAPI {
                 "UTC&autoReconnect=true", "Oracle"));
 
 
-        registry.registerEvents("UIMenuBarRevalidateEvent");
+        registry.registerEvents(systemPlugin, "UIMenuBarRevalidateEvent");
 
         log.info("Registering database handlers...");
         DatabaseRegistry.instance().registerMapping("mysql", DBMySQL::new, new DBMetaMySQL());
