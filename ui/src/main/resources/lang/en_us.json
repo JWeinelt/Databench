@@ -191,6 +191,8 @@
 
   "dialog.export.progress.start": "Starting export…",
   "dialog.export.console.success": "Export completed successfully.",
-  "dialog.export.console.failed": "Export failed."
+  "dialog.export.console.failed": "Export failed.",
+
+  "project.tabs.flow": "Flow"
 
 }

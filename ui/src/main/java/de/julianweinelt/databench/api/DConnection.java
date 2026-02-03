@@ -6,6 +6,7 @@ import de.julianweinelt.databench.dbx.database.DatabaseMetaData;
 import de.julianweinelt.databench.dbx.database.DatabaseRegistry;
 import de.julianweinelt.databench.ui.BenchUI;
 import de.julianweinelt.databench.ui.editor.*;
+import de.julianweinelt.databench.ui.flow.FlowUI;
 import de.julianweinelt.databench.util.FileUtil;
 import lombok.Getter;
 import lombok.Setter;
@@ -151,9 +152,12 @@ public class DConnection implements IFileWatcherListener {
         createProjectFolder();
         JScrollPane fileTreeScroll = new JScrollPane(fileTree);
 
+        JPanel flowPanel = new JPanel();
+
         JTabbedPane leftTabs = new JTabbedPane();
         if (!lightEdit) leftTabs.addTab(translate("project.tabs.database"), projectTreeScroll);
         leftTabs.addTab(translate("project.tabs.files"), fileTreeScroll);
+        leftTabs.addTab(translate("project.tabs.flow"), new FlowUI().createFlowLoginPanel());
 
         JSplitPane splitPane = new JSplitPane(
                 JSplitPane.HORIZONTAL_SPLIT,

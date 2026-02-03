@@ -330,7 +330,7 @@ public class BenchUI {
         titleBox.add(dateLabel);
 
         JButton toggleButton = new JButton("−");
-        toggleButton.setMargin(new Insets(2, 8, 2, 8));
+        toggleButton.setMargin(new Insets(1, 1, 1, 1));
 
         header.add(titleBox, BorderLayout.WEST);
         header.add(toggleButton, BorderLayout.EAST);
