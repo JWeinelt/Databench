@@ -58,6 +58,11 @@
             <artifactId>Java-WebSocket</artifactId>
             <version>1.6.0</version>
         </dependency>
+        <dependency>
+            <groupId>me.tongfei</groupId>
+            <artifactId>progressbar</artifactId>
+            <version>0.10.2</version>
+        </dependency>
     </dependencies>
 
 </project>
