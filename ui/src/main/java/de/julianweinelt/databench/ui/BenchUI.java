@@ -42,7 +42,6 @@ public class BenchUI {
     private JPanel cardsContainer;
 
     public void preInit() {
-        Registry.instance().registerListener(this, Registry.instance().getSystemPlugin());
         log.info("Set theme");
         String selected = Configuration.getConfiguration().getSelectedTheme();
         FlatLaf laf = switch (selected) {
@@ -312,6 +311,7 @@ public class BenchUI {
         addNonClosableTab(tabbedPane, translate("screen.main.home"), mainPanel);
     }
 
+    //TODO: Make news dynamic
     private JComponent createNewsPanel() {
         JPanel panel = new JPanel(new BorderLayout(8, 8));
         panel.setBorder(BorderFactory.createTitledBorder("Latest news"));
@@ -569,7 +569,8 @@ public class BenchUI {
 
 
     private void createMenuBar() {
-        menuBar = new de.julianweinelt.databench.dbx.api.ui.menubar.MenuBar(frame)
+        menuBar = new de.julianweinelt.databench.dbx.api.ui.menubar.MenuBar(frame,
+                DataBench.getInstance().getApi().getSystemPlugin())
                 .disable("edit", "sql").disable("file", 0).updateAll();
     }
 

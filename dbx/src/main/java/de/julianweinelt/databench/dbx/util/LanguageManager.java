@@ -31,7 +31,6 @@ public final class LanguageManager {
 
     public LanguageManager() {
         instance = this;
-        Registry.instance().registerListener(this, Registry.instance().getSystemPlugin());
         copyDefaultsIfMissing();
         loadAllMetaData();
         preload("en_us");
