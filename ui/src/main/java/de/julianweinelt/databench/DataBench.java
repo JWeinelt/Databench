@@ -93,7 +93,7 @@ public class DataBench {
         log.info("Starting DataBench v{}", version);
         DataBench.version = version;
         log.info("Starting event queue...");
-        api = new DbxAPI(new File("api"));
+        api = new DbxAPI(new File("api"), new SystemPlugin());
     }
 
     public void start(String[] filesToOpen) {
@@ -127,10 +127,12 @@ public class DataBench {
 
         fileManager = new FileManager();
         ui = new BenchUI();
+        api.getRegistry().registerListener(ui, api.getSystemPlugin());
         ui.preInit();
         languageManager = new LanguageManager();
         log.info("Loading language data...");
         languageManager.preload(Configuration.getConfiguration().getLocale()).thenAccept(v -> latch.countDown());
+        api.getRegistry().registerListener(languageManager, api.getSystemPlugin());
 
         try {
             latch.await();
@@ -176,7 +178,7 @@ public class DataBench {
 
         log.info("Starting plugin service...");
         log.info("Loading plugins...");
-        pluginLoader = new PluginLoader(api.getRegistry(), new SystemPlugin());
+        pluginLoader = new PluginLoader(api);
         pluginLoader.loadAll();
         log.info("Startup finished.");
 
