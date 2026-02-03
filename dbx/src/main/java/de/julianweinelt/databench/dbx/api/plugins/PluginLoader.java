@@ -33,9 +33,9 @@ public class PluginLoader {
 
     private final ClassLoader parentLoader = getClass().getClassLoader();
 
-    public PluginLoader(Registry registry, DbxPlugin plugin) {
-        this.registry = registry;
-        this.plugin = plugin;
+    public PluginLoader(DbxAPI api) {
+        this.registry = api.getRegistry();
+        this.plugin = api.getSystemPlugin();
         registerEvents();
 
         plugin.preInit();
