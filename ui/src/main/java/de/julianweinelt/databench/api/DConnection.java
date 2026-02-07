@@ -669,26 +669,26 @@ public class DConnection implements IFileWatcherListener {
                     if ("SQL Agent".equals(userObject)) {
                         setIcon(new ImageIcon(getClassURL("/icons/app/agent.png")));
                     } else if (translate("connection.tree.node.tables.title").equals(userObject)) {
-                        setIcon(new ImageIcon(getClassURL("/icons/app/folder.png")));
+                        setIcon(loadIcon("/icons/editor/files/folder.png", 16));
                     } else if (translate("connection.tree.node.views.title").equals(userObject)) {
-                        setIcon(new ImageIcon(getClassURL("/icons/app/folder.png")));
+                        setIcon(loadIcon("/icons/editor/files/folder.png", 16));
                     } else if (translate("connection.tree.node.procedures.title").equals(userObject)) {
-                        setIcon(new ImageIcon(getClassURL("/icons/app/folder.png")));
+                        setIcon(loadIcon("/icons/editor/files/folder.png", 16));
                     } else if (translate("connection.tree.node.database.title").equals(userObject)) {
-                        setIcon(new ImageIcon(getClassURL("/icons/app/folder.png")));
+                        setIcon(loadIcon("/icons/editor/files/folder.png", 16));
                     }
                     DefaultMutableTreeNode parent = (DefaultMutableTreeNode) node.getParent();
                     if (parent != null) {
                         Object parentObject = parent.getUserObject();
                         if (translate("connection.tree.node.database.title").equals(parentObject.toString())) {
                             if (userObject.toString().endsWith("(offline)")) {
-                                setIcon(loadIcon("/icons/editor/database-offline.png", 24));
+                                setIcon(loadIcon("/icons/editor/database-offline.png", 16));
                             } else
-                                setIcon(loadIcon("/icons/editor/database.png", 24));
+                                setIcon(loadIcon("/icons/editor/database.png", 16));
                         } else if (translate("connection.tree.node.tables.title").equals(parentObject.toString())) {
-                            setIcon(new ImageIcon(getClassURL("/icons/app/table.png")));
+                            setIcon(loadIcon("/icons/app/table.png", 16));
                         } else if (translate("connection.tree.node.views.title").equals(parentObject.toString())) {
-                            setIcon(new ImageIcon(getClassURL("/icons/app/view.png")));
+                            setIcon(loadIcon("/icons/app/view.png", 16));
                         } else if ("SQL Agent".equals(parentObject.toString())) {
                             setIcon(new ImageIcon(getClassURL("/icons/app/folder.png")));
                         } else if ("Jobs".equals(parentObject.toString())) {
