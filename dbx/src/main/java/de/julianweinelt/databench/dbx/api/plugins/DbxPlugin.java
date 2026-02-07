@@ -21,7 +21,7 @@ import java.util.List;
 public abstract class DbxPlugin {
     private String name;
     private String description;
-    private String[] authors;
+    private List<String> authors;
     private String version;
 
     private Path jarURL;
@@ -34,7 +34,7 @@ public abstract class DbxPlugin {
     private final HashMap<String, HashMap<String, String>> languageData = new HashMap<>();
 
     public void setLangData(HashMap<String, HashMap<String, String>> languageData) {
-        if (languageData.isEmpty()) log.warn("Language data is empty.");
+        if (languageData.isEmpty()) log.debug("Language data is empty.");
         this.languageData.clear();
         this.languageData.putAll(languageData);
     }
