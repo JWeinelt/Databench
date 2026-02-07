@@ -151,6 +151,9 @@ public class WebServer {
                     o.addProperty("success", true);
                     ctx.result(o.toString());
                 })
+                .post("/metrics/login", ctx -> {
+
+                })
                 .start(7000);
     }
 
