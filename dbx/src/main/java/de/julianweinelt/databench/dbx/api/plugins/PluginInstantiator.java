@@ -36,6 +36,7 @@ public class PluginInstantiator {
         plugin.setMinAPIVersion(descriptor.config().minAPIVersion());
         plugin.setUsesEncryption(descriptor.config().usesEncryption());
         plugin.setStoresSensitiveData(descriptor.config().storesSensitiveData());
+        plugin.setAuthors(descriptor.config().authors());
 
         return plugin;
     }
