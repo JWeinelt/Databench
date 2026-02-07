@@ -22,11 +22,17 @@ public class StartScreen {
         frame.setLocationRelativeTo(null);
         frame.setUndecorated(true);
 
-        JLabel label = new JLabel("v" + DataBench.version);
-        label.setBounds(frame.getWidth() - 100, frame.getHeight() - 30, 100, 20);
-        label.setFont(new Font("Arial", Font.PLAIN, 24));
-        label.setForeground(Color.WHITE);
-        frame.add(label);
+        JLabel versionLabel = new JLabel("v" + DataBench.version);
+        versionLabel.setBounds(frame.getWidth() - 100, frame.getHeight() - 30, 100, 20);
+        versionLabel.setFont(new Font("Arial", Font.PLAIN, 24));
+        versionLabel.setForeground(Color.WHITE);
+        frame.add(versionLabel);
+
+        JLabel licenseLabel = new JLabel("Licensed under GNU GPLv3");
+        licenseLabel.setBounds(2, frame.getHeight() - 30, 400, 20);
+        licenseLabel.setFont(new Font("Arial", Font.PLAIN, 18));
+        licenseLabel.setForeground(Color.WHITE);
+        frame.add(licenseLabel);
 
         BufferedImage image;
         try {
