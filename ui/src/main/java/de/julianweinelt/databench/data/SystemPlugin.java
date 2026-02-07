@@ -79,7 +79,7 @@ public final class SystemPlugin extends DbxPlugin {
                 .child(new MenuItem("Plugins", "file_plugins"))
                 .child(new MenuItem("Restart IDE", "file_restart"))
                 .child(new MenuItem("Exit", "file_exit"))
-                .priority(996)
+                .priority(998)
                 ;
 
         Menu editMenu = new Menu("Edit", "edit")
@@ -115,11 +115,10 @@ public final class SystemPlugin extends DbxPlugin {
                 .child(new MenuItem("Show Changelog", "help_show_changelog"))
                 .separator()
                 .child(new MenuItem("Anonymous Data Sending...", "help_data_sending"))
-                .priority(998);
+                .priority(996);
 
 
         MenuManager.instance().register(this, fileMenu, editMenu, helpMenu);
-
     }
 
     @Override
@@ -130,5 +129,10 @@ public final class SystemPlugin extends DbxPlugin {
     @Override
     public void onDefineEvents() {
         getRegistry().registerEvents(this, "UIServiceEnabledEvent");
+    }
+
+    @Override
+    public String getName() {
+        return "System";
     }
 }
