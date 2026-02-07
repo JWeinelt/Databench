@@ -14,11 +14,13 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URL;
 import java.text.DateFormat;
 import java.time.Instant;
 import java.util.Date;
@@ -29,7 +31,7 @@ import java.util.UUID;
 import static de.julianweinelt.databench.dbx.util.LanguageManager.translate;
 
 @Slf4j
-public class EditorTab implements IEditorTab {
+public class EditorTab implements IEditorTab, EditorCallBack {
     private final UUID id = UUID.randomUUID();
     private final DConnection connection;
 
@@ -182,6 +184,86 @@ public class EditorTab implements IEditorTab {
 
         JTabbedPane bottomTabs = new JTabbedPane();
 
+        JPanel bottomHeader = new JPanel(new BorderLayout());
+        bottomHeader.add(bottomTabs, BorderLayout.CENTER);
+
+        JTable resultTable = new JTable();
+
+        JButton exportButton = new JButton();
+        exportButton.setFocusable(false);
+        exportButton.setToolTipText("Export results");
+
+        Icon exportIcon = loadIcon("/icons/editor/export-light.png", 16);
+        exportButton.setIcon(exportIcon);
+        exportButton.addActionListener(e -> {
+
+            JFileChooser chooser = new JFileChooser(".");
+            chooser.setDialogTitle(translate("dialog.export.title"));
+            chooser.setDialogType(JFileChooser.SAVE_DIALOG);
+
+            FileNameExtensionFilter csv =
+                    new FileNameExtensionFilter(translate("dialog.export.extension.csv"), ".csv");
+
+            FileNameExtensionFilter xlsx =
+                    new FileNameExtensionFilter(translate("dialog.export.extension.xlsx"), ".xlsx");
+
+            chooser.addChoosableFileFilter(csv);
+            chooser.setFileFilter(csv);
+            chooser.addChoosableFileFilter(xlsx);
+
+            if (chooser.showSaveDialog(ui.getFrame()) != JFileChooser.APPROVE_OPTION)
+                return;
+
+            File file = chooser.getSelectedFile();
+            String extension =
+                    ((FileNameExtensionFilter) chooser.getFileFilter())
+                            .getExtensions()[0];
+
+            TableModel model = resultTable.getModel();
+            int totalRows = model.getRowCount();
+            JProgressBar bar = new JProgressBar();
+            JDialog dialog = createProgressDialog(ui.getFrame(), bar);
+
+            SwingWorker<Void, Integer> worker = new SwingWorker<>() {
+
+                protected Void doInBackground() {
+
+                    TableExporter exporter =
+                            new TableExporter(file, extension, EditorTab.this, resultTable);
+                    exporter.exportWithProgress(progress -> {
+                        int prog = (int) (1.0 * progress / totalRows);
+                        //log.info("Export progress: {} / {} ({}%)", progress, totalRows, prog);
+                        setProgress(prog);
+                        publish(progress);
+                    });
+
+                    return null;
+                }
+
+                protected void process(java.util.List<Integer> chunks) {
+                    int value = chunks.get(chunks.size() - 1);
+                    bar.setValue(value);
+                }
+
+                protected void done() {
+                    dialog.dispose();
+
+                    JOptionPane.showMessageDialog(
+                            ui.getFrame(),
+                            "Export finished."
+                    );
+                }
+            };
+
+            worker.execute();
+            dialog.setVisible(true);
+        });
+
+        JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 2));
+        actionPanel.add(exportButton);
+
+        bottomHeader.add(actionPanel, BorderLayout.EAST);
+
         JTextArea messageArea = new JTextArea();
         messageArea.setEditable(false);
         messageArea.setFont(Configuration.getConfiguration().getEditorFontObject());
@@ -189,7 +271,6 @@ public class EditorTab implements IEditorTab {
 
         bottomTabs.addTab(translate("connection.editor.result.tabs.message"), messageScroll);
 
-        JTable resultTable = new JTable();
         JScrollPane resultScroll = new JScrollPane(resultTable);
 
         Runnable showResultsTab = () -> {
@@ -209,7 +290,7 @@ public class EditorTab implements IEditorTab {
         JSplitPane splitPane = new JSplitPane(
                 JSplitPane.VERTICAL_SPLIT,
                 editorScroll,
-                bottomTabs
+                bottomHeader
         );
         splitPane.setResizeWeight(0.7);
         splitPane.setOneTouchExpandable(true);
@@ -461,5 +542,49 @@ public class EditorTab implements IEditorTab {
         }
 
         return result.toString();
+    }
+
+
+
+    private JDialog createProgressDialog(JFrame parent, JProgressBar bar) {
+        JDialog dialog = new JDialog(parent, "Exporting...", true);
+        dialog.setLayout(new BorderLayout(10, 10));
+
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
+
+        bar.setStringPainted(true);
+        panel.add(new JLabel("Export in progress..."), BorderLayout.NORTH);
+        panel.add(bar, BorderLayout.CENTER);
+
+        dialog.add(panel);
+
+        dialog.setSize(300, 90);
+        dialog.setLocationRelativeTo(parent);
+
+        return dialog;
+    }
+
+    private Icon loadIcon(String path, int size) {
+        ImageIcon icon = new ImageIcon(getClassURL(path));
+        Image image = icon.getImage().getScaledInstance(size, size, Image.SCALE_SMOOTH);
+        return new ImageIcon(image);
+    }
+    public URL getClassURL(String file) {
+        return getClass().getResource(file);
+    }
+
+
+    @Override
+    public void call(String message, String type) {
+        if (type.equals("error")) {
+            JOptionPane.showMessageDialog(ui.getFrame(), message, translate("dialog.title.error"), JOptionPane.ERROR_MESSAGE);
+        } else if (type.equals("warn")) {
+            JOptionPane.showMessageDialog(ui.getFrame(), message, translate("dialog.title.warn"), JOptionPane.WARNING_MESSAGE);
+        } else if (type.equals("info")) {
+            JOptionPane.showMessageDialog(ui.getFrame(), message, translate("dialog.title.info"), JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            log.warn("Unknown message type from callback: {}", type);
+        }
     }
 }
