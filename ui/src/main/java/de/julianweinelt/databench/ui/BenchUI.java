@@ -280,8 +280,8 @@ public class BenchUI {
         tipsPanel.setBorder(BorderFactory.createTitledBorder("Next Steps & Documentation"));
         tipsPanel.setOpaque(false);
 
-        JLabel tip1 = new JLabel("• Create a new query by clicking on a project.");
-        JLabel tip2 = new JLabel("• Explore your tables and schemas.");
+        JLabel tip1 = new JLabel("• All database connection are organized in projects.");
+        JLabel tip2 = new JLabel("• You can securely share them by exporting.");
         JLabel tip3 = new JLabel("<html>• Check the <a href='https://github.com/JWeinelt/DataBench/wiki'>documentation</a> for SQL tips.</html>");
 
         tipsPanel.add(tip1);
@@ -331,6 +331,9 @@ public class BenchUI {
 
         JButton toggleButton = new JButton("−");
         toggleButton.setMargin(new Insets(1, 1, 1, 1));
+        toggleButton.addActionListener(e -> {
+            panel.setVisible(!panel.isVisible());
+        });
 
         header.add(titleBox, BorderLayout.WEST);
         header.add(toggleButton, BorderLayout.EAST);
