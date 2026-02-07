@@ -29,6 +29,7 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.Properties;
 import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
@@ -39,6 +40,8 @@ public class DataBench {
 
     private static final int PORT = 43210;
     public static boolean shouldUpdate = false;
+
+    private static boolean devMode = false;
 
     @Getter
     private BenchUI ui;
@@ -73,11 +76,15 @@ public class DataBench {
             return;
         }
 
+        if (Arrays.stream(args).toList().contains("--dev-mode")) devMode = true;
+
         instance = new DataBench();
         instance.start(args);
     }
 
     public DataBench() {
+        log.info("Initializing DataBench...");
+        if (devMode) log.info("############### DEV MODE ENABLED #############");
         Properties props = new Properties();
         try (InputStream is = DataBench.class
                 .getClassLoader()
@@ -120,6 +127,7 @@ public class DataBench {
         log.info("Loading configuration...");
         configManager.loadConfig();
         configManager.getConfiguration().initHomeDirectories();
+        log.info("Loaded DataBench preconfig with installation id: {}", configManager.getConfiguration().getInstallationID());
 
         log.info("Loading project data...");
         projectManager = new ProjectManager();
@@ -129,7 +137,7 @@ public class DataBench {
         ui = new BenchUI();
         api.getRegistry().registerListener(ui, api.getSystemPlugin());
         ui.preInit();
-        languageManager = new LanguageManager();
+        languageManager = new LanguageManager(devMode);
         log.info("Loading language data...");
         languageManager.preload(Configuration.getConfiguration().getLocale()).thenAccept(v -> latch.countDown());
         api.getRegistry().registerListener(languageManager, api.getSystemPlugin());
