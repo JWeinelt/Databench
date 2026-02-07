@@ -123,7 +123,7 @@ public class PluginLoader {
             HashMap<String, HashMap<String, String>> languageData = new HashMap<>();
             ZipEntry langEntry = jarFile.getEntry("language.json");
             if (langEntry == null) {
-                log.error("Plugin {} does not contain a language.json file.", name);
+                log.debug("Plugin {} does not contain a language.json file.", name);
             } else {
                 Type type = new TypeToken<HashMap<String, HashMap<String, String>>>() {}.getType();
                 try (InputStream iS = jarFile.getInputStream(langEntry)) {
@@ -165,14 +165,19 @@ public class PluginLoader {
                 );
                 try {
                     plugin.onDefineEvents();
-                    plugin.init();
                 } catch (NoSuchMethodError e) {
                     log.error("Plugin {} is missing an onDefineEvents method.", pluginName);
+                }
+                try {
+                    plugin.init();
+                } catch (NoSuchMethodError e) {
+                    log.error("Plugin {} is missing an init method.", pluginName);
+                    log.error(e.getMessage(), e);
                 }
                 registry.callEvent(new Event("PluginEnableEvent").nonCancellable()
                         .set("name", pluginName)
                         .set("plugin", plugin)
-                        .set("author", plugin.getAuthors())
+                        .set("author", (plugin.getAuthors() == null) ? List.of() : plugin.getAuthors())
                         .set("version", plugin.getVersion())
                         .set("dependencies", plugin.getDependencies())
                         .set("dataFolder", dataFolder)

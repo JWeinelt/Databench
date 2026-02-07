@@ -210,8 +210,9 @@ public class MenuBar {
 */
     public void registerCustomCategories() {
         List<Menu> men = MenuManager.instance().getAllMenus();
-        men.sort(Comparator.comparingInt(Menu::getPriority));
+        men.sort(Comparator.comparingInt(Menu::getPriority).reversed());
         bar.removeAll();
+        log.info("Cleared menu bar, adding custom menus:");
         for (Menu m : men) {
             log.debug("Found menu {}", m.getCategoryName());
             JMenu menu = m.create();

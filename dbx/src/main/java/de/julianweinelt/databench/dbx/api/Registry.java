@@ -123,6 +123,7 @@ public class Registry {
                         listener.invoke(event);
                     }
                 } catch (Exception e) {
+                    log.error("Failed to invoke listener {} for event {}", listener.getMethod().getName(), event.getName());
                     log.error(e.getMessage(), e);
                 }
             }

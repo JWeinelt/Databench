@@ -6,6 +6,7 @@ import de.julianweinelt.databench.dbx.api.Registry;
 import de.julianweinelt.databench.dbx.api.events.Event;
 import de.julianweinelt.databench.dbx.api.events.Subscribe;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,6 +14,7 @@ import java.io.*;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -27,9 +29,12 @@ public final class LanguageManager {
     private JsonObject activeTranslations = new JsonObject();
     private String currentLocale = "en_us";
 
+    private boolean devMode = false;
+
     private record LangMeta(String id, String friendlyName, int version) {}
 
-    public LanguageManager() {
+    public LanguageManager(boolean devMode) {
+        this.devMode = devMode;
         instance = this;
         copyDefaultsIfMissing();
         loadAllMetaData();
@@ -105,11 +110,11 @@ public final class LanguageManager {
 
             for (String lang : langs) {
                 File target = new File("locale", lang + ".json");
-                if (target.exists()) continue;
+                if (target.exists() && !devMode) continue;
 
                 try (InputStream src = getClass().getResourceAsStream("/lang/" + lang + ".json")) {
                     if (src == null) continue;
-                    Files.copy(src, target.toPath());
+                    Files.copy(src, target.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 }
             }
         } catch (Exception e) {
@@ -158,7 +163,7 @@ public final class LanguageManager {
         }
     }
 
-    private void callChangeLangEvent(String locale) {
+    private void callChangeLangEvent(@NotNull String locale) {
         Registry.instance().callEvent(
                 new Event("LanguageChangeEvent").set("locale", locale)
         );
@@ -181,8 +186,11 @@ public final class LanguageManager {
 
     @Subscribe("LanguageChangeEvent")
     public void onLanguageChange(Event e) {
+        log.info("Changing language to {}", e.get("locale").asString());
         for (Window w : Window.getWindows()) {
-            SwingUtilities.updateComponentTreeUI(w);
+            SwingUtilities.invokeLater(() -> {
+                SwingUtilities.updateComponentTreeUI(w);
+            });
         }
     }
 }

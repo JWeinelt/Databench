@@ -10,22 +10,22 @@ import java.util.List;
 @Slf4j
 public class Menu extends MenuComponent<JMenu> {
 
-    private final JMenu menu;
     private final List<MenuComponent> children = new ArrayList<>();
     @Getter
-    private int priority = 0;
+    private int priority = -1;
 
     @Getter
     private final String categoryName;
+    private final String name;
 
     public Menu(String name, String categoryName) {
-        menu = new JMenu(name);
         this.categoryName = categoryName;
+        this.name = name;
     }
 
     public Menu(String name, String categoryName, int priority) {
-        menu = new JMenu(name);
         this.categoryName = categoryName;
+        this.name = name;
         priority(priority);
     }
 
@@ -46,6 +46,8 @@ public class Menu extends MenuComponent<JMenu> {
 
     @Override
     public JMenu create() {
+        JMenu menu = new JMenu(name);
+        menu.removeAll();
         log.debug("Started menu creation");
         int idx = 0;
         for (MenuComponent menuComponent : children) {
