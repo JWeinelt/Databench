@@ -2,10 +2,12 @@ package de.julianweinelt.databench.dbx.api.events;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 public class Event {
     @Getter
     private final String name;
@@ -35,6 +37,9 @@ public class Event {
      * @return The current Event instance for method chaining.
      */
     public Event set(String key, Object value) {
+        if (value == null) {
+            log.warn("Tried to set a null value for property {} in event {}", key, name);
+        }
         properties.put(key, new EventProperty(value));
         return this;
     }
