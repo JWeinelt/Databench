@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -21,5 +22,13 @@ public class Configuration {
 
     private final List<String> jvmArgs = new ArrayList<>();
 
+    private int tokenLifetime = 3600;
+    private String jwtSecret = "";
+    private String tokenClaim = UUID.randomUUID().toString();
+
+    private String encryptionPassword = "";
+
     private int internalSocketPort = 47386;
+    private int internalServerPort = 47387;
+    private String internalServerAddress = "0.0.0.0";
 }

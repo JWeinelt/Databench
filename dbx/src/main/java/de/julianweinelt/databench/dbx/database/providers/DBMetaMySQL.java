@@ -13,6 +13,11 @@ public class DBMetaMySQL implements DatabaseMetaData {
     }
 
     @Override
+    public int defaultPort() {
+        return 3306;
+    }
+
+    @Override
     public String jdbcURL() {
         return "jdbc:mysql://${server}/${database}${parameters}";
     }

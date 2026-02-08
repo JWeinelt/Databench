@@ -76,4 +76,8 @@ public abstract class DbxPlugin {
     protected Logger getLogger() {
         return LoggerFactory.getLogger(this.getClass());
     }
+
+    public boolean requiredOnClientAndServer() {
+        return false;
+    }
 }

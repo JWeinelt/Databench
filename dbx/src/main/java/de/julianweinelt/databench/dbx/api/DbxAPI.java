@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 public class DbxAPI {
@@ -78,6 +79,12 @@ public class DbxAPI {
             if (type.name().equals(name)) return true;
         }
         return false;
+    }
+    public Optional<DatabaseType> getType(String name) {
+        for (DatabaseType type : types) {
+            if (type.name().equals(name)) return Optional.of(type);
+        }
+        return Optional.empty();
     }
 
     // Getters

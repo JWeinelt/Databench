@@ -33,6 +33,7 @@ public class DatabaseRegistry {
         metaData.put(name.toUpperCase(), meta);
         log.info("Registered mapping for {}", name);
     }
+
     public DatabaseMetaData getMeta(String name) {
         return metaData.getOrDefault(name.toUpperCase(), null);
     }

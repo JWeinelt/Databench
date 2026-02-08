@@ -10,12 +10,18 @@ import java.io.*;
 @Slf4j
 public class LocalStorage {
     private final File configFile;
+    private static LocalStorage instance;
     private final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     @Getter
     private Configuration config = new Configuration();
 
+    public static LocalStorage instance() {
+        return instance;
+    }
+
     public LocalStorage(File configFile) {
         this.configFile = configFile;
+        instance = this;
     }
 
     public boolean configCreated() {

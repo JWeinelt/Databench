@@ -9,4 +9,5 @@ public interface DatabaseMetaData {
     String engineName();
     String parameters(Map<String, String> parameters);
     ADatabase.ParameterBuilder defaultParameters();
+    int defaultPort();
 }

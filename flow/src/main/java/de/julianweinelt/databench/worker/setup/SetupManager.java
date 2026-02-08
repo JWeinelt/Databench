@@ -1,5 +1,11 @@
 package de.julianweinelt.databench.worker.setup;
 
+import de.julianweinelt.databench.dbx.api.DbxAPI;
+import de.julianweinelt.databench.dbx.database.DatabaseMetaData;
+import de.julianweinelt.databench.dbx.database.DatabaseRegistry;
+import de.julianweinelt.databench.dbx.util.DatabaseType;
+import de.julianweinelt.databench.worker.Flow;
+import de.julianweinelt.databench.worker.storage.DatabaseChecker;
 import lombok.extern.slf4j.Slf4j;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
@@ -9,6 +15,8 @@ import org.jline.terminal.TerminalBuilder;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Slf4j
@@ -29,11 +37,11 @@ public class SetupManager {
     }
 
     public List<String> getBooleans() {
-        return List.of("true", "false", "yes", "no", "on", "off", "1", "0");
+        return List.of("true", "false", "yes", "no", "1", "0", "y", "n");
     }
 
     public boolean checkBoolInput(String input) {
-        return List.of("true", "yes", "on", "1").contains(input.toLowerCase());
+        return List.of("true", "yes", "y", "1").contains(input.toLowerCase());
     }
 
 
@@ -63,6 +71,7 @@ public class SetupManager {
         clearScreen();
         String password = prompt(terminal, "Please enter the password.", "", List.of());
         String safePass = password.replaceAll("\\w", "*");
+        DatabaseMetaData metaData = DatabaseRegistry.instance().getMeta(databaseType.toLowerCase());
         clearScreen();
         System.out.printf("""
                     INFORMATION
@@ -75,14 +84,25 @@ public class SetupManager {
                 HOST: localhost:%s
                 USERNAME: %s
                 PASSWORD: %s
-                %n""", databaseType, databaseType, userName, safePass);
+                %n""", databaseType, metaData.defaultPort(), userName, safePass);
         String correct = prompt(terminal, "Is everything correct?", "yes", getBooleans());
         if (checkBoolInput(correct)) {
-            clearScreen();
+            log.info("Testing connection...");
+            String url = metaData.jdbcURL().replace("${server}", "localhost:" + metaData.defaultPort())
+                    .replace("${database}", "flow_meta");
+            boolean found = DatabaseChecker.canConnect(url, userName, password, Duration.of(5, ChronoUnit.SECONDS));
+
+            if (!found) {
+                log.error("Could not connect to database! Please check your credentials.");
+                startCLI(terminal);
+                return;
+            } else {
+                log.info("Connection successful!");
+            }
+
             log.info("Starting Flow... This may take a moment...");
-
+            Flow.instance().restart();
         }
-
     }
 
     private String prompt(Terminal terminal, String promptMessage, String defaultValue, List<String> completions) {

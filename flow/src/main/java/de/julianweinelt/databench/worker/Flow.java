@@ -3,8 +3,14 @@ package de.julianweinelt.databench.worker;
 import de.julianweinelt.databench.dbx.api.DbxAPI;
 import de.julianweinelt.databench.dbx.api.drivers.DriverManagerService;
 import de.julianweinelt.databench.dbx.api.plugins.PluginLoader;
+import de.julianweinelt.databench.worker.flow.FlowServer;
+import de.julianweinelt.databench.worker.flow.FlowSocketServer;
+import de.julianweinelt.databench.worker.flow.auth.UserManager;
+import de.julianweinelt.databench.worker.job.JobAgent;
 import de.julianweinelt.databench.worker.setup.SetupManager;
 import de.julianweinelt.databench.worker.storage.LocalStorage;
+import de.julianweinelt.databench.worker.util.CryptoUtil;
+import de.julianweinelt.databench.worker.util.JWTUtil;
 import de.julianweinelt.databench.worker.util.SystemPlugin;
 import de.julianweinelt.databench.worker.util.UpdateChecker;
 import lombok.Getter;
@@ -25,6 +31,15 @@ public class Flow {
     private DriverManagerService driverManagerService;
     @Getter
     private LocalStorage storage;
+
+    @Getter
+    private FlowServer server;
+    @Getter
+    private FlowSocketServer socketServer;
+    @Getter
+    private UserManager userManager;
+    @Getter
+    private CryptoUtil cryptoUtil;
 
     public static void main(String[] args) {
         instance = new Flow();
@@ -57,8 +72,26 @@ public class Flow {
         }
         log.info("Loading local configuration data...");
         storage.load();
+        new JWTUtil();
+        cryptoUtil = new CryptoUtil(LocalStorage.instance().getConfig().getEncryptionPassword());
+        new JobAgent();
+        userManager = new UserManager();
+        socketServer = new FlowSocketServer();
         log.info("Loading DBX plugins...");
         PluginLoader loader = new PluginLoader(api);
         loader.loadAll();
+
+        server = new FlowServer();
+        server.start();
+    }
+
+    public void stop() {
+
+    }
+
+    public void restart() {
+        stop();
+        instance = new Flow();
+        instance.start();
     }
 }

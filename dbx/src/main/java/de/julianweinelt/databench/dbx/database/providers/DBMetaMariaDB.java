@@ -13,6 +13,11 @@ public class DBMetaMariaDB implements DatabaseMetaData {
     }
 
     @Override
+    public int defaultPort() {
+        return 3306;
+    }
+
+    @Override
     public String jdbcURL() {
         return "jdbc:mariadb://${server}/${database}${parameters}";
     }

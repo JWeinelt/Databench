@@ -13,6 +13,11 @@ public class DBMetaMSSQL implements DatabaseMetaData {
     }
 
     @Override
+    public int defaultPort() {
+        return 1432;
+    }
+
+    @Override
     public String jdbcURL() {
         return "jdbc:sqlserver://${server};databaseName=${database};${parameters}";
     }
