@@ -3,6 +3,7 @@ package de.julianweinelt.databench.worker;
 import de.julianweinelt.databench.dbx.api.DbxAPI;
 import de.julianweinelt.databench.dbx.api.drivers.DriverManagerService;
 import de.julianweinelt.databench.dbx.api.plugins.PluginLoader;
+import de.julianweinelt.databench.worker.flow.FlowCLI;
 import de.julianweinelt.databench.worker.flow.FlowServer;
 import de.julianweinelt.databench.worker.flow.FlowSocketServer;
 import de.julianweinelt.databench.worker.flow.auth.UserManager;
@@ -83,6 +84,8 @@ public class Flow {
 
         server = new FlowServer();
         server.start();
+
+        new Thread(() -> new FlowCLI().start()).start();
     }
 
     public void stop() {
