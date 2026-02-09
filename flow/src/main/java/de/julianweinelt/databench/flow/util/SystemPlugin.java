@@ -1,4 +1,4 @@
-package de.julianweinelt.databench.worker.util;
+package de.julianweinelt.databench.flow.util;
 
 import de.julianweinelt.databench.dbx.api.plugins.DbxPlugin;
 

@@ -1,4 +1,4 @@
-package de.julianweinelt.databench.worker.job;
+package de.julianweinelt.databench.flow.job;
 
 import com.google.gson.Gson;
 import lombok.Getter;

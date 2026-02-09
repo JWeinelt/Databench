@@ -1,4 +1,4 @@
-package de.julianweinelt.databench.worker.flow;
+package de.julianweinelt.databench.flow.flow;
 
 import lombok.Getter;
 import lombok.Setter;

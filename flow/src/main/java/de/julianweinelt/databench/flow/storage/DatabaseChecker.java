@@ -1,4 +1,4 @@
-package de.julianweinelt.databench.worker.storage;
+package de.julianweinelt.databench.flow.storage;
 
 import lombok.extern.slf4j.Slf4j;
 

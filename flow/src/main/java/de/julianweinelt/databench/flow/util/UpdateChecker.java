@@ -1,9 +1,9 @@
-package de.julianweinelt.databench.worker.util;
+package de.julianweinelt.databench.flow.util;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.vdurmont.semver4j.Semver;
-import de.julianweinelt.databench.worker.Flow;
+import de.julianweinelt.databench.flow.Flow;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;

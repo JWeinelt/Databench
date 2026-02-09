@@ -1,4 +1,4 @@
-package de.julianweinelt.databench.worker.storage;
+package de.julianweinelt.databench.flow.storage;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

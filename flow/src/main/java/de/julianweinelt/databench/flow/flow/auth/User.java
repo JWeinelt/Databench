@@ -1,4 +1,4 @@
-package de.julianweinelt.databench.worker.flow.auth;
+package de.julianweinelt.databench.flow.flow.auth;
 
 import lombok.Getter;
 import lombok.Setter;

@@ -1,12 +1,12 @@
-package de.julianweinelt.databench.worker.flow;
+package de.julianweinelt.databench.flow.flow;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import de.julianweinelt.databench.worker.Flow;
-import de.julianweinelt.databench.worker.flow.auth.UserManager;
-import de.julianweinelt.databench.worker.job.JobAgent;
-import de.julianweinelt.databench.worker.storage.LocalStorage;
-import de.julianweinelt.databench.worker.util.JWTUtil;
+import de.julianweinelt.databench.flow.Flow;
+import de.julianweinelt.databench.flow.flow.auth.UserManager;
+import de.julianweinelt.databench.flow.job.JobAgent;
+import de.julianweinelt.databench.flow.storage.LocalStorage;
+import de.julianweinelt.databench.flow.util.JWTUtil;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import lombok.extern.slf4j.Slf4j;

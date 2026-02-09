@@ -1,6 +1,6 @@
-package de.julianweinelt.databench.worker.flow;
+package de.julianweinelt.databench.flow.flow;
 
-import de.julianweinelt.databench.worker.storage.LocalStorage;
+import de.julianweinelt.databench.flow.storage.LocalStorage;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;

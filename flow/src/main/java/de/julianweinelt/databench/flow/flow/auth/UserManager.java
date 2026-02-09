@@ -1,9 +1,9 @@
-package de.julianweinelt.databench.worker.flow.auth;
+package de.julianweinelt.databench.flow.flow.auth;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.password4j.Password;
-import de.julianweinelt.databench.worker.util.CryptoUtil;
+import de.julianweinelt.databench.flow.util.CryptoUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;

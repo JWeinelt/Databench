@@ -1,11 +1,11 @@
-package de.julianweinelt.databench.worker.util;
+package de.julianweinelt.databench.flow.util;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import de.julianweinelt.databench.worker.storage.LocalStorage;
+import de.julianweinelt.databench.flow.storage.LocalStorage;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Calendar;

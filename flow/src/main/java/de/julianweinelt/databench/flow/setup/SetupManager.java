@@ -1,4 +1,4 @@
-package de.julianweinelt.databench.worker.setup;
+package de.julianweinelt.databench.flow.setup;
 
 import de.julianweinelt.databench.dbx.api.DbxAPI;
 import de.julianweinelt.databench.dbx.api.drivers.DriverDownloadWrapper;
@@ -6,9 +6,9 @@ import de.julianweinelt.databench.dbx.api.drivers.DriverDownloader;
 import de.julianweinelt.databench.dbx.api.drivers.DriverManagerService;
 import de.julianweinelt.databench.dbx.database.DatabaseMetaData;
 import de.julianweinelt.databench.dbx.database.DatabaseRegistry;
-import de.julianweinelt.databench.worker.Flow;
-import de.julianweinelt.databench.worker.storage.DatabaseChecker;
-import de.julianweinelt.databench.worker.storage.LocalStorage;
+import de.julianweinelt.databench.flow.Flow;
+import de.julianweinelt.databench.flow.storage.DatabaseChecker;
+import de.julianweinelt.databench.flow.storage.LocalStorage;
 import lombok.extern.slf4j.Slf4j;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;

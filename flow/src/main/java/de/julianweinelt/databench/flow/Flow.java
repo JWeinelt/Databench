@@ -1,19 +1,19 @@
-package de.julianweinelt.databench.worker;
+package de.julianweinelt.databench.flow;
 
 import de.julianweinelt.databench.dbx.api.DbxAPI;
 import de.julianweinelt.databench.dbx.api.drivers.DriverManagerService;
 import de.julianweinelt.databench.dbx.api.plugins.PluginLoader;
-import de.julianweinelt.databench.worker.flow.FlowCLI;
-import de.julianweinelt.databench.worker.flow.FlowServer;
-import de.julianweinelt.databench.worker.flow.FlowSocketServer;
-import de.julianweinelt.databench.worker.flow.auth.UserManager;
-import de.julianweinelt.databench.worker.job.JobAgent;
-import de.julianweinelt.databench.worker.setup.SetupManager;
-import de.julianweinelt.databench.worker.storage.LocalStorage;
-import de.julianweinelt.databench.worker.util.CryptoUtil;
-import de.julianweinelt.databench.worker.util.JWTUtil;
-import de.julianweinelt.databench.worker.util.SystemPlugin;
-import de.julianweinelt.databench.worker.util.UpdateChecker;
+import de.julianweinelt.databench.flow.flow.FlowCLI;
+import de.julianweinelt.databench.flow.flow.FlowServer;
+import de.julianweinelt.databench.flow.flow.FlowSocketServer;
+import de.julianweinelt.databench.flow.flow.auth.UserManager;
+import de.julianweinelt.databench.flow.job.JobAgent;
+import de.julianweinelt.databench.flow.setup.SetupManager;
+import de.julianweinelt.databench.flow.storage.LocalStorage;
+import de.julianweinelt.databench.flow.util.CryptoUtil;
+import de.julianweinelt.databench.flow.util.JWTUtil;
+import de.julianweinelt.databench.flow.util.SystemPlugin;
+import de.julianweinelt.databench.flow.util.UpdateChecker;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 

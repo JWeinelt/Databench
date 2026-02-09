@@ -1,6 +1,6 @@
-package de.julianweinelt.databench.worker.flow;
+package de.julianweinelt.databench.flow.flow;
 
-import de.julianweinelt.databench.worker.flow.auth.UserManager;
+import de.julianweinelt.databench.flow.flow.auth.UserManager;
 import lombok.extern.slf4j.Slf4j;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
