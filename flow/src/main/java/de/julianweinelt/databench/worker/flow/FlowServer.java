@@ -26,6 +26,10 @@ public class FlowServer {
             config.showJavalinBanner = false;
             config.startupWatcherEnabled = false;
                 })
+                .before(ctx -> {
+                    ctx.contentType("application/json");
+                    log.debug("Request: {} {}", ctx.method(), ctx.path());
+                })
                 .get("/api/v1/hello", ctx -> {
                     new JsonResponse().success()
                             .add("systemTime", System.currentTimeMillis())
@@ -36,7 +40,7 @@ public class FlowServer {
                 .post("/api/v1/auth", ctx -> {
                     String authHeader = ctx.header("Authorization");
                     if (authHeader == null || !authHeader.startsWith("Basic ")) {
-                        ctx.status(401);
+                        new JsonResponse().error(ErrorType.INVALID_HEADER).apply(ctx);
                         ctx.header("WWW-Authenticate", "Basic realm=\"api\"");
                         return;
                     }
@@ -47,7 +51,7 @@ public class FlowServer {
 
                     int separator = credentials.indexOf(':');
                     if (separator < 0) {
-                        ctx.status(400);
+                        new JsonResponse().error(ErrorType.INVALID_REQUEST).apply(ctx);
                         return;
                     }
 
@@ -57,7 +61,7 @@ public class FlowServer {
                     boolean valid = UserManager.instance().verify(username, password);
 
                     if (!valid) {
-                        ctx.status(401);
+                        new JsonResponse().error(ErrorType.INVALID_CREDENTIALS).apply(ctx);
                         return;
                     }
 
@@ -115,6 +119,12 @@ public class FlowServer {
                 .get("/api/v1/flow/job/{id}", ctx -> {
 
                 })
+                .after(ctx -> {
+                    log.debug("Request handled; Body: {}, Code: {}", ctx.result(), ctx.status());
+                    for (String key : ctx.headerMap().keySet()) {
+                        log.debug("Header: {}: {}", key, ctx.header(key));
+                    }
+                })
                 .start(hostAddress, hostPort);
         log.info("Started endpoint on {}:{}", hostAddress, hostPort);
     }
@@ -168,6 +178,7 @@ public class FlowServer {
         public String toJson() {
             return object.toString();
         }
+
         public void apply(Context ctx) {
             ctx.result(toJson());
             ctx.contentType("application/json");
@@ -185,7 +196,10 @@ public class FlowServer {
         TOKEN_INVALID_ISSUER(401, "Invalid token issuer"),
         TOKEN_INVALID_CLAIMS(401, "Invalid token claims"),
         TOKEN_MISSING(401, "Missing token"),
-
+        INVALID_CREDENTIALS(401, "Invalid credentials"),
+        INVALID_REQUEST(400, "Invalid request"),
+        INVALID_PAYLOAD(400, "Invalid payload"),
+        INVALID_HEADER(400, "Invalid header"),
         ;
 
         public final int code;
