@@ -136,7 +136,7 @@ public class DriverDownloadDialog extends JDialog {
             if (db == null) return;
             String version = (String) versionBox.getSelectedItem();
 
-            DriverDownloadWrapper.DriverDownload driverDownload = DriverDownloadWrapper.getForDB(toInternalDBName(db), version);
+            de.julianweinelt.databench.dbx.api.drivers.DriverDownloadWrapper.DriverDownload driverDownload = de.julianweinelt.databench.dbx.api.drivers.DriverDownloadWrapper.getForDB(toInternalDBName(db), version);
             if (driverDownload == null) return;
 
             new DriverDownloadProgressDialog(this, driverDownload.url(), DbxAPI.driversFolder(),

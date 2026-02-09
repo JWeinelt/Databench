@@ -1,4 +1,4 @@
-package de.julianweinelt.databench.ui.driver;
+package de.julianweinelt.databench.dbx.api.drivers;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -8,6 +8,15 @@ import java.nio.file.Files;
 
 @Slf4j
 public class DriverDownloadWrapper {
+    public static String latestVersion(String db) {
+        return switch (db) {
+            case "mysql" -> "9.5.0";
+            case "mariadb" -> "3.4.2";
+            case "mssql" -> "13.2.1";
+            case "postgresql" -> "42.7.8";
+            default -> "unknown";
+        };
+    }
     public static DriverDownload getForDB(String db, String version) {
         switch (db) {
             case "mysql" -> {
@@ -43,6 +52,7 @@ public class DriverDownloadWrapper {
     public static void postProcess(File file) {
         File temp = new File("drivers/tmp");
         if (file.getName().equals("mysql.tar.gz")) {
+            log.info("Extracting driver {}", file.getName());
             File[] subFiles = temp.listFiles();
             if (subFiles == null) return;
             for (File f : subFiles) {
@@ -58,6 +68,7 @@ public class DriverDownloadWrapper {
                             }
                             temp.delete();
                             file.delete();
+                            log.info("Driver {} extracted successfully", file.getName());
                             return;
                         }
                     }

@@ -6,10 +6,14 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
+import de.julianweinelt.databench.dbx.api.drivers.DriverDownloadWrapper;
 
 import static de.julianweinelt.databench.dbx.util.LanguageManager.translate;
 
@@ -19,7 +23,7 @@ public class DriverDownloadProgressDialog extends JDialog {
     private final JProgressBar progressBar;
     private final JLabel statusLabel;
 
-    public DriverDownloadProgressDialog(Window parent, String fileUrl, File saveFolder, DriverDownloadWrapper.DriverDownload download,
+    public DriverDownloadProgressDialog(Window parent, String fileUrl, File saveFolder, de.julianweinelt.databench.dbx.api.drivers.DriverDownloadWrapper.DriverDownload download,
                                         String database, String version) {
         super(parent, translate("dialog.driver.download.progress.title"), ModalityType.APPLICATION_MODAL);
         File saveFile = new File(saveFolder, download.fileName());

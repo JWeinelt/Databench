@@ -9,12 +9,13 @@ import de.julianweinelt.databench.data.ConfigManager;
 import de.julianweinelt.databench.data.Configuration;
 import de.julianweinelt.databench.data.Project;
 import de.julianweinelt.databench.data.ProjectManager;
-import de.julianweinelt.databench.dbx.api.Registry;
+import de.julianweinelt.databench.dbx.api.ShortcutAction;
 import de.julianweinelt.databench.dbx.api.events.Event;
 import de.julianweinelt.databench.dbx.api.events.Subscribe;
 import de.julianweinelt.databench.dbx.database.DatabaseRegistry;
 import de.julianweinelt.databench.service.UpdateChecker;
 import de.julianweinelt.databench.ui.plugins.PluginDialog;
+import de.julianweinelt.databench.dbx.api.ui.menubar.MenuBar;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +38,7 @@ public class BenchUI {
     private JFrame frame;
     private JTabbedPane tabbedPane;
 
-    private de.julianweinelt.databench.dbx.api.ui.menubar.MenuBar menuBar;
+    private MenuBar menuBar;
 
     private JPanel cardsContainer;
 
@@ -107,8 +108,8 @@ public class BenchUI {
 
     private void registerShortcuts(JFrame frame) {
         frame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-                .put(Configuration.getConfiguration().getShortcut(de.julianweinelt.databench.dbx.api.ShortcutAction.NEW_FILE.name()
-                        , de.julianweinelt.databench.dbx.api.ShortcutAction.NEW_FILE.getDefaultKey()), "create-object");
+                .put(Configuration.getConfiguration().getShortcut(ShortcutAction.NEW_FILE.name()
+                        , ShortcutAction.NEW_FILE.getDefaultKey()), "create-object");
 
         frame.getRootPane().getActionMap()
                 .put("create-object", new AbstractAction() {
