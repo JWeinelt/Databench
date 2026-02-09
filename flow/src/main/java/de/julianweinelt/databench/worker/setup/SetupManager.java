@@ -1,11 +1,14 @@
 package de.julianweinelt.databench.worker.setup;
 
 import de.julianweinelt.databench.dbx.api.DbxAPI;
+import de.julianweinelt.databench.dbx.api.drivers.DriverDownloadWrapper;
+import de.julianweinelt.databench.dbx.api.drivers.DriverDownloader;
+import de.julianweinelt.databench.dbx.api.drivers.DriverManagerService;
 import de.julianweinelt.databench.dbx.database.DatabaseMetaData;
 import de.julianweinelt.databench.dbx.database.DatabaseRegistry;
-import de.julianweinelt.databench.dbx.util.DatabaseType;
 import de.julianweinelt.databench.worker.Flow;
 import de.julianweinelt.databench.worker.storage.DatabaseChecker;
+import de.julianweinelt.databench.worker.storage.LocalStorage;
 import lombok.extern.slf4j.Slf4j;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
@@ -13,6 +16,7 @@ import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.time.Duration;
@@ -66,6 +70,24 @@ public class SetupManager {
                 " tool, some information for running is needed. First of all, what's your database type?", "",
                 List.of("MySQL", "SQLServer", "MariaDB", "PostgreSQL, Derby"));
         clearScreen();
+        if (!new File(DbxAPI.driversFolder(), databaseType.toLowerCase() + ".jar").exists()) {
+            log.info("Downloading driver for {}...", databaseType);
+            DriverDownloader.download(databaseType.toLowerCase(), DriverDownloadWrapper.latestVersion(databaseType.toLowerCase())).join();
+            log.info("Driver downloaded successfully!");
+            log.info("Registering downloaded file...");
+            try {
+                DriverManagerService.instance().preloadDrivers();
+            } catch (Exception e) {
+                log.error("Failed to register driver: {}", e.getMessage());
+            }
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ignored) {
+            }
+        } else {
+            log.info("Driver for {} is already installed!", databaseType);
+        }
+        clearScreen();
         String userName = prompt(terminal, "You have to create a service account on your server. Please enter the username.",
                 "", List.of());
         clearScreen();
@@ -89,7 +111,7 @@ public class SetupManager {
         if (checkBoolInput(correct)) {
             log.info("Testing connection...");
             String url = metaData.jdbcURL().replace("${server}", "localhost:" + metaData.defaultPort())
-                    .replace("${database}", "flow_meta");
+                    .replace("${database}", "flow_meta").replace("${parameters}", metaData.parameters(metaData.defaultParameters().build()));
             boolean found = DatabaseChecker.canConnect(url, userName, password, Duration.of(5, ChronoUnit.SECONDS));
 
             if (!found) {
@@ -101,8 +123,12 @@ public class SetupManager {
             }
 
             log.info("Starting Flow... This may take a moment...");
+            LocalStorage.instance().getConfig().setDbPassword(password);
+            LocalStorage.instance().getConfig().setDbUser(userName);
+            LocalStorage.instance().save();
             Flow.instance().restart();
         }
+
     }
 
     private String prompt(Terminal terminal, String promptMessage, String defaultValue, List<String> completions) {
