@@ -20,6 +20,12 @@ public class JWTUtil {
     public JWTUtil() {
         String secret = LocalStorage.instance().getConfig().getJwtSecret();
         if (secret == null) secret = CryptoUtil.generateSecret(20);
+        if (secret.isEmpty()) {
+            String newSecret = CryptoUtil.generateSecret(20);
+            secret = newSecret;
+            LocalStorage.instance().getConfig().setJwtSecret(newSecret);
+            LocalStorage.instance().save();
+        }
         verifier = JWT.require(Algorithm.HMAC256(secret)).build();
         instance = this;
     }
