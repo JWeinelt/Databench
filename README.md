@@ -19,6 +19,7 @@ analyze their MySQL/MariaDB databases.
 - 🔒 Secure and encrypted database connection details to share with team members
 - 🐳 Advanced plugin system to integrate into events, change ui elements, implement new database types and more
 - 📫 Data import/export functionality (WIP; Proof of concept)
+- 🌊 Flow: An SQL Agent alternative for every database engine
 
 <!-- 
 TODO Future features:
