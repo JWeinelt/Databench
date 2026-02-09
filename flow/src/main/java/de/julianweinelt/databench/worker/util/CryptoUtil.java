@@ -16,8 +16,14 @@ public final class CryptoUtil {
     private static final int TAG_LENGTH = 128;
     private final String SECRET;
 
+    private static CryptoUtil instance;
+    public static CryptoUtil instance() {
+        return instance;
+    }
+
     public CryptoUtil(String secret) {
         SECRET = secret;
+        instance = this;
     }
 
     public String encrypt(String plaintext) {
