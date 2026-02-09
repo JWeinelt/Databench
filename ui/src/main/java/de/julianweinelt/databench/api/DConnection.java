@@ -6,6 +6,7 @@ import de.julianweinelt.databench.dbx.database.DatabaseMetaData;
 import de.julianweinelt.databench.dbx.database.DatabaseRegistry;
 import de.julianweinelt.databench.ui.BenchUI;
 import de.julianweinelt.databench.ui.editor.*;
+import de.julianweinelt.databench.ui.flow.FlowClient;
 import de.julianweinelt.databench.ui.flow.FlowUI;
 import de.julianweinelt.databench.util.FileUtil;
 import lombok.Getter;
@@ -59,6 +60,9 @@ public class DConnection implements IFileWatcherListener {
     @Getter
     private JPanel panel;
 
+    private FlowClient flowClient;
+    private FlowUI flowUI;
+
     private final boolean lightEdit;
     private final DatabaseMetaData databaseTypeMeta;
 
@@ -77,6 +81,9 @@ public class DConnection implements IFileWatcherListener {
     }
 
     public void createNewConnectionTab() {
+        flowClient = new FlowClient(this);
+        flowUI = new FlowUI(flowClient);
+
         panel = new JPanel(new BorderLayout());
         benchUI.getFrame().setCursor(Cursor.getDefaultCursor());
 
@@ -157,7 +164,7 @@ public class DConnection implements IFileWatcherListener {
         JTabbedPane leftTabs = new JTabbedPane();
         if (!lightEdit) leftTabs.addTab(translate("project.tabs.database"), projectTreeScroll);
         leftTabs.addTab(translate("project.tabs.files"), fileTreeScroll);
-        leftTabs.addTab(translate("project.tabs.flow"), new FlowUI().createFlowLoginPanel());
+        if (flowClient.getEnabled().get()) leftTabs.addTab(translate("project.tabs.flow"), flowUI.createFlowLoginPanel());
 
         JSplitPane splitPane = new JSplitPane(
                 JSplitPane.HORIZONTAL_SPLIT,
