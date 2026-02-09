@@ -1,5 +1,7 @@
 package de.julianweinelt.databench.worker.storage;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -7,6 +9,7 @@ import java.time.Duration;
 import java.util.Properties;
 import java.util.concurrent.*;
 
+@Slf4j
 public class DatabaseChecker {
     public static boolean canConnect(
             String jdbcUrl,
@@ -32,13 +35,16 @@ public class DatabaseChecker {
             return future.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
 
         } catch (TimeoutException e) {
+            log.error(e.getMessage(), e);
             return false;
         } catch (ExecutionException e) {
+            log.error(e.getMessage(), e);
             if (e.getCause() instanceof SQLException sql) {
                 return false;
             }
             throw new RuntimeException(e.getCause());
         } catch (InterruptedException e) {
+            log.error(e.getMessage(), e);
             Thread.currentThread().interrupt();
             return false;
         } finally {
