@@ -49,6 +49,10 @@ public class MenuManager {
         }
         return menus;
     }
+    public Menu getMenu(String name) {
+        for (Menu m : getAllMenus()) if (m.getCategoryName().equals(name)) return m;
+        return null;
+    }
 
 
     public void unregister(DbxPlugin plugin) {
