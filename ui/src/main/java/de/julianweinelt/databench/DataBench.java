@@ -141,14 +141,15 @@ public class DataBench {
         log.info("Loading language data...");
         languageManager.preload(Configuration.getConfiguration().getLocale()).thenAccept(v -> latch.countDown());
 
-        log.info("Initializing UI...");
-        ui = new BenchUI();
-        ui.preInit();
-
         log.info("Starting plugin service...");
         log.info("Loading plugins...");
         pluginLoader = new PluginLoader(api);
         pluginLoader.loadAll();
+
+        log.info("Initializing UI...");
+        ui = new BenchUI();
+        ui.loadTheme();
+
         api.getRegistry().registerListener(ui, api.getSystemPlugin());
         api.getRegistry().registerListener(languageManager, api.getSystemPlugin());
 
@@ -161,7 +162,6 @@ public class DataBench {
             ui.init();
             Registry.instance().setMainFrame(ui.getFrame());
 
-            startScreen.stop();
 
             if (filesToOpen != null) {
                 for (String path : filesToOpen) {
@@ -200,6 +200,7 @@ public class DataBench {
             }
             log.info("Closing UI...");
             ui.stop();
+            log.info("Saving configuration...");
             configManager.saveConfig();
             log.info("Saved configuration to disk");
             log.info("Stopping socket...");
@@ -214,6 +215,9 @@ public class DataBench {
         log.info("Startup finished.");
 
         Registry.instance().callEvent(new Event("UIServiceEnabledEvent").set("service", UIService.instance()));
+
+        startScreen.stop();
+        SwingUtilities.invokeLater(() -> ui.loadTheme());
 
     }
 
