@@ -114,7 +114,7 @@ public class FlowServer {
                 .get("/api/v1/flow/jobs", ctx ->
                         new JsonResponse()
                                 .success()
-                                .add("jobs", JobAgent.instance().getMinimalJobData())
+                                //.add("jobs", JobAgent.instance().getMinimalJobData())
                                 .apply(ctx))
                 .get("/api/v1/flow/job/{id}", ctx -> {
 
