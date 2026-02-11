@@ -93,7 +93,7 @@ public class DBMSSQL extends ADatabase {
         try (PreparedStatement pS = conn.prepareStatement("""
         SELECT
             TABLE_NAME   AS name,
-            TABLE_ROWS   AS rowCount,
+            TABLE_ROWS   AS [rowCount],
             ENGINE       AS engine
         FROM information_schema.TABLES
         WHERE TABLE_SCHEMA = ? AND TABLE_TYPE = 'BASE TABLE';
@@ -122,7 +122,7 @@ public class DBMSSQL extends ADatabase {
         } catch (SQLException e) {
             log.error(e.getMessage());
         }
-        return "MySQL - Unknown Edition";
+        return "SQL Server - Unknown Edition";
     }
 
     @Override
