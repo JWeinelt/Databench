@@ -19,6 +19,7 @@
   "menu.cat.edit.exit": "Exit",
   "menu.cat.edit.plugins": "Plugins",
 
+  "menu.cat.sql": "SQL",
   "menu.cat.sql.new.query": "New Query",
   "menu.cat.sql.new.table": "New Table",
   "menu.cat.sql.new.view": "New View",

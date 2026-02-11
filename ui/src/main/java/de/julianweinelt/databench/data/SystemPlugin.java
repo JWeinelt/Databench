@@ -105,6 +105,9 @@ public final class SystemPlugin extends DbxPlugin {
                 .priority(997)
                 ;
 
+        Menu sqlMenu = new Menu(translate("menu.cat.sql"), "sql")
+                .priority(996);
+
 
         Menu helpMenu = new Menu(translate("menu.cat.help"), "help")
                 .child(new MenuItem(translate("menu.cat.help.index"), "help_help_index").action(() -> {
@@ -130,10 +133,10 @@ public final class SystemPlugin extends DbxPlugin {
                 .child(new MenuItem(translate("menu.cat.changes"), "help_show_changelog"))
                 .separator()
                 .child(new MenuItem(translate("menu.cat.datasend"), "help_data_sending"))
-                .priority(996);
+                .priority(995);
 
 
-        MenuManager.instance().register(this, fileMenu, editMenu, helpMenu);
+        MenuManager.instance().register(this, fileMenu, editMenu, sqlMenu, helpMenu);
     }
 
     @Override
