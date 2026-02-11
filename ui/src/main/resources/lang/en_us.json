@@ -288,5 +288,12 @@
 
   "notification.no-update.title": "No updates available",
   "notification.no-update.text": "You are up-to-date.",
-  "notification.no-update.link": "Close"
+  "notification.no-update.link": "Close",
+
+  "theme.dark": "Dark",
+  "theme.dark_mac": "Dark (MacOS)",
+  "theme.light": "Light",
+  "theme.light_mac": "Light (MacOS)",
+  "theme.darcula": "Darcula",
+  "theme.material_moonlight": "Moonlight"
 }
