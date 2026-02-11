@@ -134,7 +134,7 @@ Big ideas – but no fixed timeline yet.
 
 👉 Focus prevents feature creep.
 
-**Current fokus:**
+**Current focus:**
 1.
 2.
 3.
