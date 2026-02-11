@@ -39,7 +39,6 @@ These points will help with prioritization:
 
 * [X] Connection manager for multiple database types
 * [X] Query Runner with syntax highlighting
-* [ ] Result grid with sorting/filtering
 * [X] Secure credential storage
 
 ### Architecture
