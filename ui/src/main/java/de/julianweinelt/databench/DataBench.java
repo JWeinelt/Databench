@@ -19,6 +19,7 @@ import de.julianweinelt.databench.ui.BenchUI;
 import de.julianweinelt.databench.ui.DefaultUI;
 import de.julianweinelt.databench.ui.StartScreen;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
@@ -69,6 +70,9 @@ public class DataBench {
 
     @Getter
     private UpdateChecker updateChecker;
+
+    @Getter @Setter
+    private JFrame overFrame = null;
 
     private final CountDownLatch latch = new CountDownLatch(1);
 
@@ -148,7 +152,7 @@ public class DataBench {
 
         log.info("Initializing UI...");
         ui = new BenchUI();
-        ui.loadTheme();
+        ui.loadTheme(false);
 
         api.getRegistry().registerListener(ui, api.getSystemPlugin());
         api.getRegistry().registerListener(languageManager, api.getSystemPlugin());
@@ -217,7 +221,7 @@ public class DataBench {
         Registry.instance().callEvent(new Event("UIServiceEnabledEvent").set("service", UIService.instance()));
 
         startScreen.stop();
-        SwingUtilities.invokeLater(() -> ui.loadTheme());
+        SwingUtilities.invokeLater(() -> ui.loadTheme(true));
 
     }
 

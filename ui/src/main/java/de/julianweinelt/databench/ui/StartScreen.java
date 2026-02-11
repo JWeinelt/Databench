@@ -16,6 +16,7 @@ public class StartScreen {
     public void start() {
         Image icon = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/icon.png"));
         frame = new JFrame("");
+        DataBench.getInstance().setOverFrame(frame);
         frame.setIconImage(icon);
         frame.setType(Window.Type.UTILITY);
         frame.setSize(1024, 606);

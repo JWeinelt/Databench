@@ -104,7 +104,7 @@ public class DefaultUI {
             String plugin = themeDat.split(":")[0];
             log.debug("Selected theme {} by {}", theme, plugin);
             Configuration.getConfiguration().setSelectedTheme(plugin + ":" + theme);
-            ThemeSwitcher.switchTheme(theme, Registry.instance().getPlugin(plugin));
+            ThemeSwitcher.switchTheme(theme, Registry.instance().getPlugin(plugin), true);
         });
         themes.initialValue(Configuration.getConfiguration().getSelectedTheme());
 

@@ -40,13 +40,13 @@ public class BenchUI {
 
     private JPanel cardsContainer;
 
-    public void loadTheme() {
+    public void loadTheme(boolean showDialogOnError) {
         log.debug("Loading theme data...");
         String selected = Configuration.getConfiguration().getSelectedTheme();
         String definingPlugin = selected.split(":")[0];
         String theme = selected.split(":")[1];
         log.info("Setting theme to \"{}\" by {}", theme, definingPlugin);
-        ThemeSwitcher.switchTheme(theme, Registry.instance().getPlugin(definingPlugin));
+        ThemeSwitcher.switchTheme(theme, Registry.instance().getPlugin(definingPlugin), showDialogOnError);
     }
 
     public void init() {
@@ -55,6 +55,7 @@ public class BenchUI {
         tabbedPane = new JTabbedPane();
 
         frame = new JFrame();
+        DataBench.getInstance().setOverFrame(frame);
         createMenuBar();
         frame.setFont(Configuration.getConfiguration().getEditorFontObject());
         frame.setIconImage(icon);
