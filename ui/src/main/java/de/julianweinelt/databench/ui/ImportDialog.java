@@ -33,6 +33,7 @@ public class ImportDialog extends JDialog implements ImportListener {
 
     public ImportDialog(Frame owner) {
         super(owner, translate("dialog.import.title"), true);
+        BenchUI.addEscapeKeyBind(this);
 
         taskbar = Taskbar.getTaskbar();
         if (!taskbar.isSupported(Taskbar.Feature.PROGRESS_STATE_WINDOW)) {

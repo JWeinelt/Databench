@@ -7,13 +7,13 @@ import de.julianweinelt.databench.data.Configuration;
 import de.julianweinelt.databench.data.Project;
 import de.julianweinelt.databench.data.ProjectManager;
 import de.julianweinelt.databench.dbx.api.Registry;
-import de.julianweinelt.databench.dbx.api.ShortcutAction;
 import de.julianweinelt.databench.dbx.api.events.Event;
 import de.julianweinelt.databench.dbx.api.events.Subscribe;
+import de.julianweinelt.databench.dbx.api.ui.ShortcutManager;
+import de.julianweinelt.databench.dbx.api.ui.menubar.MenuBar;
 import de.julianweinelt.databench.dbx.database.DatabaseRegistry;
 import de.julianweinelt.databench.service.UpdateChecker;
 import de.julianweinelt.databench.ui.plugins.PluginDialog;
-import de.julianweinelt.databench.dbx.api.ui.menubar.MenuBar;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -88,8 +88,8 @@ public class BenchUI {
 
     private void registerShortcuts(JFrame frame) {
         frame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-                .put(Configuration.getConfiguration().getShortcut(ShortcutAction.NEW_FILE.name()
-                        , ShortcutAction.NEW_FILE.getDefaultKey()), "create-object");
+                .put(Configuration.getConfiguration().getShortcut("NEW_FILE",
+                        ShortcutManager.instance().getAction("NEW_FILE").defaultKey()), "create-object");
 
         frame.getRootPane().getActionMap()
                 .put("create-object", new AbstractAction() {
@@ -347,6 +347,8 @@ public class BenchUI {
 
     private void showAddProfilePopup() {
         JDialog popup = new JDialog(frame, translate("screen.main.profile.ui.add"), true);
+        addEscapeKeyBind(popup);
+
         popup.setResizable(false);
         popup.setSize(500, 350);
         popup.setLayout(new GridBagLayout());
@@ -747,6 +749,7 @@ public class BenchUI {
 
     public void showLicenseInfo() {
         JDialog dialog = new JDialog(frame, translate("dialog.license.title"), true);
+        addEscapeKeyBind(dialog);
         dialog.setResizable(false);
         dialog.setSize(600, 400);
         dialog.setLayout(new BorderLayout());
@@ -904,6 +907,7 @@ public class BenchUI {
 
     public void showChangelog() {
         JDialog dialog = new JDialog(frame, translate("dialog.changelog.title"), true);
+        addEscapeKeyBind(dialog);
         dialog.setResizable(false);
         dialog.setSize(600, 400);
         dialog.setLayout(new BorderLayout());
@@ -935,6 +939,7 @@ public class BenchUI {
 
     public void showDataSendDialog() {
         JDialog dialog = new JDialog(frame, translate("dialog.data.title"), true);
+        addEscapeKeyBind(dialog);
         dialog.setResizable(false);
         dialog.setSize(600, 400);
         dialog.setLayout(new BorderLayout());
@@ -981,6 +986,26 @@ public class BenchUI {
                 connection.handleWindowClosing(frame);
             }
         }
+    }
+
+    public static void addEscapeKeyBind(RootPaneContainer container) {
+        JRootPane rootPane = container.getRootPane();
+
+        rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                .put(Configuration.getConfiguration().getShortcut(
+                        "ESCAPE",
+                        ShortcutManager.instance().getAction("ESCAPE").defaultKey()
+                ), "escape");
+
+        rootPane.getActionMap()
+                .put("escape", new AbstractAction() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        if (container instanceof Window w) {
+                            w.dispose();
+                        }
+                    }
+                });
     }
 
     @Subscribe(value = "UIMenuBarItemClickEvent")

@@ -25,6 +25,7 @@ public class SettingsDialog extends JDialog {
 
     public SettingsDialog(Frame owner) {
         super(owner, translate("menu.cat.edit.preferences"), true);
+        BenchUI.addEscapeKeyBind(this);
         setFont(Configuration.getConfiguration().getEditorFontObject());
         setSize(600, 420);
         setLocationRelativeTo(owner);

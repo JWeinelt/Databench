@@ -38,6 +38,7 @@ public class ExportDialog extends JDialog {
 
     public ExportDialog(Frame owner) {
         super(owner, translate("dialog.export.title"), true);
+        BenchUI.addEscapeKeyBind(this);
         parent = owner;
         taskbar = Taskbar.getTaskbar();
 

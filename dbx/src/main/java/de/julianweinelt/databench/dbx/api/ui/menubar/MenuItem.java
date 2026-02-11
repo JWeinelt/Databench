@@ -31,7 +31,7 @@ public class MenuItem extends MenuComponent<JMenuItem> {
     public MenuItem shortcut(String name) {
         ShortcutAction action = ShortcutManager.instance().getAction(name);
         if (action == null) throw new IllegalArgumentException("No such shortcut action: " + name);
-        item.setAccelerator(action.defaultKey());
+        item.setAccelerator(action.defaultKey()); //TODO: Adapt with actual config
         return this;
     }
 

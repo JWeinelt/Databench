@@ -58,6 +58,8 @@ public final class SystemPlugin extends DbxPlugin {
 
         ShortcutManager m = ShortcutManager.instance();
         m.register("OPEN_FILE", "Open File", KeyStroke.getKeyStroke("control O"));
+        m.register("ESCAPE", "Close", KeyStroke.getKeyStroke("ESCAPE"));
+        m.register("NEW_FILE", "New File", KeyStroke.getKeyStroke("control N"));
         m.register("SAVE_FILE", "Save File", KeyStroke.getKeyStroke("control S"));
         m.register("SAVE_FILE_AS", "Save File as", KeyStroke.getKeyStroke("control shift S"));
         m.register("PREFERENCES", "Preferences", KeyStroke.getKeyStroke("control P"));
