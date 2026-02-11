@@ -86,28 +86,28 @@ public final class SystemPlugin extends DbxPlugin {
                         //TODO: Add logic
                     }
                 }))
-                .child(new MenuItem("Save", "file_save").shortcut("SAVE_FILE"))
-                .child(new MenuItem("Save As", "file_save_as").shortcut("SAVE_FILE_AS"))
-                .child(new MenuItem("Light Edit", "file_light_edit"))
+                .child(new MenuItem(translate("menu.cat.file.save"), "file_save").shortcut("SAVE_FILE"))
+                .child(new MenuItem(translate("menu.cat.file.saveAs"), "file_save_as").shortcut("SAVE_FILE_AS"))
+                .child(new MenuItem(translate("menu.cat.file.lightEdit"), "file_light_edit"))
                 .separator()
-                .child(new MenuItem("Preferences", "file_preferences").shortcut("PREFERENCES"))
-                .child(new MenuItem("Plugins", "file_plugins"))
-                .child(new MenuItem("Restart IDE", "file_restart"))
-                .child(new MenuItem("Exit", "file_exit"))
+                .child(new MenuItem(translate("menu.cat.edit.preferences"), "file_preferences").shortcut("PREFERENCES"))
+                .child(new MenuItem(translate("menu.cat.edit.plugins"), "file_plugins"))
+                .child(new MenuItem(translate("menu.cat.edit.restart"), "file_restart"))
+                .child(new MenuItem(translate("menu.cat.edit.exit"), "file_exit"))
                 .priority(998)
                 ;
 
-        Menu editMenu = new Menu("Edit", "edit")
-                .child(new MenuItem("Undo", "edit_undo").shortcut("UNDO"))
-                .child(new MenuItem("Redo", "edit_redo").shortcut("REDO"))
+        Menu editMenu = new Menu(translate("menu.cat.edit"), "edit")
+                .child(new MenuItem(translate("menu.cat.edit.undo"), "edit_undo").shortcut("UNDO"))
+                .child(new MenuItem(translate("menu.cat.edit.redo"), "edit_redo").shortcut("REDO"))
                 .child(new MenuItem("Export...", "edit_export"))
                 .child(new MenuItem("Import...", "edit_import"))
                 .priority(997)
                 ;
 
 
-        Menu helpMenu = new Menu("Help", "help")
-                .child(new MenuItem("Help Index", "help_help_index").action(() -> {
+        Menu helpMenu = new Menu(translate("menu.cat.help"), "help")
+                .child(new MenuItem(translate("menu.cat.help.index"), "help_help_index").action(() -> {
                     try {
                         Desktop.getDesktop().browse(URI.create("https://dev.mysql.com/doc/refman/8.0/en/"));
                     } catch (IOException e) {
@@ -115,21 +115,21 @@ public final class SystemPlugin extends DbxPlugin {
                     }
                 }))
                 .separator()
-                .child(new MenuItem("License Info", "help_license"))
-                .child(new MenuItem("Report a bug", "help_bug_report").action(() -> {
+                .child(new MenuItem(translate("menu.cat.help.license"), "help_license"))
+                .child(new MenuItem(translate("menu.cat.help.bugs"), "help_bug_report").action(() -> {
                     try {
                         Desktop.getDesktop().browse(URI.create("https://github.com/JWeinelt/databench/issues/new/choose"));
                     } catch (IOException e) {
                         log.error(e.getMessage());
                     }
                 }))
-                .child(new MenuItem("Locate Log Files", "help_log_files").action(() ->
+                .child(new MenuItem(translate("menu.cat.log-files"), "help_log_files").action(() ->
                         Desktop.getDesktop().browseFileDirectory(new File("logs"))))
-                .child(new MenuItem("Version Info", "help_ver_info"))
-                .child(new MenuItem("Check for updates", "help_check_updates"))
-                .child(new MenuItem("Show Changelog", "help_show_changelog"))
+                .child(new MenuItem(translate("menu.cat.version"), "help_ver_info"))
+                .child(new MenuItem(translate("menu.cat.check-updates"), "help_check_updates"))
+                .child(new MenuItem(translate("menu.cat.changes"), "help_show_changelog"))
                 .separator()
-                .child(new MenuItem("Anonymous Data Sending...", "help_data_sending"))
+                .child(new MenuItem(translate("menu.cat.datasend"), "help_data_sending"))
                 .priority(996);
 
 

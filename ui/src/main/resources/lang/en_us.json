@@ -15,6 +15,9 @@
   "menu.cat.edit.redo": "Redo",
   "menu.cat.edit.cut": "Cut",
   "menu.cat.edit.preferences": "Preferences",
+  "menu.cat.edit.restart": "Restart IDE",
+  "menu.cat.edit.exit": "Exit",
+  "menu.cat.edit.plugins": "Plugins",
 
   "menu.cat.sql.new.query": "New Query",
   "menu.cat.sql.new.table": "New Table",
@@ -25,6 +28,16 @@
   "menu.cat.sql.drivers": "Drivers",
   "menu.cat.sql.drivers.download": "Download Drivers",
   "menu.cat.sql.drivers.manage": "Manage Drivers",
+
+  "menu.cat.help": "Help",
+  "menu.cat.help.index": "Help Index",
+  "menu.cat.help.license": "License Info",
+  "menu.cat.help.bugs": "Report a bug",
+  "menu.cat.log-files": "Locate Log Files",
+  "menu.cat.version": "Version Info",
+  "menu.cat.check-updates": "Check for updates",
+  "menu.cat.changes": "Show Changelog",
+  "menu.cat.datasend": "Anonymous Data Sending...",
 
   "screen.main.welcome": "Welcome to DataBench!",
   "screen.main.home": "Home",
