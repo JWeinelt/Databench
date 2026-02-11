@@ -49,6 +49,7 @@ public class FlowClient {
         this.connection = connection;
         instance = this;
         log.info("Checking server availability");
+        if (connection.isLightEdit()) return;
         checkServerThere();
     }
 
