@@ -134,6 +134,13 @@ public class DataBench {
         projectManager.loadAllProjects(configManager.getConfiguration().getEncryptionPassword());
 
         fileManager = new FileManager();
+
+        log.info("Starting plugin service...");
+        log.info("Loading plugins...");
+        pluginLoader = new PluginLoader(api);
+        pluginLoader.loadAll();
+
+        log.info("Initializing UI...");
         ui = new BenchUI();
         api.getRegistry().registerListener(ui, api.getSystemPlugin());
         ui.preInit();
@@ -184,10 +191,10 @@ public class DataBench {
             log.info("Goodbye!");
         }));
 
-        log.info("Starting plugin service...");
-        log.info("Loading plugins...");
-        pluginLoader = new PluginLoader(api);
-        pluginLoader.loadAll();
+
+        log.info("Initializing plugins...");
+        pluginLoader.initializeAll();
+
         log.info("Startup finished.");
 
         Registry.instance().callEvent(new Event("UIServiceEnabledEvent").set("service", UIService.instance()));

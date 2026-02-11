@@ -82,6 +82,10 @@ public class PluginLoader {
         }
     }
 
+    public void initializeAll() {
+        registry.getPlugins().forEach(this::initializePlugin);
+    }
+
     public void unload(String name) {
         DbxPlugin plugin = registry.getPlugin(name);
         unload(plugin);
@@ -163,27 +167,8 @@ public class PluginLoader {
                         .set("classLoader", loader)
                         .set("descriptor", descriptor)
                 );
-                try {
-                    plugin.onDefineEvents();
-                } catch (NoSuchMethodError e) {
-                    log.error("Plugin {} is missing an onDefineEvents method.", pluginName);
-                }
-                try {
-                    plugin.init();
-                } catch (NoSuchMethodError e) {
-                    log.error("Plugin {} is missing an init method.", pluginName);
-                    log.error(e.getMessage(), e);
-                }
-                registry.callEvent(new Event("PluginEnableEvent").nonCancellable()
-                        .set("name", pluginName)
-                        .set("plugin", plugin)
-                        .set("author", (plugin.getAuthors() == null) ? List.of() : plugin.getAuthors())
-                        .set("version", plugin.getVersion())
-                        .set("dependencies", plugin.getDependencies())
-                        .set("dataFolder", dataFolder)
-                        .set("classLoader", loader)
-                        .set("descriptor", descriptor)
-                );
+                log.info("Starting to load themes of {}", plugin.getName());
+                plugin.preloadThemes();
 
                 registry.addPlugin(plugin);
                 log.info("Successfully loaded plugin: {}", plugin.getName());
@@ -192,6 +177,31 @@ public class PluginLoader {
         } catch (Exception e) {
             log.error("Failed to load plugin {}", name, e);
         }
+    }
+
+    public void initializePlugin(DbxPlugin plugin) {
+        String pluginName = plugin.getName();
+        File dataFolder = new File(DbxAPI.pluginsFolder(), "data/" + plugin.getName());
+
+        try {
+            plugin.onDefineEvents();
+        } catch (NoSuchMethodError e) {
+            log.error("Plugin {} is missing an onDefineEvents method.", pluginName);
+        }
+        try {
+            plugin.init();
+        } catch (NoSuchMethodError e) {
+            log.error("Plugin {} is missing an init method.", pluginName);
+            log.error(e.getMessage(), e);
+        }
+        registry.callEvent(new Event("PluginEnableEvent").nonCancellable()
+                .set("name", pluginName)
+                .set("plugin", plugin)
+                .set("author", (plugin.getAuthors() == null) ? List.of() : plugin.getAuthors())
+                .set("version", plugin.getVersion())
+                .set("dependencies", plugin.getDependencies())
+                .set("dataFolder", dataFolder)
+        );
     }
 
     /**
