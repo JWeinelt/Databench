@@ -1,5 +1,8 @@
 package de.julianweinelt.databench.ui;
 
+import com.formdev.flatlaf.*;
+import com.formdev.flatlaf.themes.FlatMacDarkLaf;
+import com.formdev.flatlaf.themes.FlatMacLightLaf;
 import de.julianweinelt.databench.data.Configuration;
 import de.julianweinelt.databench.dbx.api.ui.SettingsPanel;
 import de.julianweinelt.databench.dbx.api.ui.UIService;
@@ -99,6 +102,16 @@ public class DefaultUI {
         for (String theme : new String[]{"Dark", "Light", "Darcula", "Dark (MacOS)", "Light (MacOS)", "IntelliJ"})
             themes.option(theme, theme, () -> {
                 Configuration.getConfiguration().setSelectedTheme(theme);
+                String selected = Configuration.getConfiguration().getSelectedTheme();
+                FlatLaf laf = switch (selected) {
+                    case "Light" -> new FlatLightLaf();
+                    case "Darcula" -> new FlatDarculaLaf();
+                    case "Dark (MacOS)" -> new FlatMacDarkLaf();
+                    case "Light (MacOS)" -> new FlatMacLightLaf();
+                    case "IntelliJ" -> new FlatIntelliJLaf();
+                    default -> new FlatDarkLaf();
+                };
+                ThemeSwitcher.switchTheme(laf);
             });
         //TODO: Move theme management to API
 

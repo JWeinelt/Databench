@@ -1,6 +1,7 @@
 package de.julianweinelt.databench.ui;
 
 import com.formdev.flatlaf.FlatLaf;
+import com.formdev.flatlaf.extras.FlatAnimatedLafChange;
 import de.julianweinelt.databench.DataBench;
 
 import javax.swing.*;
@@ -9,13 +10,12 @@ import java.awt.*;
 public class ThemeSwitcher {
 
     public static void switchTheme(FlatLaf newLaf) {
+        FlatAnimatedLafChange.showSnapshot();
         try {
             UIManager.setLookAndFeel(newLaf);
 
-            for (Window window : Window.getWindows()) {
-                SwingUtilities.updateComponentTreeUI(window);
-                //window.pack();
-            }
+            FlatLaf.updateUI();
+            FlatAnimatedLafChange.hideSnapshotWithAnimation();
             DataBench.getInstance().getUi().updateProjectCards();
         } catch (UnsupportedLookAndFeelException e) {
             e.printStackTrace();

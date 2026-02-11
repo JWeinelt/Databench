@@ -137,18 +137,19 @@ public class DataBench {
 
         fileManager = new FileManager();
 
+        languageManager = new LanguageManager(devMode);
+        log.info("Loading language data...");
+        languageManager.preload(Configuration.getConfiguration().getLocale()).thenAccept(v -> latch.countDown());
+
+        log.info("Initializing UI...");
+        ui = new BenchUI();
+        ui.preInit();
+
         log.info("Starting plugin service...");
         log.info("Loading plugins...");
         pluginLoader = new PluginLoader(api);
         pluginLoader.loadAll();
-
-        log.info("Initializing UI...");
-        ui = new BenchUI();
         api.getRegistry().registerListener(ui, api.getSystemPlugin());
-        ui.preInit();
-        languageManager = new LanguageManager(devMode);
-        log.info("Loading language data...");
-        languageManager.preload(Configuration.getConfiguration().getLocale()).thenAccept(v -> latch.countDown());
         api.getRegistry().registerListener(languageManager, api.getSystemPlugin());
 
         try {
