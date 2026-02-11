@@ -19,11 +19,11 @@ automating routine database tasks such as backups, maintenance, and data process
 - (Optional) Firewall rules allowing incoming connections to the DataBench Flow on the specified port.
 
 > [!TIP]
-> You may open the port ``25295`` on your firewall to allow remote access to the DataBench Flow.
+> You may open the port ``47386`` (TCP) and ``47387`` (TCP) on your firewall to allow remote access to the DataBench Flow.
 > This is required if you want to manage the sql agent jobs from DataBench.
 
 ### 📫 Installation Steps
-1. Download the latest release of the DataBench Flow from the [GitHub Releases](https://github.com/JWeinelt/DataBench/releases) page.
+1. Download the latest release of Flow from the [GitHub Releases](https://github.com/JWeinelt/DataBench/releases) page.
     - Make sure to choose the latest version of the DataBench Flow.
     - The Flow is platform-independent, so you can run it on any operating system that supports Java.
 2. Put the downloaded JAR file on your server machine in a directory of your choice.
@@ -39,7 +39,7 @@ automating routine database tasks such as backups, maintenance, and data process
     ```bash
     chmod +x start.sh
     ```
-8. Start the DataBench Flow by running the ``start.sh`` file (Linux/macOS) or ``start.bat`` file (Windows):
+8. Start Flow by running the ``start.sh`` file (Linux/macOS) or ``start.bat`` file (Windows):
     - On Linux/macOS:
       ```bash
       ./start.sh
@@ -48,12 +48,12 @@ automating routine database tasks such as backups, maintenance, and data process
       ```cmd
       start.bat
       ```
-9. Follow the on-screen instructions to complete the initial setup of the DataBench Flow or take a look at the [wiki](https://github.com/JWeinelt/DataBench/wiki/Flow-Setup) for more detailed setup instructions.
+9. Follow the on-screen instructions to complete the initial setup of Flow or take a look at the [wiki](https://github.com/JWeinelt/DataBench/wiki/Flow-Setup) for more detailed setup instructions.
 
 
 ## 📤 Building from source
-To build the DataBench Flow from source, you need to have Maven installed. Navigate to the Flow directory and run the following command:
+To build Flow from source, you need to have Maven installed. Navigate to the Flow directory and run the following command:
 ```bash
 mvn clean package
 ```
-This will generate a JAR file in the `target` directory, which you can then use to run the DataBench Flow as described in the installation steps above.
+This will generate a JAR file in the `target` directory, which you can then use to run Flow as described in the installation steps above.
