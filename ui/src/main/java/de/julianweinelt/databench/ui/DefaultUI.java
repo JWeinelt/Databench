@@ -1,9 +1,7 @@
 package de.julianweinelt.databench.ui;
 
-import com.formdev.flatlaf.*;
-import com.formdev.flatlaf.themes.FlatMacDarkLaf;
-import com.formdev.flatlaf.themes.FlatMacLightLaf;
 import de.julianweinelt.databench.data.Configuration;
+import de.julianweinelt.databench.dbx.api.Registry;
 import de.julianweinelt.databench.dbx.api.ui.SettingsPanel;
 import de.julianweinelt.databench.dbx.api.ui.UIService;
 import de.julianweinelt.databench.dbx.api.ui.components.*;
@@ -99,21 +97,16 @@ public class DefaultUI {
         ComponentComboBox themes = new ComponentComboBox()
                 .label(translate("page.settings.appearance.theme"));
 
-        for (String theme : new String[]{"Dark", "Light", "Darcula", "Dark (MacOS)", "Light (MacOS)", "IntelliJ"})
-            themes.option(theme, theme, () -> {
-                Configuration.getConfiguration().setSelectedTheme(theme);
-                String selected = Configuration.getConfiguration().getSelectedTheme();
-                FlatLaf laf = switch (selected) {
-                    case "Light" -> new FlatLightLaf();
-                    case "Darcula" -> new FlatDarculaLaf();
-                    case "Dark (MacOS)" -> new FlatMacDarkLaf();
-                    case "Light (MacOS)" -> new FlatMacLightLaf();
-                    case "IntelliJ" -> new FlatIntelliJLaf();
-                    default -> new FlatDarkLaf();
-                };
-                ThemeSwitcher.switchTheme(laf);
-            });
-        //TODO: Move theme management to API
+        Registry.instance().themeData().forEach((theme, plugin) ->
+                themes.option(plugin + ":" + theme, translate("theme." + theme)));
+        themes.action(themeDat -> {
+            String theme = themeDat.split(":")[1];
+            String plugin = themeDat.split(":")[0];
+            log.debug("Selected theme {} by {}", theme, plugin);
+            Configuration.getConfiguration().setSelectedTheme(plugin + ":" + theme);
+            ThemeSwitcher.switchTheme(theme, Registry.instance().getPlugin(plugin));
+        });
+        themes.initialValue(Configuration.getConfiguration().getSelectedTheme());
 
         panel.add(themes);
 
