@@ -27,18 +27,15 @@ public class NotificationPopup extends JWindow {
         setAlwaysOnTop(true);
         setFocusableWindowState(false);
 
-        // Accent panel links
         JPanel accent = new JPanel();
         accent.setPreferredSize(new Dimension(4, 1));
         accent.setBackground(type.accentColor());
 
-        // Root panel mit abgerundeten Ecken
         JPanel root = new RoundedPanel(16);
         root.setBackground(new Color(60, 63, 65));
         root.setBorder(new EmptyBorder(10, 12, 10, 12));
         root.setLayout(new BorderLayout(8, 8));
 
-        // Header
         JPanel header = new JPanel(new BorderLayout());
         header.setOpaque(false);
 
@@ -73,7 +70,6 @@ public class NotificationPopup extends JWindow {
         header.add(titleLabel, BorderLayout.WEST);
         header.add(close, BorderLayout.EAST);
 
-        // Content
         JLabel messageLabel = new JLabel("<html>" + message + "</html>");
         messageLabel.setForeground(new Color(210, 210, 210));
         messageLabel.setFont(messageLabel.getFont().deriveFont(12f));
@@ -102,7 +98,6 @@ public class NotificationPopup extends JWindow {
         root.add(header, BorderLayout.NORTH);
         root.add(content, BorderLayout.CENTER);
 
-        // Wrapper mit Accent links
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.setOpaque(false);
         wrapper.add(accent, BorderLayout.WEST);
@@ -110,10 +105,8 @@ public class NotificationPopup extends JWindow {
 
         setContentPane(wrapper);
 
-        // Position relativ zum Anchor
         positionRelativeTo(anchor);
 
-        // Auto-Close
         if (type.hasAutoClose()) {
             startAutoClose(type.autoCloseMillis());
         }
