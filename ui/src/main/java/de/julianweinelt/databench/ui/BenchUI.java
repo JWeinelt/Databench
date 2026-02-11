@@ -1,14 +1,12 @@
 package de.julianweinelt.databench.ui;
 
-import com.formdev.flatlaf.*;
-import com.formdev.flatlaf.themes.FlatMacDarkLaf;
-import com.formdev.flatlaf.themes.FlatMacLightLaf;
 import de.julianweinelt.databench.DataBench;
 import de.julianweinelt.databench.api.DConnection;
 import de.julianweinelt.databench.data.ConfigManager;
 import de.julianweinelt.databench.data.Configuration;
 import de.julianweinelt.databench.data.Project;
 import de.julianweinelt.databench.data.ProjectManager;
+import de.julianweinelt.databench.dbx.api.Registry;
 import de.julianweinelt.databench.dbx.api.ShortcutAction;
 import de.julianweinelt.databench.dbx.api.events.Event;
 import de.julianweinelt.databench.dbx.api.events.Subscribe;
@@ -42,18 +40,13 @@ public class BenchUI {
 
     private JPanel cardsContainer;
 
-    public void preInit() {
-        log.info("Set theme");
+    public void loadTheme() {
+        log.debug("Loading theme data...");
         String selected = Configuration.getConfiguration().getSelectedTheme();
-        FlatLaf laf = switch (selected) {
-            case "Light" -> new FlatLightLaf();
-            case "Darcula" -> new FlatDarculaLaf();
-            case "Dark (MacOS)" -> new FlatMacDarkLaf();
-            case "Light (MacOS)" -> new FlatMacLightLaf();
-            case "IntelliJ" -> new FlatIntelliJLaf();
-            default -> new FlatDarkLaf();
-        };
-        ThemeSwitcher.switchTheme(laf);
+        String definingPlugin = selected.split(":")[0];
+        String theme = selected.split(":")[1];
+        log.info("Setting theme to \"{}\" by {}", theme, definingPlugin);
+        ThemeSwitcher.switchTheme(theme, Registry.instance().getPlugin(definingPlugin));
     }
 
     public void init() {
@@ -987,8 +980,6 @@ public class BenchUI {
                 connection.handleWindowClosing(frame);
             }
         }
-
-        frame.dispose();
     }
 
     @Subscribe(value = "UIMenuBarItemClickEvent")
