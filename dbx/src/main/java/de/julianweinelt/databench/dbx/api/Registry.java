@@ -3,6 +3,7 @@ package de.julianweinelt.databench.dbx.api;
 import de.julianweinelt.databench.dbx.api.events.*;
 import de.julianweinelt.databench.dbx.api.events.EventListener;
 import de.julianweinelt.databench.dbx.api.plugins.DbxPlugin;
+import de.julianweinelt.databench.dbx.api.ui.theme.Theme;
 import lombok.Getter;
 import org.jetbrains.annotations.ApiStatus;
 import org.slf4j.Logger;
@@ -35,6 +36,8 @@ public class Registry {
 
     private final Map<String, List<EventListener>> listeners = new HashMap<>();
     private final Map<DbxPlugin, List<String>> eventsRegisteredByPlugin = new HashMap<>();
+
+    private final List<Theme> themes = new ArrayList<>();
     @Getter
     private JFrame mainFrame;
 
@@ -173,5 +176,11 @@ public class Registry {
         events.forEach(event -> listeners.getOrDefault(event, new ArrayList<>()).clear());
         events.forEach(listeners::remove);
         plugins.removeIf(m -> m.getName().equals(plugin.getName()));
+    }
+
+
+
+    public void registerTheme(Theme theme) {
+
     }
 }

@@ -3,6 +3,7 @@ package de.julianweinelt.databench.dbx.api;
 import de.julianweinelt.databench.dbx.api.plugins.DbxPlugin;
 import de.julianweinelt.databench.dbx.api.ui.UIService;
 import de.julianweinelt.databench.dbx.api.ui.menubar.MenuBar;
+import de.julianweinelt.databench.dbx.api.ui.theme.Theme;
 import de.julianweinelt.databench.dbx.database.DatabaseRegistry;
 import de.julianweinelt.databench.dbx.database.providers.DBMetaMSSQL;
 import de.julianweinelt.databench.dbx.database.providers.DBMetaMariaDB;
@@ -80,6 +81,7 @@ public class DbxAPI {
         }
         return false;
     }
+
     public Optional<DatabaseType> getType(String name) {
         for (DatabaseType type : types) {
             if (type.name().equals(name)) return Optional.of(type);
