@@ -77,20 +77,6 @@ public class BenchUI {
         frame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                Configuration.getConfiguration().setStoppedMaximized(frame.getExtendedState() == JFrame.MAXIMIZED_BOTH);
-                ConfigManager.getInstance().saveConfig();
-
-                if (connections.isEmpty()) {
-                    log.info("No Connections found. Exiting...");
-                    frame.dispose();
-                    System.exit(0);
-                    return;
-                }
-                log.info("Closing connections...");
-                for (Project project : connections.keySet()) {
-                    DConnection connection = connections.get(project);
-                    connection.handleWindowClosing(frame);
-                }
                 System.exit(0);
             }
         });
@@ -987,6 +973,22 @@ public class BenchUI {
         dialog.add(buttonPanel, BorderLayout.SOUTH);
 
         dialog.setVisible(true);
+    }
+
+    public void stop() {
+        Configuration.getConfiguration().setStoppedMaximized(frame.getExtendedState() == JFrame.MAXIMIZED_BOTH);
+
+        if (connections.isEmpty()) {
+            log.info("No Connections found. Exiting...");
+        } else {
+            log.info("Closing connections...");
+            for (Project project : connections.keySet()) {
+                DConnection connection = connections.get(project);
+                connection.handleWindowClosing(frame);
+            }
+        }
+
+        frame.dispose();
     }
 
     @Subscribe(value = "UIMenuBarItemClickEvent")

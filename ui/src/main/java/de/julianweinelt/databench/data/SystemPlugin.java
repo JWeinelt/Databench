@@ -41,6 +41,7 @@ public final class SystemPlugin extends DbxPlugin {
         getRegistry().registerListener(this, this);
         getRegistry().registerEvents(this, "UIMenuBarItemClickEvent");
         getRegistry().registerEvents(this, "LanguageChangeEvent");
+        getRegistry().registerEvents(this, "DataBenchShutdownEvent");
 
 
         ShortcutManager m = ShortcutManager.instance();

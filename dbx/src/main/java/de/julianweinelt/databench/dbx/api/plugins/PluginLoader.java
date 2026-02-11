@@ -90,6 +90,9 @@ public class PluginLoader {
         DbxPlugin plugin = registry.getPlugin(name);
         unload(plugin);
     }
+    public void unloadAll() {
+        registry.getPlugins().forEach(this::unload);
+    }
 
     @ApiStatus.Experimental
     public void unload(DbxPlugin plugin) {

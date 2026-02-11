@@ -2,21 +2,21 @@ package de.julianweinelt.databench;
 
 import com.formdev.flatlaf.FlatDarkLaf;
 import de.julianweinelt.databench.api.DConnection;
-import de.julianweinelt.databench.data.SystemPlugin;
-import de.julianweinelt.databench.dbx.api.Registry;
-import de.julianweinelt.databench.dbx.api.drivers.DriverManagerService;
 import de.julianweinelt.databench.api.FileManager;
 import de.julianweinelt.databench.data.ConfigManager;
 import de.julianweinelt.databench.data.Configuration;
 import de.julianweinelt.databench.data.ProjectManager;
+import de.julianweinelt.databench.data.SystemPlugin;
 import de.julianweinelt.databench.dbx.api.DbxAPI;
+import de.julianweinelt.databench.dbx.api.Registry;
+import de.julianweinelt.databench.dbx.api.drivers.DriverManagerService;
 import de.julianweinelt.databench.dbx.api.events.Event;
 import de.julianweinelt.databench.dbx.api.plugins.PluginLoader;
 import de.julianweinelt.databench.dbx.api.ui.UIService;
+import de.julianweinelt.databench.dbx.util.LanguageManager;
 import de.julianweinelt.databench.service.UpdateChecker;
 import de.julianweinelt.databench.ui.BenchUI;
 import de.julianweinelt.databench.ui.DefaultUI;
-import de.julianweinelt.databench.dbx.util.LanguageManager;
 import de.julianweinelt.databench.ui.StartScreen;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.Properties;
 import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 public class DataBench {
@@ -40,6 +41,7 @@ public class DataBench {
 
     private static final int PORT = 43210;
     public static boolean shouldUpdate = false;
+    private static final AtomicBoolean shutdown = new AtomicBoolean(false);
 
     private static boolean devMode = false;
 
@@ -127,7 +129,7 @@ public class DataBench {
         log.info("Loading configuration...");
         configManager.loadConfig();
         configManager.getConfiguration().initHomeDirectories();
-        log.info("Loaded DataBench preconfig with installation id: {}", configManager.getConfiguration().getInstallationID());
+        log.info("Loaded DataBench pre-config with installation id: {}", configManager.getConfiguration().getInstallationID());
 
         log.info("Loading project data...");
         projectManager = new ProjectManager();
@@ -176,18 +178,31 @@ public class DataBench {
         startSocketListener();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            log.info("Shutting down DataBench...");
+            Registry.instance().callEvent(new Event("DataBenchShutdownEvent"));
+            log.info("Disabling plugin service...");
+            pluginLoader.unloadAll();
+            log.info("Plugins unloaded.");
+
             Configuration.getConfiguration().setFirstStartup(false);
-            configManager.saveConfig();
-            if (!shouldUpdate) return;
-            ProcessBuilder pb = new ProcessBuilder(
-                    "DataBench.exe",
-                    "--update"
-            );
-            try {
-                pb.start();
-            } catch (IOException e) {
-                log.error(e.getMessage(), e);
+
+            if (shouldUpdate) {
+                ProcessBuilder pb = new ProcessBuilder(
+                        "DataBench.exe",
+                        "--update"
+                );
+                try {
+                    pb.start();
+                } catch (IOException e) {
+                    log.error(e.getMessage(), e);
+                }
             }
+            log.info("Closing UI...");
+            ui.stop();
+            configManager.saveConfig();
+            log.info("Saved configuration to disk");
+            log.info("Stopping socket...");
+            stopSocket();
             log.info("Goodbye!");
         }));
 
@@ -295,7 +310,7 @@ public class DataBench {
     private void startSocketListener() {
         Thread listenerThread = new Thread(() -> {
             try (ServerSocket serverSocket = new ServerSocket(PORT)) {
-                while (true) {
+                while (!shutdown.get()) {
                     try (Socket client = serverSocket.accept();
                          Scanner in = new Scanner(client.getInputStream())) {
                         while (in.hasNextLine()) {
@@ -322,5 +337,9 @@ public class DataBench {
         });
         listenerThread.setDaemon(true);
         listenerThread.start();
+    }
+
+    private void stopSocket() {
+        shutdown.set(true);
     }
 }
