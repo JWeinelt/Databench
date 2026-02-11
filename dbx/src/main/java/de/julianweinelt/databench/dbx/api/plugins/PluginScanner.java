@@ -45,6 +45,11 @@ public class PluginScanner {
                 try (InputStream in = jarFile.getInputStream(entry)) {
                     String json = new String(in.readAllBytes(), StandardCharsets.UTF_8);
                     PluginConfiguration config = new Gson().fromJson(json, PluginConfiguration.class);
+                    if (config.pluginName().equalsIgnoreCase("system")) {
+                        log.warn("Found a potentially malicious plugin, which trys to pretend it's the system plugin.");
+                        log.warn("Plugin path: {}", jar.getPath());
+                        continue;
+                    }
                     URL url = jar.toURI().toURL();
                     descriptors.add(new PluginDescriptor(config.pluginName(), jar, url, config));
                 }

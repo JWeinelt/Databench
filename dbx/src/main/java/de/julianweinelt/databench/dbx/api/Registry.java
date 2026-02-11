@@ -149,6 +149,7 @@ public class Registry {
      * @return the {@link DbxPlugin} instance, or {@code null} if not found
      */
     public DbxPlugin getPlugin(String name) {
+        if (name.equalsIgnoreCase("system")) return api.getSystemPlugin();
         for (DbxPlugin m : plugins) if (m.getName().equals(name)) return m;
         return null;
     }
@@ -181,6 +182,17 @@ public class Registry {
 
 
     public void registerTheme(Theme theme) {
-
+        themes.add(theme);
+    }
+    public Theme getTheme(String name) {
+        for (Theme t : themes) if (t.getUnlocalizedName().equals(name)) return t;
+        return null;
+    }
+    public Map<String, String> themeData() {
+        Map<String, String> data = new HashMap<>();
+        for (Theme t : themes) {
+            data.put(t.getUnlocalizedName(), t.getDefiningPlugin().getName());
+        }
+        return data;
     }
 }
