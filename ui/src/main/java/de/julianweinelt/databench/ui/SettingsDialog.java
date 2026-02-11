@@ -3,7 +3,9 @@ package de.julianweinelt.databench.ui;
 import de.julianweinelt.databench.data.ConfigManager;
 import de.julianweinelt.databench.data.Configuration;
 import de.julianweinelt.databench.dbx.api.ui.SettingsPanel;
+import de.julianweinelt.databench.dbx.api.ui.ShortcutManager;
 import de.julianweinelt.databench.dbx.api.ui.UIService;
+import de.julianweinelt.databench.dbx.api.ui.ShortcutAction;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
@@ -13,6 +15,8 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 
+import static de.julianweinelt.databench.dbx.util.LanguageManager.translate;
+
 @Slf4j
 public class SettingsDialog extends JDialog {
     private boolean saved = true;
@@ -20,7 +24,7 @@ public class SettingsDialog extends JDialog {
     private final java.util.List<Runnable> toSaveRuns = new ArrayList<>();
 
     public SettingsDialog(Frame owner) {
-        super(owner, "Preferences", true);
+        super(owner, translate("menu.cat.edit.preferences"), true);
         setFont(Configuration.getConfiguration().getEditorFontObject());
         setSize(600, 420);
         setLocationRelativeTo(owner);
@@ -56,17 +60,17 @@ public class SettingsDialog extends JDialog {
     private JPanel createShortcutPanel() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
 
-        DefaultListModel<de.julianweinelt.databench.dbx.api.ShortcutAction> model = new DefaultListModel<>();
-        for (de.julianweinelt.databench.dbx.api.ShortcutAction action : de.julianweinelt.databench.dbx.api.ShortcutAction.values()) {
+        DefaultListModel<ShortcutAction> model = new DefaultListModel<>();
+        for (ShortcutAction action : ShortcutManager.instance().getActions()) {
             model.addElement(action);
         }
 
-        JList<de.julianweinelt.databench.dbx.api.ShortcutAction> actionList = new JList<>(model);
+        JList<ShortcutAction> actionList = new JList<>(model);
         actionList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         actionList.setLayoutOrientation(JList.VERTICAL);
         actionList.setVisibleRowCount(-1);
         actionList.setCellRenderer((list, value, index, isSelected, cellHasFocus) -> {
-            JLabel label = new JLabel(value.getDisplayName());
+            JLabel label = new JLabel(value.displayName());
             label.setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
             if (isSelected) {
                 label.setOpaque(true);
@@ -82,7 +86,7 @@ public class SettingsDialog extends JDialog {
         return panel;
     }
 
-    private JPanel createShortcutDetailPanel(JList<de.julianweinelt.databench.dbx.api.ShortcutAction> list) {
+    private JPanel createShortcutDetailPanel(JList<ShortcutAction> list) {
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints c = baseConstraints();
         c.fill = GridBagConstraints.HORIZONTAL;
@@ -107,36 +111,36 @@ public class SettingsDialog extends JDialog {
         panel.add(reset, c);
 
         list.addListSelectionListener(e -> {
-            de.julianweinelt.databench.dbx.api.ShortcutAction action = list.getSelectedValue();
+            ShortcutAction action = list.getSelectedValue();
             if (action == null) return;
 
-            actionName.setText(action.getDisplayName());
+            actionName.setText(action.displayName());
 
             KeyStroke ks = Configuration.getConfiguration()
-                    .getShortcut(action.name(), action.getDefaultKey());
+                    .getShortcut(action.internalName(), action.defaultKey());
 
             shortcutField.setText(KeyStrokeUtils.toString(ks));
         });
 
         change.addActionListener(e -> {
-            de.julianweinelt.databench.dbx.api.ShortcutAction action = list.getSelectedValue();
+            ShortcutAction action = list.getSelectedValue();
             if (action == null) return;
 
             KeyStroke ks = captureKeyStroke(panel);
             if (ks != null) {
                 Configuration.getConfiguration()
-                        .setShortcut(action.name(), ks);
+                        .setShortcut(action.internalName(), ks);
                 ConfigManager.getInstance().saveConfig();
                 shortcutField.setText(KeyStrokeUtils.toString(ks));
             }
         });
 
         reset.addActionListener(e -> {
-            de.julianweinelt.databench.dbx.api.ShortcutAction action = list.getSelectedValue();
+            ShortcutAction action = list.getSelectedValue();
             if (action == null) return;
 
-            Configuration.getConfiguration().removeShortcut(action.name());
-            shortcutField.setText(KeyStrokeUtils.toString(action.getDefaultKey()));
+            Configuration.getConfiguration().removeShortcut(action.internalName());
+            shortcutField.setText(KeyStrokeUtils.toString(action.defaultKey()));
         });
 
         return panel;

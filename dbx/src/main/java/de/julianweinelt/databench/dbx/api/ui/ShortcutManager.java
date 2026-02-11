@@ -1,10 +1,13 @@
 package de.julianweinelt.databench.dbx.api.ui;
 
+import lombok.Getter;
+
 import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ShortcutManager {
+    @Getter
     private final List<ShortcutAction> actions = new ArrayList<>();
 
     public static ShortcutManager instance() {
