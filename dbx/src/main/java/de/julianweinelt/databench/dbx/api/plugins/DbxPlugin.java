@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
+import javax.swing.plaf.basic.BasicLookAndFeel;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -98,10 +99,15 @@ public abstract class DbxPlugin {
         try {
             String data = readContent(filePath);
             Theme theme = new Theme(this, name, data);
+            getRegistry().registerTheme(theme);
         } catch (IOException e) {
             log.error("Failed to load theme data for theme {}, plugin {} by {}. File not found at {}",
                     name, getName(), String.join(",", getAuthors()), filePath);
         }
+    }
+    protected void registerTheme(String name, BasicLookAndFeel laf) {
+        Theme theme = new Theme(this, name, "", laf);
+        getRegistry().registerTheme(theme);
     }
 
     protected void preloadThemes() {
