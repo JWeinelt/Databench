@@ -134,9 +134,9 @@ Big ideas – but no fixed timeline yet.
 👉 Focus prevents feature creep.
 
 **Current focus:**
-1.
-2.
-3.
+1. Index management
+2. Translation
+3. Stability
 
 ## **What is deliberately NOT being built (yet):**
 
