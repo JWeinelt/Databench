@@ -4,20 +4,19 @@
 
 # 💾 DataBench
 
-Databench is a small open-source software tool designed to help users manage and 
-analyze their MySQL/MariaDB databases.
+Databench is an open-source software tool designed to help users manage and analyze their databases, no matter which engine.
 
 ## 🔒 Features
 - 😊 User-friendly interface for managing databases
 - 🚀 Integrated SQL editor with **syntax highlighting** and **auto-completion**
 - 🏣 Support for multiple database connections
-- 🗯 Support for different database types (MySQL, MariaDB, SQL Server, PostgreSQL, OracleSQL)
+- 🗯 Support for different database types (MySQL, MariaDB, SQL Server, PostgreSQL built-in, more are available through plugins)
 - 🏛️ Native Windows authentication support for SQL Server
 - 🌜 Dark Mode support for comfortable coding
-- 📤 Export query results to CSV format
+- 📤 Export query results to CSV/MS Excel format
 - ⚙️ Lightweight and easy to install
 - 🔒 Secure and encrypted database connection details to share with team members
-- 🐳 Advanced plugin system to integrate into events, change ui elements, implement new database types and more
+- 🐳 Advanced plugin system to integrate into events, change ui elements, implement new database types, add themes and more
 - 📫 Data import/export functionality (WIP; Proof of concept)
 - 🌊 Flow: An SQL Agent alternative for every database engine
 
