@@ -13,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -54,6 +56,15 @@ public class ExportDialog extends JDialog {
         add(createSettingsPanel(), BorderLayout.NORTH);
         add(createConsolePanel(), BorderLayout.CENTER);
         add(createFooter(), BorderLayout.SOUTH);
+
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                if (taskbar.isSupported(Taskbar.Feature.PROGRESS_STATE_WINDOW)) {
+                    taskbar.setWindowProgressState(owner, Taskbar.State.OFF);
+                }
+            }
+        });
 
         startButton.setEnabled(false);
         startButton.addActionListener(e -> {

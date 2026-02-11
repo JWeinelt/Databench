@@ -10,6 +10,8 @@ import de.julianweinelt.databench.dbx.backup.ImportListener;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.util.Map;
 
@@ -41,6 +43,15 @@ public class ImportDialog extends JDialog implements ImportListener {
         } else {
             taskbar.setWindowProgressState(owner, Taskbar.State.NORMAL);
         }
+
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                if (taskbar.isSupported(Taskbar.Feature.PROGRESS_STATE_WINDOW)) {
+                    taskbar.setWindowProgressState(owner, Taskbar.State.OFF);
+                }
+            }
+        });
 
         setSize(700, 450);
         setLocationRelativeTo(owner);
