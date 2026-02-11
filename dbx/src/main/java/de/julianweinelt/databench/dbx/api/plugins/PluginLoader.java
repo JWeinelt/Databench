@@ -135,7 +135,11 @@ public class PluginLoader {
                 Type type = new TypeToken<HashMap<String, HashMap<String, String>>>() {}.getType();
                 try (InputStream iS = jarFile.getInputStream(langEntry)) {
                     languageData = GSON.fromJson(new InputStreamReader(iS, StandardCharsets.UTF_8), type);
-                    log.info("Loaded {} translations for plugin {}.", languageData.size(), name);
+                    log.info("Loaded {} translation languages for plugin {}.", languageData.size(), name);
+                    HashMap<String, HashMap<String, String>> finalLanguageData = languageData;
+                    languageData.keySet().forEach(lang ->
+                            log.info("Loaded {} translations for language {}", finalLanguageData.get(lang).size(), lang));
+
                     registry.callEvent(new Event("PluginLanguageDataEvent")
                             .set("plugin", name)
                             .set("languageData", GSON.toJson(languageData)));

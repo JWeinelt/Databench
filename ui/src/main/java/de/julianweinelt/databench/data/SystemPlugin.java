@@ -43,7 +43,7 @@ public final class SystemPlugin extends DbxPlugin {
         registerTheme("dark_mac", new FlatMacDarkLaf());
         registerTheme("light_mac", new FlatMacLightLaf());
         registerTheme("darcula", new FlatDarculaLaf());
-        registerTheme("material_moonlight");
+        registerTheme("cute_pink_light");
         registerTheme("godot");
     }
 
