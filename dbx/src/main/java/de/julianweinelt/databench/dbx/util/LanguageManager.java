@@ -22,7 +22,7 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 public final class LanguageManager {
 
-    private static final int PARSER_VERSION = 1;
+    private static final int PARSER_VERSION = 4;
     private static LanguageManager instance;
 
     private final Map<String, LangMeta> metaById = new HashMap<>();
