@@ -11,6 +11,9 @@ import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.io.File;
+import java.util.Map;
+
+import static de.julianweinelt.databench.dbx.util.LanguageManager.translate;
 
 public class ImportDialog extends JDialog implements ImportListener {
 
@@ -19,8 +22,8 @@ public class ImportDialog extends JDialog implements ImportListener {
     private final JTextArea logArea = new JTextArea();
     private final JProgressBar progressBar = new JProgressBar();
 
-    private final JButton startButton = new JButton("Start Import");
-    private final JButton cancelButton = new JButton("Cancel");
+    private final JButton startButton = new JButton(translate("dialog.import.button.start"));
+    private final JButton cancelButton = new JButton(translate("dialog.export.button.cancel"));
     private final JButton browseButton = new JButton("...");
     private final Taskbar taskbar;
 
@@ -29,7 +32,7 @@ public class ImportDialog extends JDialog implements ImportListener {
     private ADatabase targetDatabase = null;
 
     public ImportDialog(Frame owner) {
-        super(owner, "Import DBX Archive", true);
+        super(owner, translate("dialog.import.title"), true);
 
         taskbar = Taskbar.getTaskbar();
         if (!taskbar.isSupported(Taskbar.Feature.PROGRESS_STATE_WINDOW)) {
@@ -59,12 +62,12 @@ public class ImportDialog extends JDialog implements ImportListener {
 
         c.gridx = 0; c.gridy = 0;
         JComboBox<String> projects = new JComboBox<>();
-        projects.addItem("Select Project");
+        projects.addItem(translate("dialog.import.select.project"));
         ProjectManager.instance().getProjects().forEach(project -> projects.addItem(project.getName()));
         projects.addActionListener(e -> {
             String selected = (String) projects.getSelectedItem();
             if (selected == null) return;
-            if (selected.equals("Select Project")) return;
+            if (selected.equals(translate("dialog.import.select.project"))) return;
 
             Project project = ProjectManager.instance().getProject(selected);
 
@@ -83,7 +86,7 @@ public class ImportDialog extends JDialog implements ImportListener {
         top.add(projects, c);
 
         c.gridx = 0; c.gridy = 1;
-        top.add(new JLabel("Archive file:"), c);
+        top.add(new JLabel(translate("dialog.import.archive")), c);
 
         c.gridx = 1; c.weightx = 1;
         top.add(archiveField, c);
@@ -92,7 +95,7 @@ public class ImportDialog extends JDialog implements ImportListener {
         top.add(browseButton, c);
 
         c.gridx = 0; c.gridy = 2;
-        top.add(new JLabel("Target DB:"), c);
+        top.add(new JLabel(translate("dialog.import.target-db")), c);
 
         c.gridx = 1; c.gridwidth = 2;
         top.add(targetField, c);
@@ -119,8 +122,8 @@ public class ImportDialog extends JDialog implements ImportListener {
         browseButton.addActionListener(e -> chooseArchive());
         cancelButton.addActionListener(e -> {
             int val = JOptionPane.showConfirmDialog(ImportDialog.this,
-                    "Are you sure you want to cancel the import? All imported data will be lost.",
-                    "Cancel Import?", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null);
+                    translate("dialog.import.cancel.dialog.text"),
+                    translate("dialog.import.cancel.dialog.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null);
             if (val == JOptionPane.YES_OPTION) {
                 if (importThread != null && importThread.isAlive()) importThread.interrupt();
                 targetDatabase.rollback();
@@ -133,7 +136,7 @@ public class ImportDialog extends JDialog implements ImportListener {
     private void chooseArchive() {
         JFileChooser chooser = new JFileChooser();
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        chooser.setFileFilter(new FileNameExtensionFilter("DBX archive files", "dbx"));
+        chooser.setFileFilter(new FileNameExtensionFilter(translate("dialog.export.extension.dbx"), "dbx"));
 
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             File file = chooser.getSelectedFile();
@@ -148,8 +151,8 @@ public class ImportDialog extends JDialog implements ImportListener {
         if (archiveField.getText().isEmpty()) {
             JOptionPane.showMessageDialog(
                     this,
-                    "Please select an archive file",
-                    "Missing file",
+                    translate("dialog.import.missing-file.text"),
+                    translate("dialog.import.missing-file.title"),
                     JOptionPane.WARNING_MESSAGE
             );
             return;
@@ -168,27 +171,27 @@ public class ImportDialog extends JDialog implements ImportListener {
                 DatabaseImporter importer =
                         new DatabaseImporter(reader, targetDatabase, this, this);
 
-                message("Reading manifest...");
+                message(translate("dialog.import.log.readmanifest"));
                 importer.readManifest();
-                message("Validating data...");
+                message(translate("dialog.import.log.validate"));
                 importer.validate();
-                message("Connecting to target database...");
+                message(translate("dialog.import.log.connecting"));
                 importer.connectTarget();
-                message("Loading schema information...");
+                message(translate("dialog.import.log.loading"));
                 importer.loadSchemas();
-                message("Importing data...");
+                message(translate("dialog.import.log.importing"));
                 importer.importData();
                 taskbar.setWindowProgressState(this, Taskbar.State.OFF);
 
             } catch (Exception ex) {
                 taskbar.setWindowProgressState(this, Taskbar.State.ERROR);
                 onError("Import failed", ex);
-                message("Import failed: " + ex.getMessage());
+                message(translate("dialog.import.import-failed.text", Map.of("error", ex.getMessage())));
                 SwingUtilities.invokeLater(() -> {
                         JOptionPane.showMessageDialog(
                                 this,
-                                ex.getMessage(),
-                                "Import failed",
+                                translate("dialog.import.import-failed.text", Map.of("error", ex.getMessage())),
+                                translate("dialog.import.import-failed.title"),
                                 JOptionPane.ERROR_MESSAGE
                         );
                     taskbar.setWindowProgressState(this, Taskbar.State.OFF);
@@ -226,7 +229,7 @@ public class ImportDialog extends JDialog implements ImportListener {
     @Override
     public void onError(String message, Throwable e) {
         SwingUtilities.invokeLater(() -> {
-            logArea.append("[ERROR] " + message + "\n");
+            logArea.append(translate("dialog.import.log.error.prefix") + " " + message + "\n");
             if (e != null) {
                 logArea.append("  " + e.getMessage() + "\n");
             }

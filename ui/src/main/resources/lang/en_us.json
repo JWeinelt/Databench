@@ -193,10 +193,31 @@
   "dialog.export.console.success": "Export completed successfully.",
   "dialog.export.console.failed": "Export failed.",
 
+
+  "dialog.import.button.start": "Start Import",
+  "dialog.import.title": "Import Data",
+  "dialog.import.select.project": "Select Project",
+  "dialog.import.archive": "Archive file:",
+  "dialog.import.target-db": "Target DB:",
+  "dialog.import.cancel.dialog.text": "Are you sure you want to cancel the import? All imported data will be lost.",
+  "dialog.import.cancel.dialog.title": "Cancel Import?",
+  "dialog.import.missing-file.title": "No archive file selected",
+  "dialog.import.missing-file.text": "Please select an archive file",
+  "dialog.import.log.readmanifest": "Reading manifest...",
+  "dialog.import.log.validate": "Validating data...",
+  "dialog.import.log.connecting": "Connecting to target database...",
+  "dialog.import.log.loading": "Loading schema information...",
+  "dialog.import.log.importing": "Importing data...",
+  "dialog.import.import-failed.title": "Import failed",
+  "dialog.import.import-failed.text": "Could not finish import process.\nMessage: ${error}",
+  "dialog.import.log.error.prefix": "[ERROR]",
+
+
   "project.tabs.flow": "Flow",
 
   "dialog.export.extension.csv": "CSV Files (*.csv)",
   "dialog.export.extension.xlsx": "Excel Workbooks (*.xlsx)",
+  "dialog.export.extension.dbx": "DBX Archive (*.dbx)",
   "tree.no-selection": "Please select an object...",
 
 
