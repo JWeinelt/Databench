@@ -196,6 +196,64 @@
   "project.tabs.flow": "Flow",
 
   "dialog.export.extension.csv": "CSV Files (*.csv)",
-  "dialog.export.extension.xlsx": "Excel Workbooks (*.xlsx)"
+  "dialog.export.extension.xlsx": "Excel Workbooks (*.xlsx)",
+  "tree.no-selection": "Please select an object...",
 
+
+  "context.file.new.title": "New",
+  "context.file.new.itm.file": "File",
+  "context.file.new.itm.dir": "Directory",
+  "context.file.new.itm.sql": "SQL Query File",
+  "context.file.new.itm.csvfromquery": "CSV from Query",
+  "context.file.new.itm.xlsx": "XLSX File",
+  "context.file.new.itm.json": "JSON File",
+
+  "context.file.cut": "Cut",
+  "context.file.copy": "Copy",
+  "context.file.copy_path": "Copy Path/Reference...",
+  "context.file.paste": "Paste",
+  "context.file.rename": "Rename",
+  "context.file.open": "Open in",
+  "context.file.open.explorer": "Open in Explorer",
+  "context.file.open.app": "Open in Associated Application",
+  "context.file.open.other": "Open in...",
+
+  "context.file.git.title": "Git",
+  "context.file.git.coming-soon": "Coming soon",
+
+  "window.placeholder.enter": "Enter value of Placeholder: \"${placeholder}\":",
+  "window.placeholder.title": "Enter placeholder",
+
+  "window.popup.unsaved-changes.title": "Unsaved Changes",
+  "window.popup.unsaved-changes.description": "There are unsaved changes in ${title}. Do you want to save it?",
+
+  "startpage.news.title": "Latest news",
+
+
+  "page.settings.general.title": "General",
+  "page.settings.general.lang": "Language:",
+  "page.settings.general.open-last-proj": "Open last project on startup",
+  "page.settings.general.safe-query": "Enable safe querying mode",
+  "page.settings.general.stats": "Send anonymous statistics",
+  "page.settings.general.send-err": "Automatically send error protocols",
+  "page.settings.general.close-action.title": "Action when closing IDE",
+  "page.settings.general.close-action.ask": "Ask",
+  "page.settings.general.close-action.save_disconnect": "Save files",
+  "page.settings.general.close-action.ask_save_disconnect": "Ask to save files",
+  "page.settings.general.close-action.disconnect": "Close everything",
+  "page.settings.general.save-on-close": "Save files when closing project",
+  "page.settings.general.updates.title": "Updates",
+  "page.settings.general.updates.check": "Check for updates on startup",
+  "page.settings.general.updates.channel": "Update Channel:",
+  "page.settings.general.updates.channel.stable": "Stable",
+  "page.settings.general.updates.channel.beta": "Beta",
+  "page.settings.general.updates.channel.dev": "Development",
+
+  "page.settings.appearance.title": "Appearance",
+  "page.settings.appearance.theme": "Theme:",
+  "page.settings.appearance.font-size.editor": "Editor font size:",
+  "page.settings.appearance.font-size.general": "General font size:",
+  "page.settings.appearance.font-size.proj-tree": "Project Tree font size:",
+  "page.settings.appearance.font.editor": "Editor font:",
+  "page.settings.appearance.colors": "Colors"
 }

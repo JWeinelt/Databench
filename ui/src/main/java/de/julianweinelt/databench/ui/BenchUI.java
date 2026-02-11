@@ -281,7 +281,7 @@ public class BenchUI {
         tipsPanel.setBorder(BorderFactory.createTitledBorder("Next Steps & Documentation"));
         tipsPanel.setOpaque(false);
 
-        JLabel tip1 = new JLabel("• All database connection are organized in projects.");
+        JLabel tip1 = new JLabel("• All database connections are organized in projects.");
         JLabel tip2 = new JLabel("• You can securely share them by exporting.");
         JLabel tip3 = new JLabel("<html>• Check the <a href='https://github.com/JWeinelt/DataBench/wiki'>documentation</a> for SQL tips.</html>");
 
@@ -315,7 +315,7 @@ public class BenchUI {
     //TODO: Make news dynamic
     private JComponent createNewsPanel() {
         JPanel panel = new JPanel(new BorderLayout(8, 8));
-        panel.setBorder(BorderFactory.createTitledBorder("Latest news"));
+        panel.setBorder(BorderFactory.createTitledBorder(translate("startpage.news.title")));
 
         JPanel header = new JPanel(new BorderLayout());
         JLabel titleLabel = new JLabel("Example");

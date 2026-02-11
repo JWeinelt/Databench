@@ -12,6 +12,8 @@ import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import java.awt.*;
 import java.util.Map;
 
+import static de.julianweinelt.databench.dbx.util.LanguageManager.translate;
+
 @Slf4j
 public class DefaultUI {
     private final UIService service;
@@ -26,9 +28,9 @@ public class DefaultUI {
     }
 
     private SettingsPanel createGeneralPanel() {
-        SettingsPanel panel = new SettingsPanel("General");
+        SettingsPanel panel = new SettingsPanel(translate("page.settings.general.title"));
         ComponentComboBox lang = new ComponentComboBox();
-        lang.label("Language:");
+        lang.label(translate("page.settings.general.lang"));
 
         LanguageManager.instance().getFriendlyNames().forEach(la ->
                 lang.option(LanguageManager.instance().toId(la), la));
@@ -46,64 +48,69 @@ public class DefaultUI {
                     .action(obj ->
                             Configuration.getConfiguration().setOpenProjectOnStartup(obj.value()))
                     .initialValue(Configuration.getConfiguration().isOpenProjectOnStartup())
-                    .label("Open last project on startup"));
+                    .label(translate("page.settings.general.open-last-proj")));
 
-        panel.add(new ComponentCheckbox().label("Enable safe querying mode"));
+        panel.add(new ComponentCheckbox().label(translate("page.settings.general.safe-query")));
 
         panel.add(new ComponentCheckbox()
-                .label("Send anonymous statistics")
+                .label(translate("page.settings.general.stats"))
                 .action(obj -> Configuration.getConfiguration().setSendAnonymousData(obj.value()))
                 .initialValue(Configuration.getConfiguration().isSendAnonymousData())
         );
         panel.add(new ComponentCheckbox()
-                .label("Automatically send error protocols")
+                .label(translate("page.settings.general.send-err"))
                 .action(obj -> Configuration.getConfiguration().setSendErrorProtocols(obj.value()))
                 .initialValue(Configuration.getConfiguration().isSendErrorProtocols())
         );
         panel.add(new ComponentComboBox()
-                .label("Action when closing IDE")
-                .option("ask", "Ask", () -> Configuration.getConfiguration().setCloseType("ask"))
-                .option("save_disconnect", "Save files", () -> Configuration.getConfiguration().setCloseType("save_disconnect"))
-                .option("ask_save_disconnect", "Ask to save files", () -> Configuration.getConfiguration().setCloseType("ask_save_disconnect"))
-                .option("disconnect", "Close everything", () -> Configuration.getConfiguration().setCloseType("disconnect"))
+                .label(translate("page.settings.general.close-action.title"))
+                .option("ask", translate("page.settings.general.close-action.ask"),
+                        () -> Configuration.getConfiguration().setCloseType("ask"))
+                .option("save_disconnect", translate("page.settings.general.close-action.save_disconnect")
+                        , () -> Configuration.getConfiguration().setCloseType("save_disconnect"))
+                .option("ask_save_disconnect", translate("page.settings.general.close-action.ask_save_disconnect"),
+                        () -> Configuration.getConfiguration().setCloseType("ask_save_disconnect"))
+                .option("disconnect", translate("page.settings.general.close-action.disconnect"),
+                        () -> Configuration.getConfiguration().setCloseType("disconnect"))
         );
         panel.add(new ComponentCheckbox()
-                .label("Save files when closing project")
+                .label(translate("page.settings.general.save-on-close"))
                 //TODO: Add action
         );
         panel.add(new ComponentHorizontalLine());
-        panel.add(new ComponentLabel(true).text("Updates").font(new Font("Arial", Font.BOLD, 15)));
-        panel.add(new ComponentCheckbox().label("Check for updates on startup"));
+        panel.add(new ComponentLabel(true).text(translate("page.settings.general.updates.title")).font(new Font("Arial", Font.BOLD, 15)));
+        panel.add(new ComponentCheckbox().label(translate("page.settings.general.updates.check")));
         panel.add(new ComponentComboBox()
-                .label("Update Channel:")
-                .option("stable", "Stable")
-                .option("beta", "Beta")
-                .option("dev", "Development")
+                .label(translate("page.settings.general.updates.channel"))
+                .option("stable", translate("page.settings.general.updates.channel.stable"))
+                .option("beta", translate("page.settings.general.updates.channel.beta"))
+                .option("dev", translate("page.settings.general.updates.channel.dev"))
                 .action(mode -> Configuration.getConfiguration().setUpdateChannel(mode))
         );
         return panel;
     }
 
     private SettingsPanel createAppearancePanel() {
-        SettingsPanel panel = new SettingsPanel("Appearance");
+        SettingsPanel panel = new SettingsPanel(translate("page.settings.appearance.title"));
 
         ComponentComboBox themes = new ComponentComboBox()
-                .label("Theme:");
+                .label(translate("page.settings.appearance.theme"));
 
         for (String theme : new String[]{"Dark", "Light", "Darcula", "Dark (MacOS)", "Light (MacOS)", "IntelliJ"})
             themes.option(theme, theme, () -> {
                 Configuration.getConfiguration().setSelectedTheme(theme);
             });
+        //TODO: Move theme management to API
 
         panel.add(themes);
 
-        panel.add(new ComponentSpinner().label("Editor font size:")
+        panel.add(new ComponentSpinner().label(translate("page.settings.appearance.font-size.editor"))
                 .initialValue(Configuration.getConfiguration().getEditorFontSize())
                 .action(i -> Configuration.getConfiguration().setEditorFontSize(i)));
-        panel.add(new ComponentSpinner().label("General font size:")
+        panel.add(new ComponentSpinner().label(translate("page.settings.appearance.font-size.general"))
                 .initialValue(Configuration.getConfiguration().getGeneralFontSize())
                 .action(i -> Configuration.getConfiguration().setGeneralFontSize(i)));
-        panel.add(new ComponentSpinner().label("Project Tree font size:")
+        panel.add(new ComponentSpinner().label(translate("page.settings.appearance.font-size.proj-tree"))
                 .initialValue(Configuration.getConfiguration().getProjectTreeFontSize())
                 .action(i -> Configuration.getConfiguration().setProjectTreeFontSize(i)));
 
@@ -119,7 +126,7 @@ public class DefaultUI {
         String[] fonts = ge.getAvailableFontFamilyNames();
 
         ComponentComboBox fontBox = new ComponentComboBox()
-                .label("Editor font:");
+                .label(translate("page.settings.appearance.font.editor"));
         for (String font : fonts) {
             fontBox.option(font, font);
         }
@@ -131,7 +138,8 @@ public class DefaultUI {
         areaTemp.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_SQL);
 
         panel.add(new ComponentHorizontalLine());
-        panel.add(new ComponentLabel(true).text("Colors").font(new Font("Arial", Font.BOLD, 15)));
+        panel.add(new ComponentLabel(true).text(translate("page.settings.appearance.colors"))
+                .font(new Font("Arial", Font.BOLD, 15)));
         Map<String, Integer> tokenTypes = Configuration.ColorSettings.TOKEN_TYPES;
         for (String t : tokenTypes.keySet()) {
             ComponentColorPicker picker = new ComponentColorPicker();

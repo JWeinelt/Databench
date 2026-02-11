@@ -143,7 +143,7 @@ public class DConnection implements IFileWatcherListener {
                         menu = createContextMenu(node, benchUI);
                     } else {
                         menu = new JPopupMenu();
-                        JMenuItem noObj = new JMenuItem("Please select an object...");
+                        JMenuItem noObj = new JMenuItem(translate("tree.no-selection"));
                         noObj.setEnabled(false);
                         menu.add(noObj);
                     }
@@ -278,34 +278,34 @@ public class DConnection implements IFileWatcherListener {
 
     private JPopupMenu createFileContext(DefaultMutableTreeNode node, BenchUI ui) {
         JPopupMenu menu = new JPopupMenu();
-        JMenu newMenu = new JMenu("New");
-        newMenu.add(new JMenuItem("File"));
-        newMenu.add(new JMenuItem("Directory"));
+        JMenu newMenu = new JMenu(translate("context.file.new.title"));
+        newMenu.add(new JMenuItem(translate("context.file.new.itm.file")));
+        newMenu.add(new JMenuItem(translate("context.file.new.itm.dir")));
         newMenu.addSeparator();
-        newMenu.add(new JMenuItem("SQL Query File"));
-        newMenu.add(new JMenuItem("CSV from Query"));
-        newMenu.add(new JMenuItem("XLSX File"));
-        newMenu.add(new JMenuItem("JSON File"));
+        newMenu.add(new JMenuItem(translate("context.file.new.itm.sql")));
+        newMenu.add(new JMenuItem(translate("context.file.new.itm.csvfromquery")));
+        newMenu.add(new JMenuItem(translate("context.file.new.itm.xlsx")));
+        newMenu.add(new JMenuItem(translate("context.file.new.itm.json")));
 
         menu.add(newMenu);
 
         menu.addSeparator();
 
-        menu.add(new JMenuItem("Cut"));
-        menu.add(new JMenuItem("Copy"));
-        menu.add(new JMenuItem("Copy Path/Reference..."));
-        menu.add(new JMenuItem("Paste"));
+        menu.add(new JMenuItem(translate("context.file.cut")));
+        menu.add(new JMenuItem(translate("context.file.copy")));
+        menu.add(new JMenuItem(translate("context.file.copy_path")));
+        menu.add(new JMenuItem(translate("context.file.paste")));
         menu.addSeparator();
-        menu.add(new JMenuItem("Rename"));
+        menu.add(new JMenuItem(translate("context.file.rename")));
         menu.addSeparator();
-        JMenu openIn = new JMenu("Open In");
-        openIn.add(new JMenuItem("Open In Explorer"));
-        openIn.add(new JMenuItem("Open In Associated Application"));
-        openIn.add(new JMenuItem("Open In..."));
+        JMenu openIn = new JMenu(translate("context.file.open"));
+        openIn.add(new JMenuItem(translate("context.file.open.explorer")));
+        openIn.add(new JMenuItem(translate("context.file.open.app")));
+        openIn.add(new JMenuItem(translate("context.file.open.other")));
         menu.add(openIn);
 
-        JMenu gitMenu = new JMenu("Git");
-        gitMenu.add(new JMenuItem("Coming soon..."));
+        JMenu gitMenu = new JMenu(translate("context.file.git.title"));
+        gitMenu.add(new JMenuItem(translate("context.file.git.coming-soon")));
         menu.add(gitMenu);
         return menu;
     }
@@ -401,8 +401,8 @@ public class DConnection implements IFileWatcherListener {
     private String askUserForPlaceholder(String name) {
         return JOptionPane.showInputDialog(
                 null,
-                "Enter value of Placeholder \"" + name + "\":",
-                "Set placeholder",
+                translate("window.placeholder.enter", Map.of("placeholder", name)),
+                translate("window.placeholder.title"),
                 JOptionPane.QUESTION_MESSAGE
         );
     }
@@ -457,8 +457,8 @@ public class DConnection implements IFileWatcherListener {
 
             int option = JOptionPane.showConfirmDialog(
                     frame,
-                    "There are unsaved changes in " + e.getTitle() + ". Do you want to save it?",
-                    "Unsaved Changes",
+                    translate("window.popup.unsaved-changes.description", Map.of("title", e.getTitle())),
+                    translate("window.popup.unsaved-changes.title"),
                     JOptionPane.YES_NO_CANCEL_OPTION,
                     JOptionPane.WARNING_MESSAGE
             );
@@ -573,7 +573,7 @@ public class DConnection implements IFileWatcherListener {
         SQLAnswer answer;
         try (PreparedStatement pS = conn.prepareStatement(sql)) {
             pS.execute();
-            answer = new SQLAnswer(true, pS.getResultSet(), pS.getUpdateCount(), "Query executed successfully.", -1);
+            answer = new SQLAnswer(true, pS.getResultSet(), pS.getUpdateCount(), translate("query.execute.success"), -1);
         } catch (SQLException e) {
             log.error(e.getMessage());
             answer = new SQLAnswer(false, null, -1, e.getMessage(), -1);
@@ -750,7 +750,7 @@ public class DConnection implements IFileWatcherListener {
                     t.execute();
                 }
             });
-            JMenuItem rename = new JMenuItem("Rename");
+            JMenuItem rename = new JMenuItem(translate("context.file.rename"));
             rename.addActionListener(e -> {
                 String dbName = node.getUserObject().toString();
                 addEditorTab("ALTER DATABASE " + dbName + " MODIFY NAME = ${name}").execute();
