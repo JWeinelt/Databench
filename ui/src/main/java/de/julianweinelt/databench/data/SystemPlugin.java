@@ -1,6 +1,11 @@
 package de.julianweinelt.databench.data;
 
 
+import com.formdev.flatlaf.FlatDarculaLaf;
+import com.formdev.flatlaf.FlatDarkLaf;
+import com.formdev.flatlaf.FlatLightLaf;
+import com.formdev.flatlaf.themes.FlatMacDarkLaf;
+import com.formdev.flatlaf.themes.FlatMacLightLaf;
 import de.julianweinelt.databench.dbx.api.plugins.DbxPlugin;
 import de.julianweinelt.databench.dbx.api.ui.ShortcutManager;
 import de.julianweinelt.databench.dbx.api.ui.menubar.Menu;
@@ -33,6 +38,12 @@ public final class SystemPlugin extends DbxPlugin {
 
     @Override
     public void preInit() {
+        registerTheme("dark", new FlatDarkLaf());
+        registerTheme("light", new FlatLightLaf());
+        registerTheme("dark_mac", new FlatMacDarkLaf());
+        registerTheme("light_mac", new FlatMacLightLaf());
+        registerTheme("darcula", new FlatDarculaLaf());
+        registerTheme("material_moonlight");
     }
 
     @Override
