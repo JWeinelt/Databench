@@ -1,22 +1,22 @@
 # 💾 DataBench Flow
 This module contains the flow component of DataBench. 
-With the DataBench Flow installed on your database server machine, you can get features not directly
+With Flow installed on your database server machine, you can get features not directly
 supported by your database, such as an SQL Agent for MySQL or MariaDB servers.
 
-With the DataBench Flow, you can schedule SQL jobs to run at specific times or intervals,
+With Flow, you can schedule SQL jobs to run at specific times or intervals,
 automating routine database tasks such as backups, maintenance, and data processing.
 
 ## ⚙️ Installing on your server
 > [!NOTE]
-> You may also install the DataBench Flow on another machine than your database server,
-> but you have to make sure that the Flow can connect to your database server.
+> You may also install Flow on another machine than your database server,
+> but you have to make sure that the software can connect to your database server.
  
 ### 🔓 Requirements
-- Currently, the DataBench Flow only supports MySQL and MariaDB databases.
+- Currently, DataBench Flow only supports MySQL and MariaDB databases.
 - Java Runtime Environment (JRE) 17 or higher installed on the server machine.
 - Network access to the database server from the machine where the DataBench Flow is installed.
 - A database user with sufficient privileges to execute the scheduled SQL jobs.
-- (Optional) Firewall rules allowing incoming connections to the DataBench Flow on the specified port.
+- (Optional) Firewall rules allowing incoming connections to Flow on the specified port.
 
 > [!TIP]
 > You may open the port ``47386`` (TCP) and ``47387`` (TCP) on your firewall to allow remote access to the DataBench Flow.
