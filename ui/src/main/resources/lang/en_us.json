@@ -8,7 +8,7 @@
   "menu.cat.file.open": "Open",
   "menu.cat.file.save": "Save",
   "menu.cat.file.saveAs": "Save As",
-  "menu.cat.file.lightEdit": "Lightedit",
+  "menu.cat.file.lightEdit": "Headless Mode",
 
   "menu.cat.edit": "Edit",
   "menu.cat.edit.undo": "Undo",

@@ -8,7 +8,7 @@
   "menu.cat.file.open": "Öffnen",
   "menu.cat.file.save": "Speichern",
   "menu.cat.file.saveAs": "Speichern unter",
-  "menu.cat.file.lightEdit": "LightEdit",
+  "menu.cat.file.lightEdit": "Headless-Modus",
   "menu.cat.edit": "Bearbeiten",
   "menu.cat.edit.undo": "Rückgängig",
   "menu.cat.edit.redo": "Wiederholen",
