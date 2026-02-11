@@ -276,5 +276,17 @@
   "page.settings.appearance.font-size.general": "General font size:",
   "page.settings.appearance.font-size.proj-tree": "Project Tree font size:",
   "page.settings.appearance.font.editor": "Editor font:",
-  "page.settings.appearance.colors": "Colors"
+  "page.settings.appearance.colors": "Colors",
+
+  "notification.update-ready.title": "Update Downloaded",
+  "notification.update-ready.text": "A newer version of DataBench has been downloaded. Please restart the application to apply the changes.",
+  "notification.update-ready.link": "Restart now",
+
+  "notification.update-available.title": "Update available",
+  "notification.update-available.text": "A new DataBench version is available.",
+  "notification.update-available.link": "Download now",
+
+  "notification.no-update.title": "No updates available",
+  "notification.no-update.text": "You are up-to-date.",
+  "notification.no-update.link": "Close",
 }

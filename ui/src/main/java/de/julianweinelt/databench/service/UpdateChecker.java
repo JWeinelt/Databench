@@ -14,6 +14,8 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import static de.julianweinelt.databench.dbx.util.LanguageManager.translate;
+
 @Slf4j
 public class UpdateChecker {
     private final BenchUI ui;
@@ -35,9 +37,9 @@ public class UpdateChecker {
                 ui.getFrame(),
                 ui.getFrame(),
                 NotificationType.INFO,
-                "Update Downloaded",
-                "A newer version of DataBench has been downloaded. Please restart the application to apply the changes.",
-                "Restart now",
+                translate("notification.update-ready.title"),
+                translate("notification.update-ready.text"),
+                translate("notification.update-ready.link"),
                 () -> {
                     DataBench.shouldUpdate = true;
                     System.exit(0);
@@ -74,9 +76,9 @@ public class UpdateChecker {
                             ui.getFrame(),
                             ui.getFrame(),
                             NotificationType.INFO,
-                            "Update available",
-                            "A new DataBench version is available.",
-                            "Download now",
+                            translate("notification.update-available.title"),
+                            translate("notification.update-available.text"),
+                            translate("notification.update-available.link"),
                             () -> openDownloadPopup(version)
                     ).showPopup();
                 } else {
@@ -85,9 +87,9 @@ public class UpdateChecker {
                                 ui.getFrame(),
                                 ui.getFrame(),
                                 NotificationType.INFO,
-                                "No updates available",
-                                "You are up-to-date.",
-                                "Close",
+                                translate("notification.no-update.title"),
+                                translate("notification.no-update.text"),
+                                translate("notification.no-update.link"),
                                 () -> {
 
                                 }
