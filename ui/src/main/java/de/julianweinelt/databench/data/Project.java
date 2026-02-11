@@ -1,5 +1,6 @@
 package de.julianweinelt.databench.data;
 
+import com.formdev.flatlaf.util.ColorFunctions;
 import de.julianweinelt.databench.api.ImagePanel;
 import de.julianweinelt.databench.dbx.database.DatabaseRegistry;
 import de.julianweinelt.databench.ui.BenchUI;
@@ -65,19 +66,19 @@ public class Project {
             img = new ImageIcon(iU).getImage();
             card = new ImagePanel(img);
         } else card = new JPanel();
+
+        Color borderColor = UIManager.getColor("Component.borderColor");
+        Color background = UIManager.getColor("Panel.background");
+
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
         card.setPreferredSize(new Dimension(180, 120));
         card.setMaximumSize(new Dimension(180, 120));
-        Color bColor = (theme.contains("Light") ? new Color(246, 246, 246) : new Color(125, 125, 125));
         card.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(bColor),
+                BorderFactory.createLineBorder(borderColor),
                 BorderFactory.createEmptyBorder(10, 10, 10, 10)
         ));
         log.debug("Project card for {} with theme {}", getName(), theme);
-        if (theme.contains("Light"))
-            card.setBackground(new Color(238, 238, 238));
-        else
-            card.setBackground(new Color(64, 64, 64));
+        card.setBackground(background);
         card.setLayout(new BorderLayout());
 
 
@@ -105,18 +106,16 @@ public class Project {
         card.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent evt) {
-                if (theme.contains("Light"))
-                    card.setBackground(new Color(244, 244, 244));
-                else
-                    card.setBackground(new Color(80, 80, 80));
+                Color base = UIManager.getColor("Panel.background");
+                Color hover = ColorFunctions.lighten(base, 0.05f);
+
+                card.setBackground(hover);
             }
 
             @Override
             public void mouseExited(MouseEvent evt) {
-                if (theme.contains("Light"))
-                    card.setBackground(new Color(238, 238, 238));
-                else
-                    card.setBackground(new Color(64, 64, 64));
+                Color background = UIManager.getColor("Panel.background");
+                card.setBackground(background);
             }
 
             @Override
