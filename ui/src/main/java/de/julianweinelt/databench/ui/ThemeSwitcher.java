@@ -21,6 +21,10 @@ public class ThemeSwitcher {
         Theme t = Registry.instance().getTheme(themeName);
         if (t == null) {
             log.warn("No theme with name {} found", themeName);
+            JOptionPane.showMessageDialog(null, "The theme \"" + themeName + "\" could not be found." +
+                            "\nMaybe the plugin providing it could not be loaded.\n\nUsing the default dark theme instead.",
+                    "Theme not found", JOptionPane.ERROR_MESSAGE);
+            ThemeSwitcher.switchTheme("dark", Registry.instance().getPlugin("system"));
             return;
         }
         if (t.getLafClass() == null) {
