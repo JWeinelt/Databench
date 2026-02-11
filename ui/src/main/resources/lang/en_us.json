@@ -288,5 +288,5 @@
 
   "notification.no-update.title": "No updates available",
   "notification.no-update.text": "You are up-to-date.",
-  "notification.no-update.link": "Close",
+  "notification.no-update.link": "Close"
 }
