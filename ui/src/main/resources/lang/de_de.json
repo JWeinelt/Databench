@@ -247,5 +247,6 @@
   "theme.light": "Light",
   "theme.light_mac": "Light (MacOS)",
   "theme.darcula": "Darcula",
-  "theme.material_moonlight": "Moonlight"
+  "theme.material_moonlight": "Moonlight",
+  "theme.godot": "Godot"
 }
