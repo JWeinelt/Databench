@@ -171,6 +171,7 @@ public final class LanguageManager {
 
     @Subscribe("PluginLanguageDataEvent")
     public void onPluginLanguageAdd(Event event) {
+        log.info("Got language request");
         JsonObject root = JsonParser.parseString(
                 event.get("languageData").asString()
         ).getAsJsonObject();
@@ -180,6 +181,7 @@ public final class LanguageManager {
                 : root.getAsJsonObject("en_us");
 
         for (String key : data.keySet()) {
+            log.debug("Adding translation {} = {}", key, data.get(key).getAsString());
             activeTranslations.addProperty(key, data.get(key).getAsString());
         }
     }

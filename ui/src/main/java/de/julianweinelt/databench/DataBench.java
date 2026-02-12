@@ -150,6 +150,7 @@ public class DataBench {
         languageManager = new LanguageManager(devMode);
         log.info("Loading language data...");
         languageManager.preload(Configuration.getConfiguration().getLocale()).thenAccept(v -> latch.countDown());
+        api.getRegistry().registerListener(languageManager, api.getSystemPlugin());
 
         log.info("Starting plugin service...");
         log.info("Loading plugins...");
@@ -161,7 +162,6 @@ public class DataBench {
         ui.loadTheme(false);
 
         api.getRegistry().registerListener(ui, api.getSystemPlugin());
-        api.getRegistry().registerListener(languageManager, api.getSystemPlugin());
 
         try {
             latch.await();

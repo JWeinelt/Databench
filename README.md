@@ -39,7 +39,7 @@ Download the appropriate version for your operating system (Windows, macOS, or L
 4. Start managing and analyzing your databases using the intuitive interface.
 
 ## 🖼 Screenshots
-*These screenshots were taken from the very early version of the interface. The real one may look different from this.*
+*These screenshots were taken with the material UI theme*
 ![DataBench Home Screen](screenshots/mainmenu.png)
 ![DataBench Home Screen](screenshots/create_tables.png)
 ![DataBench Home Screen](screenshots/alter_table.png)
