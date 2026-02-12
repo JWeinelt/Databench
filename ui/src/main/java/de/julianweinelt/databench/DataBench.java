@@ -137,7 +137,13 @@ public class DataBench {
 
         log.info("Loading project data...");
         projectManager = new ProjectManager();
-        projectManager.loadAllProjects(configManager.getConfiguration().getEncryptionPassword());
+        String password = askForPassword();
+        while (true) {
+            boolean success = projectManager.loadAllProjects(password);
+            if (success) break;
+            log.warn("Wrong password.");
+            password = askForPassword();
+        }
 
         fileManager = new FileManager();
 
@@ -350,5 +356,22 @@ public class DataBench {
 
     private void stopSocket() {
         shutdown.set(true);
+    }
+
+    private String askForPassword() {
+        JPasswordField passwordField = new JPasswordField();
+        int option = JOptionPane.showConfirmDialog(
+                null,
+                passwordField,
+                "Please enter your encryption password.",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE
+        );
+
+        if (option == JOptionPane.OK_OPTION) {
+            return new String(passwordField.getPassword());
+        } else {
+            return null;
+        }
     }
 }

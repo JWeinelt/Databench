@@ -53,7 +53,7 @@ public class ProjectEncryptionUtil {
         byte[] fileBytes = Files.readAllBytes(file.toPath());
 
         if (fileBytes.length < SALT_SIZE + IV_SIZE) {
-            throw new IllegalArgumentException("Ungültige Datei oder zu kurz");
+            throw new IllegalArgumentException("Invalid file or data");
         }
 
         byte[] salt = new byte[SALT_SIZE];

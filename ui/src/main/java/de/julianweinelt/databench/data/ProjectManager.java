@@ -55,18 +55,22 @@ public class ProjectManager {
         }
     }
 
-    public void loadAllProjects(String defaultPassword) {
+    public boolean loadAllProjects(String password) {
+        log.info("Loading project data from disk...");
         File[] files = projectsDir.listFiles((dir, name) -> name.endsWith(".dbproj"));
-        if (files == null) return;
+        if (files == null) return false;
 
         for (File f : files) {
             try {
-                Project p = ProjectEncryptionUtil.decryptProject(f, defaultPassword, Project.class);
+                Project p = ProjectEncryptionUtil.decryptProject(f, password, Project.class);
+                if (p == null) return false;
                 projects.add(p);
             } catch (Exception e) {
-                System.err.println("Failed to load project " + f.getName() + ": " + e.getMessage());
+                log.error("Failed to load project {}: {}", f.getName(), e.getMessage());
+                return false;
             }
         }
+        return true;
     }
 
 
