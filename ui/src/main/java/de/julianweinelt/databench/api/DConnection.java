@@ -328,8 +328,9 @@ public class DConnection implements IFileWatcherListener {
         }
     }
 
-    public void addCreateTableTab() {
-        addTab(new CreateTableTab(this).newTable());
+    public void addCreateTableTab(String dbContext) {
+        log.info("Selected database context: {}", dbContext);
+        addTab(new CreateTableTab(this).newTable(dbContext));
     }
 
     public void addCreateViewTab() {
@@ -570,6 +571,15 @@ public class DConnection implements IFileWatcherListener {
     }
 
     public SQLAnswer executeSQL(String sql) {
+        try {
+            if (conn.isClosed()) {
+                connect();
+                log.info("Reconnected to {}", getProject().getName());
+            }
+        } catch (SQLException e) {
+            return new SQLAnswer(false, null, -1, e.getMessage(), -1);
+        }
+        log.info("Executing SQL: {}", sql);
         SQLAnswer answer;
         try (PreparedStatement pS = conn.prepareStatement(sql)) {
             pS.execute();
@@ -759,7 +769,7 @@ public class DConnection implements IFileWatcherListener {
             menu.add(rename);
             menu.add(drop);
             JMenuItem createTable = new JMenuItem("Create new Table");
-            createTable.addActionListener(e -> addCreateTableTab());
+            createTable.addActionListener(e -> addCreateTableTab(node.getUserObject().toString()));
             JMenuItem createView = new JMenuItem("Create new View");
             JMenuItem createProcedure = new JMenuItem("Create new Procedure");
 
@@ -798,7 +808,7 @@ public class DConnection implements IFileWatcherListener {
 
         else if (name.equals(translate("connection.tree.node.tables.title"))) {
             JMenuItem create = new JMenuItem("Create new Table");
-            create.addActionListener(e -> addCreateTableTab());
+            create.addActionListener(e -> addCreateTableTab(((DefaultMutableTreeNode) node.getParent()).getUserObject().toString()));
             menu.add(create);
             JMenuItem refresh = new JMenuItem(translate("connection.button.refresh"));
             refresh.addActionListener(e -> getProjectTree());
@@ -823,7 +833,7 @@ public class DConnection implements IFileWatcherListener {
             drop.addActionListener(e -> {
                 String tableName = node.getUserObject().toString();
                 String db = ((DefaultMutableTreeNode) node.getParent().getParent()).getUserObject().toString();
-                EditorTab t = addEditorTab("DROP TABLE `" + db + "." + tableName + "`;");
+                EditorTab t = addEditorTab("DROP TABLE `" + db + "`.`" + tableName + "`;");
                 int result = JOptionPane.showConfirmDialog(ui.getFrame(), "Do you really want to drop (delete) this table? This cannot be undone!");
                 if (result == JOptionPane.YES_OPTION) t.execute();
             });
