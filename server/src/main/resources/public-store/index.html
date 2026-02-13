@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DataBench Store</title>
+    <title>DataCat Store</title>
     <link rel="icon" href="./img/icon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -19,60 +19,29 @@
             }
         }
     </script>
+    <script src="/js/general.js" defer></script>
+    <script src="https://kit.fontawesome.com/85182ea83e.js" crossorigin="anonymous"></script>
 </head>
 <body class="bg-gray-100 dark:bg-secondary text-gray-900 dark:text-gray-100">
-
-
-<header class="bg-white dark:bg-gray-800 shadow-md">
-    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-        <h1 class="text-2xl font-bold text-primary">DataBench Store</h1>
-        <nav class="flex items-center space-x-4">
-            <a href="#" class="hover:text-primary font-medium">Store</a>
-            <a href="#" class="hover:text-primary font-medium">Upload</a>
-            <a href="#" class="hover:text-primary font-medium">Login</a>
-            <button id="themeToggle" class="ml-4 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-1 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition">
-                ☀️/🌙
-            </button>
-        </nav>
-    </div>
-</header>
-
-<script>
-    const toggleButton = document.getElementById('themeToggle');
-    toggleButton.addEventListener('click', () => {
-        document.documentElement.classList.toggle('dark');
-        if(document.documentElement.classList.contains('dark')){
-            localStorage.setItem('theme', 'dark');
-        } else {
-            localStorage.setItem('theme', 'light');
-        }
-    });
-
-    if(localStorage.getItem('theme') === 'dark'){
-        document.documentElement.classList.add('dark');
-    }
-</script>
+<header id="header"></header>
 
 <section class="bg-gray-200 dark:bg-gray-900 py-20">
     <div class="max-w-4xl mx-auto text-center">
-        <h2 class="text-4xl font-bold text-primary mb-4">Discover the Best DataBench Plugins</h2>
-        <p class="text-gray-700 dark:text-gray-300 mb-6">Download plugins, explore new features, or share your own creations with the community.</p>
-        <a href="#plugins" class="bg-primary text-white px-6 py-3 rounded-md hover:bg-blue-700 transition">Explore Now</a>
+        <h2 class="text-4xl font-bold text-primary mb-4">Discover the Best DataCat Yarns 🧶</h2>
+        <p class="text-gray-700 dark:text-gray-300 mb-6">Download yarns, explore new features, or share your own creations with the community.</p>
+        <a href="/search" class="bg-primary text-white px-6 py-3 rounded-md hover:bg-blue-700 transition">Explore Now</a>
+        <a href="javascript:redirectTo('https://github.com')" class="bg-primary text-white px-6 py-3 rounded-md hover:bg-blue-700 transition">Test</a>
     </div>
 </section>
 
 <section id="plugins" class="max-w-7xl mx-auto px-4 py-12">
-    <h3 class="text-2xl font-bold mb-6">Popular Plugins</h3>
+    <h3 class="text-2xl font-bold mb-6">Popular Yarns</h3>
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="pluginGrid">
 
     </div>
 </section>
 
-<footer class="bg-white dark:bg-gray-800 shadow-inner py-6 mt-12">
-    <div class="max-w-7xl mx-auto text-center text-gray-600 dark:text-gray-400">
-        &copy; 2026 DataBench. All rights reserved.
-    </div>
-</footer>
+<footer></footer>
 
 <script>
     const plugins = [

@@ -44,3 +44,4 @@ build/
 /run-worker/
 /.idea/
 /run-flow/
+/run-store/
