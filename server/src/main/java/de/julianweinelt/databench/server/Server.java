@@ -1,6 +1,7 @@
 package de.julianweinelt.databench.server;
 
 import de.julianweinelt.databench.server.server.WebServer;
+import de.julianweinelt.databench.server.store.StoreServer;
 import lombok.Getter;
 
 import java.io.File;
@@ -30,6 +31,8 @@ public class Server {
 
         webServer = new WebServer();
         webServer.start();
+
+        new StoreServer().start();
 
         Runtime.getRuntime().addShutdownHook(new Thread(webServer::stop));
     }

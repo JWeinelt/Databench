@@ -10,10 +10,7 @@ import io.javalin.http.Context;
 import io.javalin.http.UploadedFile;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -153,6 +150,16 @@ public class WebServer {
                 })
                 .post("/metrics/login", ctx -> {
 
+                })
+                .get("/api/v1/json-schema/{type}", ctx -> {
+                    String type = ctx.pathParam("type");
+                    try (InputStream is = getClass().getResourceAsStream("/json-schema/" + type + ".schema.json")) {
+                        if (is == null) {
+                            errorResponse(ctx, "Schema not found", 404);
+                            return;
+                        }
+                        ctx.result(is);
+                    }
                 })
                 .start(7000);
     }

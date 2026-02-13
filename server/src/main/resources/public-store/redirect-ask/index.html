@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Page Not Found | DataBench</title>
+    <link rel="icon" href="../img/icon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../js/cookie.js"></script>
+    <script src="https://kit.fontawesome.com/85182ea83e.js" crossorigin="anonymous"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#1E293B'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-gray-100 dark:bg-secondary text-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
+
+<header id="header"></header>
+
+<main class="flex-grow flex items-center justify-center px-6">
+    <div class="text-center max-w-xl">
+
+        <h2 class="text-6xl font-extrabold text-primary mb-4">
+            You are leaving this page.
+        </h2>
+
+        <h3 class="text-3xl font-bold mb-4">
+            Do you want to continue?
+        </h3>
+
+        <p class="text-gray-600 dark:text-gray-300 mb-8">
+            The content on <span id="redirect-info" class="text-blue-500 underline cursor-pointer"></span> is not under our control and may contain dangerous content.
+            Please only trust this page if you think it is safe.
+        </p>
+
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+
+            <a href="/" id="redirect"
+               class="bg-primary text-white px-6 py-3 rounded-md hover:bg-blue-700 transition shadow-md">
+                Go to page
+            </a>
+
+            <button onclick="history.back()"
+                    class="border border-gray-300 dark:border-gray-600 px-6 py-3 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition">
+                Go Back
+            </button>
+
+        </div>
+
+    </div>
+</main>
+
+<footer></footer>
+<script src="../js/general.js"></script>
+<script>
+    function queryParams() {
+        const queryString = window.location.search;
+        const p = new URLSearchParams(queryString);
+        if (!p.has('dat')) return;
+        let realP = new URLSearchParams(atob(p.get('dat')));
+        let redirectURL = realP.get('redirect');
+        document.getElementById('redirect').href = redirectURL;
+        document.getElementById('redirect-info').innerText = redirectURL;
+    }
+    queryParams();
+
+</script>
+
+</body>
+</html>
