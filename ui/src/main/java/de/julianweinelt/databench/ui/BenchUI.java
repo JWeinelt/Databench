@@ -110,7 +110,7 @@ public class BenchUI {
                                 try {Thread.sleep(100);} catch (InterruptedException ignored) {}
                                 DConnection c = connections.get(ProjectManager.LIGHT_EDIT_PROJECT);
                                 switch (type) {
-                                    case TABLE -> c.addCreateTableTab();
+                                    case TABLE -> c.addCreateTableTab("db");
                                     case VIEW -> JOptionPane.showMessageDialog(frame,
                                             "View creation not yet implemented.", "Info",
                                             JOptionPane.INFORMATION_MESSAGE);
@@ -129,7 +129,7 @@ public class BenchUI {
                                 if (c == null) return;
 
                                 switch (type) {
-                                    case TABLE -> c.addCreateTableTab();
+                                    case TABLE -> c.addCreateTableTab("db");
                                     case VIEW -> JOptionPane.showMessageDialog(frame,
                                             "View creation not yet implemented.", "Info",
                                             JOptionPane.INFORMATION_MESSAGE);
