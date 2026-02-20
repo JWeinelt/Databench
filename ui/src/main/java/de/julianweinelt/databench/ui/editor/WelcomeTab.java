@@ -51,7 +51,9 @@ public class WelcomeTab implements IEditorTab {
 
         actions.add(Box.createVerticalStrut(10));
 
-        actions.add(createActionButton("➕ " + translate("menu.cat.sql.new.table"), connection::addCreateTableTab
+        actions.add(createActionButton("➕ " + translate("menu.cat.sql.new.table"), () -> {
+            connection.addCreateTableTab("mysql"); //TODO: Make dynamic
+                }
         ));
 
         actions.add(Box.createVerticalStrut(10));
