@@ -106,6 +106,7 @@ public final class SystemPlugin extends DbxPlugin {
                 ;
 
         Menu sqlMenu = new Menu(translate("menu.cat.sql"), "sql")
+                .child(new MenuItem("Run SQL...", "sql_run"))
                 .priority(996);
 
 

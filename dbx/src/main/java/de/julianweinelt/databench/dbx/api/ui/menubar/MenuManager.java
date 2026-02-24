@@ -57,10 +57,9 @@ public class MenuManager {
 
     public void unregister(DbxPlugin plugin) {
         this.menus.remove(plugin);
-        revalidate();
     }
 
     private void revalidate() {
-        Registry.instance().callEvent(new Event("UIMenuBarRevalidateEvent"));
+        Registry.instance().callEvent(new Event("UIMenuBarRevalidateEvent").set("shutdown", false));
     }
 }

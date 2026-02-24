@@ -6,6 +6,8 @@ public abstract class DatabaseSyntax {
     public abstract String showViews();
     public abstract String showFunctions();
     public abstract String showTriggers();
+    public abstract String getType();
+    public abstract String getVersion();
 
     public static DatabaseSyntax MSSQL = new DatabaseSyntax() {
         @Override
@@ -40,6 +42,16 @@ public abstract class DatabaseSyntax {
         public String showTriggers() {
             return "";
         }
+
+        @Override
+        public String getType() {
+            return "";
+        }
+
+        @Override
+        public String getVersion() {
+            return "";
+        }
     };
     public static DatabaseSyntax MYSQL = new DatabaseSyntax() {
         @Override
@@ -65,6 +77,16 @@ public abstract class DatabaseSyntax {
         @Override
         public String showTriggers() {
             return "";
+        }
+
+        @Override
+        public String getType() {
+            return "SELECT @@version";
+        }
+
+        @Override
+        public String getVersion() {
+            return "SELECT @@version";
         }
     };
 }

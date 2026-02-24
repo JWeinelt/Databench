@@ -66,6 +66,8 @@ public class DConnection implements IFileWatcherListener {
     private final boolean lightEdit;
     private final DatabaseMetaData databaseTypeMeta;
 
+    private final TreeFilter treeFilter = new TreeFilter();
+
     public DConnection(Project project, BenchUI benchUI) {
         this.lightEdit = false;
         this.benchUI = benchUI;
@@ -159,8 +161,6 @@ public class DConnection implements IFileWatcherListener {
         createProjectFolder();
         JScrollPane fileTreeScroll = new JScrollPane(fileTree);
 
-        JPanel flowPanel = new JPanel();
-
         JTabbedPane leftTabs = new JTabbedPane();
         if (!lightEdit) leftTabs.addTab(translate("project.tabs.database"), projectTreeScroll);
         leftTabs.addTab(translate("project.tabs.files"), fileTreeScroll);
@@ -194,7 +194,6 @@ public class DConnection implements IFileWatcherListener {
     }
 
     private void createProjectFolder() {
-        //TODO: Use another folder in users home
         File folder = new File("projects", project.getUuid().toString());
         if (folder.mkdirs()) log.debug("Created workspace folder for project {}", project.getName());
         fileWatcher = new FileWatcher(folder, this);
@@ -515,6 +514,16 @@ public class DConnection implements IFileWatcherListener {
         } finally {
             current.setContextClassLoader(previous);
         }
+
+        String ver = getDatabaseTypeFromDB();
+        log.info("Connected to {} as {}", project.getServer(), ver);
+        if (ver.contains("MariaDB") && databaseTypeMeta.engineName().equals("mysql")) {
+            int result = JOptionPane.showConfirmDialog(benchUI.getFrame(), "DataCat has detected that your project is configured as MySQL\n" +
+                    "but your server returned 'MariaDB'. Should it be updated in the project?", "Database Mismatch", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+            if (result == JOptionPane.YES_OPTION) {
+                project.setDatabaseType("mariadb");
+            }
+        }
         return future;
     }
 
@@ -534,6 +543,15 @@ public class DConnection implements IFileWatcherListener {
         } catch (SQLException ignored) {
             return false;
         }
+    }
+
+    private String getDatabaseTypeFromDB() {
+        try (ResultSet set = conn.createStatement().executeQuery(databaseTypeMeta.syntax().getType())) {
+            if (set.next()) return set.getString(1);
+        } catch (SQLException e) {
+            log.error(e.getMessage());
+        }
+        return "Unknown";
     }
 
     public List<DBObject> getDatabases() {
@@ -579,7 +597,6 @@ public class DConnection implements IFileWatcherListener {
         } catch (SQLException e) {
             return new SQLAnswer(false, null, -1, e.getMessage(), -1);
         }
-        log.info("Executing SQL: {}", sql);
         SQLAnswer answer;
         try (PreparedStatement pS = conn.prepareStatement(sql)) {
             pS.execute();
@@ -809,7 +826,14 @@ public class DConnection implements IFileWatcherListener {
         else if (name.equals(translate("connection.tree.node.tables.title"))) {
             JMenuItem create = new JMenuItem("Create new Table");
             create.addActionListener(e -> addCreateTableTab(((DefaultMutableTreeNode) node.getParent()).getUserObject().toString()));
+
+            JMenuItem filter = new JMenuItem("Filter...");
+            filter.addActionListener(e -> {
+                treeFilter.showFilterDialog(ui.getFrame());
+            });
+
             menu.add(create);
+            menu.add(filter);
             JMenuItem refresh = new JMenuItem(translate("connection.button.refresh"));
             refresh.addActionListener(e -> getProjectTree());
             menu.add(refresh);
@@ -836,6 +860,10 @@ public class DConnection implements IFileWatcherListener {
                 EditorTab t = addEditorTab("DROP TABLE `" + db + "`.`" + tableName + "`;");
                 int result = JOptionPane.showConfirmDialog(ui.getFrame(), "Do you really want to drop (delete) this table? This cannot be undone!");
                 if (result == JOptionPane.YES_OPTION) t.execute();
+            });
+            JMenuItem filter = new JMenuItem("Filter...");
+            filter.addActionListener(e -> {
+                treeFilter.showFilterDialog(ui.getFrame());
             });
             JMenuItem truncate = new JMenuItem("Truncate Table ");
             truncate.addActionListener(e -> {
@@ -865,6 +893,7 @@ public class DConnection implements IFileWatcherListener {
             menu.add(edit);
             menu.add(select);
             menu.add(drop);
+            menu.add(filter);
             menu.add(truncate);
             menu.add(alter);
             menu.add(generatorMenu);

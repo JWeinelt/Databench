@@ -99,6 +99,7 @@ public class PluginLoader {
         log.info("Unloading plugin '{}'", plugin.getName());
         plugin.onDisable();
         MenuManager.instance().unregister(plugin);
+        log.info("Removing plugin from registry");
         registry.removePlugin(plugin);
         registry.callEvent(new Event("PluginDisableEvent").nonCancellable().set("plugin", plugin.getName()));
         log.info("Unloaded plugin: {}", plugin.getName());

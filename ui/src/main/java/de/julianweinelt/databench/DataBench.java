@@ -24,6 +24,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,6 +47,7 @@ public class DataBench {
     private static final AtomicBoolean shutdown = new AtomicBoolean(false);
 
     private static boolean devMode = false;
+    private int wrongPasswordCounter = 0;
 
     @Getter
     private BenchUI ui;
@@ -141,6 +144,7 @@ public class DataBench {
         while (true) {
             boolean success = projectManager.loadAllProjects(password);
             if (success) break;
+            wrongPasswordCounter++;
             log.warn("Wrong password.");
             password = askForPassword();
         }
@@ -359,19 +363,85 @@ public class DataBench {
     }
 
     private String askForPassword() {
-        JPasswordField passwordField = new JPasswordField();
-        int option = JOptionPane.showConfirmDialog(
-                null,
-                passwordField,
-                "Please enter your encryption password.",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE
-        );
+        FlatDarkLaf.setup();
 
-        if (option == JOptionPane.OK_OPTION) {
-            return new String(passwordField.getPassword());
-        } else {
-            return null;
-        }
+        JDialog dialog = new JDialog((Frame) null, "Encryption Password", true);
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        dialog.setSize(400, 180);
+        dialog.setLocationRelativeTo(null);
+        dialog.setLayout(new BorderLayout());
+
+        JPanel content = new JPanel();
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        content.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+
+        JLabel infoLabel = new JLabel("Please enter your encryption password.");
+        JPasswordField passwordField = new JPasswordField();
+
+        JLabel resetLabel = new JLabel("<html><a href='#'>Forgot password?</a></html>");
+        resetLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        resetLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        resetLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                openResetProcedureWindow();
+            }
+        });
+
+        content.add(infoLabel);
+        content.add(Box.createVerticalStrut(10));
+        content.add(passwordField);
+        content.add(Box.createVerticalStrut(10));
+        content.add(resetLabel);
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton okButton = new JButton("OK");
+        JButton cancelButton = new JButton("Cancel");
+
+        final String[] result = new String[1];
+
+        okButton.addActionListener(e -> {
+            result[0] = new String(passwordField.getPassword());
+            dialog.dispose();
+        });
+
+        cancelButton.addActionListener(e -> {
+            result[0] = null;
+            dialog.dispose();
+        });
+
+        buttonPanel.add(okButton);
+        buttonPanel.add(cancelButton);
+
+        dialog.add(content, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+
+        dialog.setVisible(true);
+
+        return result[0];
+    }
+
+    private void openResetProcedureWindow() {
+        JDialog resetDialog = new JDialog((Frame) null, "Reset Password", true);
+        resetDialog.setSize(450, 300);
+        resetDialog.setLocationRelativeTo(null);
+
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+
+        JLabel label = new JLabel("<html>Here you can implement your reset procedure.<br>Guide the user step by step.</html>");
+        panel.add(label, BorderLayout.CENTER);
+
+        JButton close = new JButton("Close");
+        close.addActionListener(e -> resetDialog.dispose());
+
+        JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        bottom.add(close);
+
+        resetDialog.add(panel, BorderLayout.CENTER);
+        resetDialog.add(bottom, BorderLayout.SOUTH);
+
+        resetDialog.setVisible(true);
     }
 }

@@ -23,6 +23,7 @@ public class CreateTableTab implements IEditorTab {
     private final DConnection connection;
     private boolean existingTable = false;
     private String tableName = null;
+    private String database = null;
 
     public CreateTableTab(DConnection connection) {
         this.connection = connection;
@@ -30,6 +31,7 @@ public class CreateTableTab implements IEditorTab {
 
     public CreateTableTab ofRealTable(String database, String tableName) {
         this.tableName = tableName;
+        this.database = database;
 
         this.table = connection.getTableDefinition(database, tableName);
         this.originalTable = deepCopy(this.table);
@@ -39,9 +41,10 @@ public class CreateTableTab implements IEditorTab {
         return this;
     }
 
-    public CreateTableTab newTable() {
+    public CreateTableTab newTable(String database) {
         this.table = new TableDefinition();
         this.table.setTableName("");
+        this.database = database;
 
         table.addColumn(new TableColumn("id", "INT", 11, true, true, true));
         table.addColumn(new TableColumn("name", "VARCHAR", 255, false, false, false));
@@ -155,6 +158,7 @@ public class CreateTableTab implements IEditorTab {
         // ===== APPLY =====
         applyButton.addActionListener(e -> {
             try {
+                connection.executeSQL("USE " + database + ";");
                 DConnection.SQLAnswer answer =
                         connection.executeSQL(sqlPreview.getText());
 

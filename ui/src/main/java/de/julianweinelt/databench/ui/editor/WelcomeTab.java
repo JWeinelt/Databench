@@ -5,6 +5,7 @@ import de.julianweinelt.databench.ui.BenchUI;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.UUID;
 
@@ -51,7 +52,11 @@ public class WelcomeTab implements IEditorTab {
 
         actions.add(Box.createVerticalStrut(10));
 
-        actions.add(createActionButton("➕ " + translate("menu.cat.sql.new.table"), connection::addCreateTableTab
+        actions.add(createActionButton("➕ " + translate("menu.cat.sql.new.table"), () -> {
+            java.util.List<String> databases = new ArrayList<>();
+            connection.getDatabases().forEach(d -> databases.add(d.name()));
+            connection.addCreateTableTab(ui.showSelectionDialog(ui.getFrame(), "Select database", databases));
+                }
         ));
 
         actions.add(Box.createVerticalStrut(10));

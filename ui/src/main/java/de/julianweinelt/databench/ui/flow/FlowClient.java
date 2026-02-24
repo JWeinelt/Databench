@@ -78,6 +78,7 @@ public class FlowClient {
 
     // Helper Methods
     private HttpResponse<JsonObject> send(HttpRequest request) {
+        if (!enabled.get()) return new HttpResponse<>(401, null, null);
         try {
             java.net.http.HttpResponse<String> response =
                     httpClient.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
