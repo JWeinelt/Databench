@@ -329,7 +329,7 @@ public class DConnection implements IFileWatcherListener {
 
     public void addCreateTableTab(String dbContext) {
         log.info("Selected database context: {}", dbContext);
-        addTab(new CreateTableTab(this).newTable(dbContext));
+        addTab(new CreateTableTab(this).newTable());
     }
 
     public void addCreateViewTab() {

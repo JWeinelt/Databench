@@ -23,7 +23,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -111,8 +110,7 @@ public class BenchUI {
                                 try {Thread.sleep(100);} catch (InterruptedException ignored) {}
                                 DConnection c = connections.get(ProjectManager.LIGHT_EDIT_PROJECT);
                                 switch (type) {
-                                    case TABLE -> JOptionPane.showMessageDialog(frame, "Cannot create tables in headless mode.",
-                                            "Not supported", JOptionPane.INFORMATION_MESSAGE);
+                                    case TABLE -> c.addCreateTableTab();
                                     case VIEW -> JOptionPane.showMessageDialog(frame,
                                             "View creation not yet implemented.", "Info",
                                             JOptionPane.INFORMATION_MESSAGE);
@@ -131,11 +129,7 @@ public class BenchUI {
                                 if (c == null) return;
 
                                 switch (type) {
-                                    case TABLE -> {
-                                        java.util.List<String> databases = new ArrayList<>();
-                                        c.getDatabases().forEach(d -> databases.add(d.name()));
-                                        c.addCreateTableTab(showSelectionDialog(frame, "Select database", databases));
-                                    }
+                                    case TABLE -> c.addCreateTableTab();
                                     case VIEW -> JOptionPane.showMessageDialog(frame,
                                             "View creation not yet implemented.", "Info",
                                             JOptionPane.INFORMATION_MESSAGE);
@@ -152,71 +146,6 @@ public class BenchUI {
                     }
                 });
     }
-
-    public String showSelectionDialog(Window parent, String title, java.util.List<String> values) {
-        JDialog dialog = new JDialog(parent, title, Dialog.ModalityType.APPLICATION_MODAL);
-
-        DefaultListModel<String> model = new DefaultListModel<>();
-        values.forEach(model::addElement);
-
-        JList<String> list = new JList<>(model);
-        list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        list.setVisibleRowCount(10);
-
-        JScrollPane scrollPane = new JScrollPane(list);
-
-        JButton selectButton = new JButton("Select");
-        JButton cancelButton = new JButton("Cancel");
-
-        selectButton.setEnabled(false);
-
-        final String[] result = new String[1];
-
-        list.addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) {
-                selectButton.setEnabled(list.getSelectedIndex() != -1);
-            }
-        });
-
-        list.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2 && list.getSelectedIndex() != -1) {
-                    result[0] = list.getSelectedValue();
-                    dialog.dispose();
-                }
-            }
-        });
-
-        selectButton.addActionListener(e -> {
-            result[0] = list.getSelectedValue();
-            dialog.dispose();
-        });
-
-        cancelButton.addActionListener(e -> dialog.dispose());
-
-        dialog.getRootPane().setDefaultButton(selectButton);
-
-        dialog.getRootPane().registerKeyboardAction(
-                e -> dialog.dispose(),
-                KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
-                JComponent.WHEN_IN_FOCUSED_WINDOW
-        );
-
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        buttonPanel.add(cancelButton);
-        buttonPanel.add(selectButton);
-
-        dialog.setLayout(new BorderLayout(10, 10));
-        dialog.add(scrollPane, BorderLayout.CENTER);
-        dialog.add(buttonPanel, BorderLayout.SOUTH);
-
-        dialog.setSize(300, 400);
-        dialog.setLocationRelativeTo(parent);
-        dialog.setVisible(true);
-
-        return result[0];
-    }
-
 
 
     public void connect(Project project) {
