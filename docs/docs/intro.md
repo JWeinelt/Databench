@@ -2,15 +2,13 @@
 sidebar_position: 1
 ---
 
-# Tutorial Intro
+# What is DataCat?
 
-Let's discover **Docusaurus in less than 5 minutes**.
+Let's discover **the most important features of DataCat in a few minutes.**
 
 ## Getting Started
 
-Get started by **creating a new site**.
-
-Or **try Docusaurus immediately** with **[docusaurus.new](https://docusaurus.new)**.
+Get started by [installing DataCat](admin/install-client.md) on your computer.
 
 ### What you'll need
 
