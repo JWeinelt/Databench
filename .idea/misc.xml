@@ -16,6 +16,7 @@
     </option>
     <option name="ignoredFiles">
       <set>
+        <option value="$PROJECT_DIR$/datacat-maven-plugin/pom.xml" />
         <option value="$PROJECT_DIR$/store/pom.xml" />
       </set>
     </option>
