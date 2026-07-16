@@ -19,20 +19,20 @@ public class StartScreen {
         DataCat.getInstance().setOverFrame(frame);
         frame.setIconImage(icon);
         frame.setType(Window.Type.UTILITY);
-        frame.setSize(1024, 606);
+        frame.setSize(900, 506);
         frame.setLocationRelativeTo(null);
         frame.setUndecorated(true);
 
         JLabel versionLabel = new JLabel("v" + DataCat.version);
-        versionLabel.setBounds(frame.getWidth() - 100, frame.getHeight() - 30, 100, 20);
-        versionLabel.setFont(new Font("Arial", Font.PLAIN, 24));
-        versionLabel.setForeground(Color.WHITE);
+        versionLabel.setBounds(20, frame.getHeight() - 30, 100, 20);
+        versionLabel.setFont(new Font("Arial", Font.PLAIN, 18));
+        versionLabel.setForeground(Color.BLACK);
         frame.add(versionLabel);
 
         JLabel licenseLabel = new JLabel("Licensed under GNU GPLv3");
-        licenseLabel.setBounds(2, frame.getHeight() - 30, 400, 20);
+        licenseLabel.setBounds(90, frame.getHeight() - 30, 400, 20);
         licenseLabel.setFont(new Font("Arial", Font.PLAIN, 18));
-        licenseLabel.setForeground(Color.WHITE);
+        licenseLabel.setForeground(Color.BLACK);
         frame.add(licenseLabel);
 
         BufferedImage image;

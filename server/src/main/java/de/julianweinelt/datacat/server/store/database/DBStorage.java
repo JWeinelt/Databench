@@ -1,12 +1,20 @@
 package de.julianweinelt.datacat.server.store.database;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import de.julianweinelt.datacat.server.model.MAccount;
+import de.julianweinelt.datacat.server.store.YarnManager;
 import de.julianweinelt.datacat.server.store.account.*;
+import de.julianweinelt.datacat.server.store.yarn.Yarn;
+import de.julianweinelt.datacat.server.store.yarn.YarnStatus;
 import de.julianweinelt.datacat.server.util.ColorUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.awt.*;
+import java.lang.reflect.Type;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -75,6 +83,17 @@ public class DBStorage {
             }
         } catch (SQLException e) {
             log.error("Error while loading account link types from database: {}", e.getMessage(), e);
+        }
+
+        try (PreparedStatement pS = dS.getConnection().prepareStatement("SELECT StatusID, Name, BgColor, FgColor, " +
+                "PublicVisible FROM yarn_status")) {
+            ResultSet set = pS.executeQuery();
+            while (set.next()) {
+                new YarnStatus(UUID.fromString(set.getString(1)), set.getString(2), ColorUtil.fromText(set.getString(3)),
+                        ColorUtil.fromText(set.getString(4)), set.getBoolean(5)).register();
+            }
+        } catch (SQLException e) {
+            log.error("Error while loading yarn statuses from database: {}", e.getMessage(), e);
         }
     }
 
@@ -234,6 +253,74 @@ public class DBStorage {
         } catch (SQLException e) {
             log.error("Error while updating account link in database: {}", e.getMessage(), e);
         }
+    }
+
+    public CompletableFuture<UUID> createYarnMetaData(JsonObject body, UUID authorID) {
+        CompletableFuture<UUID> future = new CompletableFuture<>();
+        UUID internalID = UUID.randomUUID();
+
+        String name = body.get("name").getAsString();
+        String description = body.get("description").getAsString();
+        String longDescription = body.get("longDescription").getAsString();
+
+        Type type = new TypeToken<List<UUID>>(){}.getType();
+        List<UUID> tags = new ArrayList<>();
+
+        String feature1 = body.get("feature1").getAsString();
+        String feature2 = body.get("feature2").getAsString();
+        String feature3 = body.get("feature3").getAsString();
+
+        String wikiLink = body.get("wikiLink").getAsString();
+        String sourceLink = body.get("sourceLink").getAsString();
+
+        Yarn yarn = new Yarn(internalID, name, YarnManager.generateSlug(name), MAccount.get(authorID), description,
+                longDescription, YarnStatus.get(UUID.fromString("e5d60c51-760d-11f1-b76e-b42e999e4dae")),
+                wikiLink, sourceLink, 0);
+        YarnManager.instance().addYarn(yarn);
+
+        String sql = """
+                INSERT INTO yarn_meta (YarnID, YarnName, AuthorID, Created,
+                                       LastUpdated, Status, LongDescription,
+                                       ShortDescription, FeatureHighlight1,
+                                       FeatureHighlight2, FeatureHighlight3,
+                                       WikiLink, DiscordLink, SourceLink, BannerID)
+                VALUES (?, ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), 'e5d60c51-760d-11f1-b76e-b42e999e4dae',
+                        ?, ?, ?, ?, ?, ?, '', ?, '')
+                """;
+
+        try (PreparedStatement pS = dS.getConnection().prepareStatement(sql)) {
+            pS.setString(1, internalID.toString());
+            pS.setString(2, name);
+            pS.setString(3, authorID.toString());
+            pS.setString(4, longDescription);
+            pS.setString(5, description);
+            pS.setString(6, feature1);
+            pS.setString(7, feature2);
+            pS.setString(8, feature3);
+            pS.setString(9, wikiLink);
+            pS.setString(10, sourceLink);
+
+            pS.execute();
+        } catch (SQLException e) {
+            log.error("Error while creating yarn metadata in database: {}", e.getMessage(), e);
+            return CompletableFuture.failedFuture(e);
+        }
+
+        int i = 0;
+        for (UUID tag : tags) {
+            try (PreparedStatement pS = dS.getConnection().prepareStatement("INSERT INTO yarn_meta_tags_assigned " +
+                    "(YarnID, TagID, DisplayPriority) VALUES (?, ?, ?)")) {
+                pS.setString(1, internalID.toString());
+                pS.setString(2, tag.toString());
+                pS.setInt(3, i);
+                pS.execute();
+            } catch (SQLException e) {
+                log.error("Error while creating yarn metadata in database: {}", e.getMessage(), e);
+                return CompletableFuture.failedFuture(e);
+            }
+            i++;
+        }
+        return CompletableFuture.completedFuture(internalID);
     }
 
 

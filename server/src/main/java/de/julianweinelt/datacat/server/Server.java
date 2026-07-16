@@ -2,6 +2,7 @@ package de.julianweinelt.datacat.server;
 
 import de.julianweinelt.datacat.server.server.WebServer;
 import de.julianweinelt.datacat.server.store.StoreServer;
+import de.julianweinelt.datacat.server.store.YarnManager;
 import de.julianweinelt.datacat.server.store.account.AccountManager;
 import de.julianweinelt.datacat.server.store.database.DBStorage;
 import de.julianweinelt.datacat.server.store.files.Configuration;
@@ -46,6 +47,7 @@ public class Server {
         DBStorage.instance().loadMetaData();
 
         new AccountManager();
+        new YarnManager();
 
         webServer = new WebServer();
         webServer.start();

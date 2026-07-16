@@ -242,6 +242,8 @@ public class DataCat {
         pluginLoader.initializeAll();
 
         log.info("Startup finished.");
+        log.info("Driver count: {}", DriverManagerService.instance().getLoadedDrivers().size());
+        DriverManagerService.instance().getLoadedDrivers().forEach(d -> log.info("Driver found: {}", d));
 
         Registry.instance().callEvent(new Event("UIServiceEnabledEvent").set("service", UIService.instance()));
 

@@ -11,7 +11,7 @@ import java.net.http.HttpResponse;
 
 @Slf4j
 public class NewsFetcher {
-    private static final String BASE_URL = "http://localhost:7000/api/v1/news/latest/";
+    private static final String BASE_URL = "https://api.data-cat.de/api/v1/news/latest/";
 
     public static News fetch() {
         String text = getText();

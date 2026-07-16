@@ -15,7 +15,6 @@
         <module>flow</module>
         <module>dbx</module>
         <module>reporter</module>
-        <module>datacat-maven-plugin</module>
     </modules>
 
     <properties>

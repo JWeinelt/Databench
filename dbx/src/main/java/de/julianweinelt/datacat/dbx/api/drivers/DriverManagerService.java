@@ -32,6 +32,7 @@ public class DriverManagerService {
     }
 
     public void preloadDrivers() throws SQLException, IOException {
+        log.info("Preloading JDBC drivers...");
         File folder = DbxAPI.driversFolder();
         File[] driverFiles = folder.listFiles((dir, name) -> name.endsWith(".jar"));
 

@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import com.password4j.HashChecker;
 import com.password4j.Password;
 import de.julianweinelt.datacat.server.store.account.Account;
@@ -12,6 +13,7 @@ import de.julianweinelt.datacat.server.store.account.AccountCreationResponse;
 import de.julianweinelt.datacat.server.store.account.AccountLinkType;
 import de.julianweinelt.datacat.server.store.account.AccountManager;
 import de.julianweinelt.datacat.server.store.database.DBStorage;
+import de.julianweinelt.datacat.server.store.yarn.Yarn;
 import de.julianweinelt.datacat.server.util.JWTUtil;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
@@ -23,10 +25,12 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.InputStream;
+import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Base64;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -258,6 +262,43 @@ public class StoreServer {
 
                     ctx.status(200);
                 })
+                .post("/api/v1/yarn/create", ctx -> {
+                    Account account = extractAccount(ctx);
+                    if (account == null) {
+                        error(ErrorResponseType.LOGIN_REQUIRED, HttpStatus.UNAUTHORIZED, ctx);
+                        return;
+                    }
+
+                    try {
+                        JsonParser.parseString(ctx.body()).getAsJsonObject();
+                    } catch (Exception e) {
+                        error(ErrorResponseType.INVALID_REQUEST, ctx);
+                        return;
+                    }
+
+                    JsonObject body = JsonParser.parseString(ctx.body()).getAsJsonObject();
+
+                    DBStorage.instance().createYarnMetaData(body, account.getUniqueId()).thenAccept(uuid -> {
+                        ctx.status(201);
+                        JsonObject o = new JsonObject();
+                        o.addProperty("success", true);
+                        o.addProperty("id", uuid.toString());
+                        ctx.result(o.toString());
+                    }).exceptionally(ex -> {
+                        error(ErrorResponseType.INVALID_REQUEST, ctx);
+                        return null;
+                    });
+                })
+
+                .get("/api/v1/yarn/id/{id}", ctx -> {
+                    UUID id = UUID.fromString(ctx.pathParam("id"));
+                    Yarn yarn = YarnManager.getYarn(id);
+                    if (yarn == null) {
+                        error(ErrorResponseType.YARN_NOT_FOUND, ctx);
+                        return;
+                    }
+                    ctx.result(new Gson().toJson(yarn));
+                })
 
                 .get("/api/v1/assets/plugins/{id}/image", ctx -> {
                     String id = ctx.pathParam("id");
@@ -296,10 +337,20 @@ public class StoreServer {
         ctx.status(400).result(o.toString());
         return ctx;
     }
+    public Context error(ErrorResponseType type, HttpStatus code, Context ctx) {
+        JsonObject o = new JsonObject();
+        o.addProperty("success", false);
+        o.addProperty("type", type.name());
+        ctx.status(code).result(o.toString());
+        return ctx;
+    }
 
     private Account extractAccount(Context ctx) {
-        String token = ctx.header("Authorization").replace("Bearer ", "");
+        String header = ctx.header("Authorization");
+        if (header == null) return null;
+        String token = header.replace("Bearer ", "");
         DecodedJWT decodedJWT = JWTUtil.instance().decode(token);
+        if (decodedJWT == null) return null;
         return AccountManager.instance().getAccount(decodedJWT.getSubject(), DBStorage.LoadMethod.UUID);
     }
 
@@ -316,6 +367,8 @@ public class StoreServer {
         EMAIL_ALREADY_EXISTS,
 
         ROUTE_NOT_FOUND,
+
+        YARN_NOT_FOUND,
 
         INVALID_FILE,
         LOGIN_REQUIRED
