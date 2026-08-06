@@ -87,7 +87,7 @@
         <dependency>
             <groupId>io.javalin</groupId>
             <artifactId>javalin</artifactId>
-            <version>6.7.0</version>
+            <version>6.7.0</version> <!-- TODO: Bump to 7.2.2-->
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
@@ -102,7 +102,7 @@
         <dependency>
             <groupId>com.auth0</groupId>
             <artifactId>java-jwt</artifactId>
-            <version>4.5.0</version>
+            <version>4.6.0</version>
         </dependency>
         <dependency>
             <groupId>com.zaxxer</groupId>
