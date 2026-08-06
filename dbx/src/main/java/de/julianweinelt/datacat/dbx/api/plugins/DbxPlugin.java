@@ -40,6 +40,9 @@ public abstract class DbxPlugin {
     private final List<String> dependencies = new ArrayList<>();
     private final List<String> optionalDependencies = new ArrayList<>();
 
+    @Getter @Setter
+    private boolean enabled = false;
+
     private final HashMap<String, HashMap<String, String>> languageData = new HashMap<>();
 
     protected void setLangData(HashMap<String, HashMap<String, String>> languageData) {
