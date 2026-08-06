@@ -37,7 +37,6 @@ build/
 ### Mac OS ###
 .DS_Store
 /run-ui/
-/run-ui/
 /run-launcher/
 /run/
 /run-server/
@@ -45,3 +44,4 @@ build/
 /.idea/
 /run-flow/
 /run-store/
+/run-client/
