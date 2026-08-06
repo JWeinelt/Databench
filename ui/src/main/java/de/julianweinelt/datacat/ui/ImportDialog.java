@@ -6,6 +6,7 @@ import de.julianweinelt.datacat.dbx.database.ADatabase;
 import de.julianweinelt.datacat.dbx.backup.DatabaseImporter;
 import de.julianweinelt.datacat.dbx.backup.DbxArchiveReader;
 import de.julianweinelt.datacat.dbx.backup.ImportListener;
+import de.julianweinelt.datacat.dbx.util.taskbar.DTaskbar;
 import de.julianweinelt.datacat.ui.importdiag.DatabaseMappingDialog;
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,8 +44,7 @@ public class ImportDialog extends JDialog implements ImportListener {
     private final JButton databasesButton =
             new JButton(translate("dialog.import.button.databases"));
 
-    private final Taskbar taskbar;
-    private final Frame parent;
+    private final DTaskbar dTaskbar;
 
     private Thread importThread;
 
@@ -59,21 +59,22 @@ public class ImportDialog extends JDialog implements ImportListener {
 
     public ImportDialog(Frame owner) {
         super(owner, translate("dialog.import.title"), true);
-        this.parent = owner;
         BenchUI.addEscapeKeyBind(this);
 
-        taskbar = Taskbar.getTaskbar();
-        if (!taskbar.isSupported(Taskbar.Feature.PROGRESS_STATE_WINDOW)) {
-            taskbar.setWindowProgressState(parent, Taskbar.State.INDETERMINATE);
-        } else {
-            taskbar.setWindowProgressState(parent, Taskbar.State.NORMAL);
+        dTaskbar = new DTaskbar(owner);
+        try {
+            if (dTaskbar.featureSupported(Taskbar.Feature.PROGRESS_STATE_WINDOW)) {
+                dTaskbar.progressState(Taskbar.State.NORMAL);
+            }
+        } catch (UnsupportedOperationException e) {
+            log.warn("Taskbar features not supported on this system.");
         }
 
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosed(WindowEvent e) {
-                if (taskbar.isSupported(Taskbar.Feature.PROGRESS_STATE_WINDOW)) {
-                    taskbar.setWindowProgressState(parent, Taskbar.State.OFF);
+                if (dTaskbar.featureSupported(Taskbar.Feature.PROGRESS_STATE_WINDOW)) {
+                    dTaskbar.progressState(Taskbar.State.OFF);
                 }
             }
         });
@@ -233,7 +234,7 @@ public class ImportDialog extends JDialog implements ImportListener {
                     targetDatabase.rollback();
                 } catch (Exception ignored) {}
                 dispose();
-                taskbar.setWindowProgressState(parent, Taskbar.State.OFF);
+                dTaskbar.progressState(Taskbar.State.OFF);
             }
         });
         startButton.addActionListener(e -> startImport());
@@ -321,10 +322,10 @@ public class ImportDialog extends JDialog implements ImportListener {
                 importer.loadSchemas();
                 message(translate("dialog.import.log.importing"));
                 importer.importData();
-                taskbar.setWindowProgressState(parent, Taskbar.State.OFF);
+                dTaskbar.progressState(Taskbar.State.OFF);
 
             } catch (Exception ex) {
-                taskbar.setWindowProgressState(parent, Taskbar.State.ERROR);
+                dTaskbar.progressState(Taskbar.State.ERROR);
                 onError("Import failed", ex);
                 message(translate("dialog.import.import-failed.text", Map.of("error", ex.getMessage())));
                 SwingUtilities.invokeLater(() -> {
@@ -334,7 +335,7 @@ public class ImportDialog extends JDialog implements ImportListener {
                                 translate("dialog.import.import-failed.title"),
                                 JOptionPane.ERROR_MESSAGE
                         );
-                    taskbar.setWindowProgressState(parent, Taskbar.State.OFF);
+                    dTaskbar.progressState(Taskbar.State.OFF);
                     }
                 );
             }
@@ -377,8 +378,8 @@ public class ImportDialog extends JDialog implements ImportListener {
             progressBar.setMaximum(total);
             progressBar.setValue(current);
             progressBar.setStringPainted(true);
-            if (taskbar.isSupported(Taskbar.Feature.PROGRESS_VALUE))
-                taskbar.setWindowProgressValue(parent, current * 100 / total);
+            if (dTaskbar.featureSupported(Taskbar.Feature.PROGRESS_VALUE))
+                dTaskbar.progressValue(current, total);
         });
     }
 
