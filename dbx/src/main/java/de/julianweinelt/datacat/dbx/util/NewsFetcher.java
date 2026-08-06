@@ -45,7 +45,7 @@ public class NewsFetcher {
             if (!body.isEmpty())
                 return JsonParser.parseString(body).getAsJsonObject();
         } catch (Exception e) {
-            log.error("Failed to fetch news meta", e);
+            log.error("Failed to fetch news meta");
         }
         JsonObject o = new JsonObject();
         o.addProperty("title", "Not found");
