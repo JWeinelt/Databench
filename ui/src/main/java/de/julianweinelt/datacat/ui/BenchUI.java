@@ -50,7 +50,11 @@ public class BenchUI {
         log.debug("Loading theme data...");
         String selected = Configuration.getConfiguration().getSelectedTheme();
         String definingPlugin = selected.split(":")[0];
-        String theme = selected.split(":")[1];
+        String theme;
+        if (selected.split(":").length == 1) {
+            definingPlugin = "system";
+            theme = selected;
+        } else theme = selected.split(":")[1];
         log.info("Setting theme to \"{}\" by {}", theme, definingPlugin);
         ThemeSwitcher.switchTheme(theme, Registry.instance().getPlugin(definingPlugin), showDialogOnError);
     }
@@ -231,6 +235,9 @@ public class BenchUI {
         for (Project p : ProjectManager.instance().getProjects()) {
             JPanel card = p.createCard(this);
             cardsContainer.add(card);
+        }
+        if (ProjectManager.instance().getProjects().isEmpty()) {
+            cardsContainer.add(new JLabel("Looks empty in here. Add new projects to get started!"));
         }
 
         cardsContainer.revalidate();
