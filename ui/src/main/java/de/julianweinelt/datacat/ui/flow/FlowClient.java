@@ -52,10 +52,11 @@ public class FlowClient {
         String host = connection.getProject().getServer();
         if (host.split(":").length == 2) host = host.split(":")[0];
         baseURL = "http://" + host + ":47387/api/v1/";
-        get("hello", new HeaderBuilder())
+        get("hello", new HeaderBuilder(), true)
                 .thenAccept(response -> {
                     if (response.statusCode() != 200) {
                         log.warn("Got status code {} from server.", response.statusCode());
+                        log.warn("Body: {}", response.body());
                         enabled.set(false);
                         return;
                     }
@@ -72,8 +73,8 @@ public class FlowClient {
     }
 
     // Helper Methods
-    private HttpResponse<JsonObject> send(HttpRequest request) {
-        if (!enabled.get()) return new HttpResponse<>(401, null, null);
+    private HttpResponse<JsonObject> send(HttpRequest request, boolean ignoreEnabled) {
+        if (!enabled.get() && !ignoreEnabled) return new HttpResponse<>(401, null, null);
         try {
             java.net.http.HttpResponse<String> response =
                     httpClient.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
@@ -105,7 +106,8 @@ public class FlowClient {
 
         return post("auth",
                 new HeaderBuilder().add("Authorization", "Basic " + base),
-                null
+                null,
+                true
         ).thenApply(response -> {
             if (response.statusCode() == 200 &&
                     response.body() != null &&
@@ -128,7 +130,7 @@ public class FlowClient {
         });
     }
 
-    public CompletableFuture<HttpResponse<JsonObject>> get(String path, HeaderBuilder header) {
+    public CompletableFuture<HttpResponse<JsonObject>> get(String path, HeaderBuilder header, boolean ignoreEnabled) {
 
         HttpRequest.Builder builder = HttpRequest.newBuilder()
                 .uri(URI.create(baseURL + path))
@@ -137,10 +139,12 @@ public class FlowClient {
 
         header.apply(builder);
 
-        return CompletableFuture.supplyAsync(() -> send(builder.build()));
+        log.info(baseURL + path);
+
+        return CompletableFuture.supplyAsync(() -> send(builder.build(), ignoreEnabled));
     }
 
-    public CompletableFuture<HttpResponse<JsonObject>> post(String path, HeaderBuilder header, String body) {
+    public CompletableFuture<HttpResponse<JsonObject>> post(String path, HeaderBuilder header, String body, boolean ignoreEnabled) {
 
         HttpRequest.Builder builder = HttpRequest.newBuilder()
                 .uri(URI.create(baseURL + path))
@@ -155,7 +159,7 @@ public class FlowClient {
 
         header.apply(builder);
 
-        return CompletableFuture.supplyAsync(() -> send(builder.build()));
+        return CompletableFuture.supplyAsync(() -> send(builder.build(), ignoreEnabled));
     }
 
 
