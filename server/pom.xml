@@ -97,7 +97,7 @@
         <dependency>
             <groupId>com.password4j</groupId>
             <artifactId>password4j</artifactId>
-            <version>1.7.3</version>
+            <version>1.8.4</version>
         </dependency>
         <dependency>
             <groupId>com.auth0</groupId>
