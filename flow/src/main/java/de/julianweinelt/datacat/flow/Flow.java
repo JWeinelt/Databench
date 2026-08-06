@@ -3,6 +3,7 @@ package de.julianweinelt.datacat.flow;
 import de.julianweinelt.datacat.dbx.api.DbxAPI;
 import de.julianweinelt.datacat.dbx.api.drivers.DriverManagerService;
 import de.julianweinelt.datacat.dbx.api.plugins.PluginLoader;
+import de.julianweinelt.datacat.dbx.api.plugins.YarnLoader;
 import de.julianweinelt.datacat.flow.flow.FlowCLI;
 import de.julianweinelt.datacat.flow.flow.FlowServer;
 import de.julianweinelt.datacat.flow.flow.FlowSocketServer;
@@ -43,6 +44,8 @@ public class Flow {
     @Getter
     private CryptoUtil cryptoUtil;
 
+    private YarnLoader yarnLoader;
+
     @Getter
     private DatabaseProvider databaseProvider;
 
@@ -70,8 +73,13 @@ public class Flow {
         } catch (SQLException e) {
             log.error("An internal SQL error occurred loading drivers from disk: {}", e.getMessage(), e);
         }
+        yarnLoader = new YarnLoader();
+        log.info("Loading DBX plugins...");
+        PluginLoader loader = new PluginLoader(api);
+        loader.loadAll();
         storage = new LocalStorage(new File("config.json"));
         if (!storage.configCreated()) {
+            loader.initializeDatabasePlugins();
             new SetupManager().startCLI();
             return;
         }
@@ -82,14 +90,12 @@ public class Flow {
         new JobAgent();
         userManager = new UserManager();
         socketServer = new FlowSocketServer();
-        log.info("Loading DBX plugins...");
-        PluginLoader loader = new PluginLoader(api);
-        loader.loadAll();
 
         server = new FlowServer();
         server.start();
         databaseProvider = new DatabaseProvider();
         databaseProvider.start();
+        loader.initializeAll();
 
         new Thread(() -> new FlowCLI().start()).start();
     }
