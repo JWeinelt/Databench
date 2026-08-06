@@ -93,6 +93,11 @@ public final class PluginLoader {
         registry.getPlugins().forEach(this::initializePlugin);
     }
 
+    public void initializeDatabasePlugins() {
+        registry.getPlugins().stream().filter(pl -> pl.getDescription().toLowerCase().contains("driver compatibility"))
+                .toList().forEach(this::initializePlugin);
+    }
+
     public void unload(String name) {
         DbxPlugin plugin = registry.getPlugin(name);
         unload(plugin);
@@ -198,6 +203,8 @@ public final class PluginLoader {
         String pluginName = plugin.getName();
         File dataFolder = new File(DbxAPI.pluginsFolder(), "data/" + plugin.getName());
 
+        if (plugin.isEnabled()) return;
+
         try {
             plugin.onDefineEvents();
         } catch (NoSuchMethodError e) {
@@ -217,6 +224,7 @@ public final class PluginLoader {
                 .set("dependencies", plugin.getDependencies())
                 .set("dataFolder", dataFolder)
         );
+        plugin.setEnabled(true);
     }
 
     /**

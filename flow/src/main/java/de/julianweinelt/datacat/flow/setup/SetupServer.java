@@ -20,12 +20,12 @@ public class SetupServer {
 
     public void start() {
         app = Javalin.create(config -> {
-            config.showJavalinBanner = false;
-            config.startupWatcherEnabled = false;
-        });
+            config.startup.showJavalinBanner = false;
+            config.startup.startupWatcherEnabled = false;
 
-        app.get("/api/hostnames", ctx -> {
-            ctx.result(new Gson().toJson(getAvailableHostNames()));
+            config.routes.get("/api/hostnames", ctx -> {
+                ctx.result(new Gson().toJson(getAvailableHostNames()));
+            });
         });
     }
 

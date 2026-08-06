@@ -55,7 +55,7 @@
         <dependency>
             <groupId>de.julianweinelt.datacat</groupId>
             <artifactId>dbx</artifactId>
-            <version>${project.version}</version>
+            <version>1.0.5</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
@@ -80,12 +80,12 @@
         <dependency>
             <groupId>io.javalin</groupId>
             <artifactId>javalin</artifactId>
-            <version>6.7.0</version>
+            <version>7.2.2</version>
         </dependency>
         <dependency>
             <groupId>com.auth0</groupId>
             <artifactId>java-jwt</artifactId>
-            <version>4.5.2</version>
+            <version>4.6.0</version>
         </dependency>
         <dependency>
             <groupId>org.java-websocket</groupId>

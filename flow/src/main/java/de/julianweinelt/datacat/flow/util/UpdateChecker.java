@@ -61,7 +61,7 @@ public class UpdateChecker {
             }
             in.close();
         } catch (IOException e) {
-            log.error(e.getMessage(), e);
+            log.warn("Failed to get version information.");
         }
     }
 }

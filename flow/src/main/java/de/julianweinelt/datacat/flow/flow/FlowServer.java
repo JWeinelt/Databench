@@ -7,6 +7,7 @@ import de.julianweinelt.datacat.flow.flow.auth.UserManager;
 import de.julianweinelt.datacat.flow.storage.LocalStorage;
 import de.julianweinelt.datacat.flow.util.JWTUtil;
 import io.javalin.Javalin;
+import io.javalin.config.RoutesConfig;
 import io.javalin.http.Context;
 import lombok.extern.slf4j.Slf4j;
 
@@ -22,109 +23,111 @@ public class FlowServer {
         String hostAddress = LocalStorage.instance().getConfig().getInternalServerAddress();
         int hostPort = LocalStorage.instance().getConfig().getInternalServerPort();
         app = Javalin.create(config -> {
-            config.showJavalinBanner = false;
-            config.startupWatcherEnabled = false;
-                })
-                .before(ctx -> {
-                    ctx.contentType("application/json");
-                    log.debug("Request: {} {}", ctx.method(), ctx.path());
-                })
-                .get("/api/v1/hello", ctx -> {
-                    new JsonResponse().success()
-                            .add("systemTime", System.currentTimeMillis())
-                            .add("flowVersion", Flow.version)
-                            .add("hello", "world")
+            config.startup.showJavalinBanner = false;
+            config.startup.startupWatcherEnabled = false;
+
+            RoutesConfig r = config.routes;
+            r.before(ctx -> {
+                        ctx.contentType("application/json");
+                        log.debug("Request: {} {}", ctx.method(), ctx.path());
+            });
+            r.get("/api/v1/hello", ctx -> {
+                new JsonResponse().success()
+                        .add("systemTime", System.currentTimeMillis())
+                        .add("flowVersion", Flow.version)
+                        .add("hello", "world")
+                        .apply(ctx);
+            });
+            r.post("/api/v1/auth", ctx -> {
+                String authHeader = ctx.header("Authorization");
+                if (authHeader == null || !authHeader.startsWith("Basic ")) {
+                    new JsonResponse().error(ErrorType.INVALID_HEADER).apply(ctx);
+                    ctx.header("WWW-Authenticate", "Basic realm=\"api\"");
+                    return;
+                }
+
+                String base64Credentials = authHeader.substring("Basic ".length());
+                byte[] decoded = Base64.getDecoder().decode(base64Credentials);
+                String credentials = new String(decoded, StandardCharsets.UTF_8);
+
+                int separator = credentials.indexOf(':');
+                if (separator < 0) {
+                    new JsonResponse().error(ErrorType.INVALID_REQUEST).apply(ctx);
+                    return;
+                }
+
+                String username = credentials.substring(0, separator);
+                String password = credentials.substring(separator + 1);
+
+                boolean valid = UserManager.instance().verify(username, password);
+
+                if (!valid) {
+                    new JsonResponse().error(ErrorType.INVALID_CREDENTIALS).apply(ctx);
+                    return;
+                }
+
+                String token = JWTUtil.instance().token(username);
+                new JsonResponse().success()
+                        .add("token", token)
+                        .add("refreshToken", JWTUtil.instance().refreshToken(token))
+                        .apply(ctx);
+            });
+            r.post("/api/v1/refresh", ctx -> {
+                String refreshToken = ctx.header("Authorization");
+                if (refreshToken == null) {
+                    new JsonResponse().error(ErrorType.TOKEN_MISSING).apply(ctx);
+                    return;
+                }
+                String token = refreshToken.replace("Bearer ", "");
+                boolean valid = JWTUtil.instance().verifyRefresh(token, onError -> {
+                    new JsonResponse().error(ErrorType.TOKEN_INVALID).add("additionalInfo", onError)
                             .apply(ctx);
-                })
-                .post("/api/v1/auth", ctx -> {
-                    String authHeader = ctx.header("Authorization");
-                    if (authHeader == null || !authHeader.startsWith("Basic ")) {
-                        new JsonResponse().error(ErrorType.INVALID_HEADER).apply(ctx);
-                        ctx.header("WWW-Authenticate", "Basic realm=\"api\"");
-                        return;
-                    }
-
-                    String base64Credentials = authHeader.substring("Basic ".length());
-                    byte[] decoded = Base64.getDecoder().decode(base64Credentials);
-                    String credentials = new String(decoded, StandardCharsets.UTF_8);
-
-                    int separator = credentials.indexOf(':');
-                    if (separator < 0) {
-                        new JsonResponse().error(ErrorType.INVALID_REQUEST).apply(ctx);
-                        return;
-                    }
-
-                    String username = credentials.substring(0, separator);
-                    String password = credentials.substring(separator + 1);
-
-                    boolean valid = UserManager.instance().verify(username, password);
-
-                    if (!valid) {
-                        new JsonResponse().error(ErrorType.INVALID_CREDENTIALS).apply(ctx);
-                        return;
-                    }
-
-                    String token = JWTUtil.instance().token(username);
-                    new JsonResponse().success()
-                            .add("token", token)
-                            .add("refreshToken", JWTUtil.instance().refreshToken(token))
-                            .apply(ctx);
-                })
-                .post("/api/v1/refresh", ctx -> {
-                    String refreshToken = ctx.header("Authorization");
-                    if (refreshToken == null) {
+                });
+                if (!valid) return;
+                String oldInvalidToken = JWTUtil.instance().getUsername(token);
+                String userName = JWTUtil.instance().getUsername(oldInvalidToken);
+                String newToken = JWTUtil.instance().token(userName);
+                String newRToken = JWTUtil.instance().refreshToken(newToken);
+                new JsonResponse().success()
+                        .add("token", newToken)
+                        .add("refreshToken", newRToken)
+                        .apply(ctx);
+            });
+            r.before(ctx -> {
+                if (ctx.path().startsWith("/api/v1/flow/")) {
+                    String token = ctx.header("Authorization");
+                    if (token == null) {
                         new JsonResponse().error(ErrorType.TOKEN_MISSING).apply(ctx);
+                        ctx.skipRemainingHandlers();
                         return;
                     }
-                    String token = refreshToken.replace("Bearer ", "");
-                    boolean valid = JWTUtil.instance().verifyRefresh(token, onError -> {
+                    token = token.replace("Bearer ", "");
+                    boolean verified = JWTUtil.instance().verify(token, onError -> {
                         new JsonResponse().error(ErrorType.TOKEN_INVALID).add("additionalInfo", onError)
                                 .apply(ctx);
+                        ctx.skipRemainingHandlers();
                     });
-                    if (!valid) return;
-                    String oldInvalidToken = JWTUtil.instance().getUsername(token);
-                    String userName = JWTUtil.instance().getUsername(oldInvalidToken);
-                    String newToken = JWTUtil.instance().token(userName);
-                    String newRToken = JWTUtil.instance().refreshToken(newToken);
-                    new JsonResponse().success()
-                            .add("token", newToken)
-                            .add("refreshToken", newRToken)
-                            .apply(ctx);
-                })
-                .before(ctx -> {
-                    if (ctx.path().startsWith("/api/v1/flow/")) {
-                        String token = ctx.header("Authorization");
-                        if (token == null) {
-                            new JsonResponse().error(ErrorType.TOKEN_MISSING).apply(ctx);
-                            ctx.skipRemainingHandlers();
-                            return;
-                        }
-                        token = token.replace("Bearer ", "");
-                        boolean verified = JWTUtil.instance().verify(token, onError -> {
-                            new JsonResponse().error(ErrorType.TOKEN_INVALID).add("additionalInfo", onError)
-                                    .apply(ctx);
-                            ctx.skipRemainingHandlers();
-                        });
-                        if (!verified) return;
-                        ctx.attribute("token", token);
-                        ctx.attribute("username", JWTUtil.instance().getUsername(token));
-                    }
-                })
-                .get("/api/v1/flow/jobs", ctx ->
-                        new JsonResponse()
-                                .success()
-                                //.add("jobs", JobAgent.instance().getMinimalJobData())
-                                .apply(ctx))
-                .get("/api/v1/flow/job/{id}", ctx -> {
+                    if (!verified) return;
+                    ctx.attribute("token", token);
+                    ctx.attribute("username", JWTUtil.instance().getUsername(token));
+                }
+            });
+            r.get("/api/v1/flow/jobs", ctx ->
+                    new JsonResponse()
+                            .success()
+                            //.add("jobs", JobAgent.instance().getMinimalJobData())
+                            .apply(ctx));
+            r.get("/api/v1/flow/job/{id}", ctx -> {
 
-                })
-                .after(ctx -> {
-                    log.debug("Request handled; Body: {}, Code: {}", ctx.result(), ctx.status());
-                    for (String key : ctx.headerMap().keySet()) {
-                        log.debug("Header: {}: {}", key, ctx.header(key));
-                    }
-                })
-                .start(hostAddress, hostPort);
+            });
+            r.after(ctx -> {
+                log.debug("Request handled; Body: {}, Code: {}", ctx.result(), ctx.status());
+                for (String key : ctx.headerMap().keySet()) {
+                    log.debug("Header: {}: {}", key, ctx.header(key));
+                }
+            });
+        })
+            .start(hostAddress, hostPort);
         log.info("Started endpoint on {}:{}", hostAddress, hostPort);
     }
 

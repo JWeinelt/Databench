@@ -70,6 +70,8 @@ public class UserManager {
         File usersFile = new File("users", "users.dat");
         File permissionsFile = new File("users", "permissions.dat");
 
+        if (!usersFile.exists() || !permissionsFile.exists()) save();
+
         try (BufferedReader br = new BufferedReader(new FileReader(usersFile))) {
             StringBuilder b = new StringBuilder();
             String line;

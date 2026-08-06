@@ -102,7 +102,7 @@ public class UpdateChecker {
             }
             in.close();
         } catch (IOException e) {
-            log.error(e.getMessage(), e);
+            log.warn("No version information available (Server error).");
         }
     }
 }

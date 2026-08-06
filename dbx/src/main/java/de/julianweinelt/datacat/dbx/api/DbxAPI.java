@@ -72,9 +72,11 @@ public class DbxAPI {
 
         registry.registerEvents(systemPlugin, "UIMenuBarRevalidateEvent");
 
+        /*
         log.info("Registering database handlers...");
         DatabaseRegistry.instance().registerMapping("mysql", DBMySQL::new, new DBMetaMySQL());
-        DatabaseRegistry.instance().registerMapping("mssql", DBMSSQL::new, new DBMetaMSSQL());
+        DatabaseRegistry.instance().registerMapping("mssql", DBMSSQL::new, new DBMetaMSSQL());*/
+        //TODO: Move to its own yarns
     }
 
     // API Methods

@@ -11,7 +11,7 @@ public class SetupState {
     public Set<String> selectedDrivers = new HashSet<>();
 
     public boolean followSystemTheme = true;
-    public String theme = "dark";
+    public String theme = "system:dark";
 
     public String javaPath;
     public List<String> jvmArgs = new ArrayList<>();
