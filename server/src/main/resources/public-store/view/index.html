@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChartBuilder | DataCat Store</title>
+    <link rel="icon" href="/img/favicon.png">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#1E293B'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <script src="https://kit.fontawesome.com/85182ea83e.js" crossorigin="anonymous"></script>
+    <script src="/js/general.js" defer></script>
+</head>
+
+<body class="bg-gray-100 dark:bg-secondary text-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
+
+<header id="header"></header>
+
+<main class="max-w-7xl mx-auto px-4 py-10 flex-1">
+
+    <div class="grid lg:grid-cols-3 gap-8">
+
+        <div class="lg:col-span-2">
+
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
+
+                <img
+                        src="https://picsum.photos/1200/350"
+                        class="w-full h-72 object-cover"
+                        alt="Plugin Banner"
+                >
+
+                <div class="p-6">
+
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+
+                        <div>
+                            <h1 class="text-4xl font-bold text-primary mb-2">
+                                ChartBuilder
+                            </h1>
+
+                            <p class="text-gray-600 dark:text-gray-300 mb-4">
+                                Create interactive charts directly inside DataCat with live previews and flexible layouts.
+                            </p>
+
+                            <div class="flex flex-wrap gap-2">
+                                <span class="bg-blue-100 dark:bg-blue-900 text-primary px-3 py-1 rounded-full text-sm">
+                                    Charts
+                                </span>
+
+                                <span class="bg-blue-100 dark:bg-blue-900 text-primary px-3 py-1 rounded-full text-sm">
+                                    Visualization
+                                </span>
+
+                                <span class="bg-blue-100 dark:bg-blue-900 text-primary px-3 py-1 rounded-full text-sm">
+                                    Analytics
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2">
+
+                            <button class="bg-primary hover:bg-blue-700 text-white px-5 py-3 rounded-lg font-medium transition">
+                                <i class="fa-solid fa-download mr-2"></i>
+                                Install to DataCat
+                            </button>
+
+                            <div class="relative">
+                                <button id="downloadBtn"
+                                        class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 px-4 py-3 rounded-lg transition">
+                                    <i class="fa-solid fa-chevron-down"></i>
+                                </button>
+
+                                <div id="downloadMenu"
+                                     class="hidden absolute right-0 mt-2 w-52 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
+
+                                    <a href="#"
+                                       class="block px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                        Download .yarn
+                                    </a>
+
+                                    <a href="#"
+                                       class="block px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                        Download ZIP
+                                    </a>
+
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="flex flex-wrap gap-6 mt-6 text-sm text-gray-500 dark:text-gray-400">
+
+                        <span>
+                            <i class="fa-solid fa-download mr-1"></i>
+                            950 Downloads
+                        </span>
+
+                        <span>
+                            <i class="fa-solid fa-code-branch mr-1"></i>
+                            v2.1.0
+                        </span>
+
+                        <span>
+                            <i class="fa-solid fa-calendar mr-1"></i>
+                            Updated 3 days ago
+                        </span>
+
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg mt-8">
+
+                <div class="border-b border-gray-200 dark:border-gray-700 flex overflow-x-auto">
+
+                    <button class="tab-btn px-6 py-4 font-medium border-b-2 border-primary"
+                            data-tab="description">
+                        Description
+                    </button>
+
+                    <button class="tab-btn px-6 py-4 font-medium"
+                            data-tab="gallery">
+                        Gallery
+                    </button>
+
+                    <button class="tab-btn px-6 py-4 font-medium"
+                            data-tab="versions">
+                        Versions
+                    </button>
+
+                    <button class="tab-btn px-6 py-4 font-medium"
+                            data-tab="relations">
+                        Relations
+                    </button>
+
+                </div>
+
+                <div class="p-6">
+
+                    <div id="description" class="tab-content">
+
+                        <h3 class="text-2xl font-bold mb-4">
+                            Featured Gallery
+                        </h3>
+
+                        <div class="grid md:grid-cols-2 gap-4 mb-8">
+
+                            <img src="https://picsum.photos/500/300?1"
+                                 class="rounded-xl shadow">
+
+                            <img src="https://picsum.photos/500/300?2"
+                                 class="rounded-xl shadow">
+
+                        </div>
+
+                        <h3 class="text-2xl font-bold mb-4">
+                            Description
+                        </h3>
+
+                        <div class="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 space-y-4">
+
+                            <p>
+                                This would later contain the rendered Markdown description.
+                            </p>
+
+                            <h4 class="font-bold text-lg">
+                                Features
+                            </h4>
+
+                            <ul class="list-disc ml-6">
+                                <li>Live chart preview</li>
+                                <li>Flexible layouts</li>
+                                <li>Custom exports</li>
+                            </ul>
+
+                            <p>
+                                Markdown rendering can be injected here using your backend.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <div id="gallery"
+                         class="tab-content hidden">
+
+                        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+                            <img src="https://picsum.photos/500/300?3" class="rounded-xl shadow">
+                            <img src="https://picsum.photos/500/300?4" class="rounded-xl shadow">
+                            <img src="https://picsum.photos/500/300?5" class="rounded-xl shadow">
+                            <img src="https://picsum.photos/500/300?6" class="rounded-xl shadow">
+                            <img src="https://picsum.photos/500/300?7" class="rounded-xl shadow">
+
+                        </div>
+
+                    </div>
+
+                    <div id="versions"
+                         class="tab-content hidden">
+
+                        <div class="space-y-4">
+
+                            <div class="bg-gray-100 dark:bg-gray-700 rounded-xl p-4">
+                                <div class="flex justify-between">
+                                    <span class="font-semibold">v2.1.0</span>
+                                    <span class="text-sm text-gray-500">Latest</span>
+                                </div>
+                                <p class="text-sm mt-2">
+                                    Added export improvements and performance optimizations.
+                                </p>
+                            </div>
+
+                            <div class="bg-gray-100 dark:bg-gray-700 rounded-xl p-4">
+                                <span class="font-semibold">v2.0.0</span>
+                                <p class="text-sm mt-2">
+                                    Major redesign and API changes.
+                                </p>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div id="relations"
+                         class="tab-content hidden">
+
+                        <h3 class="text-xl font-bold mb-4">
+                            Dependencies
+                        </h3>
+
+                        <div class="space-y-3">
+
+                            <div class="bg-gray-100 dark:bg-gray-700 rounded-xl p-4 flex justify-between">
+                                <span>DataCat Core</span>
+                                <span class="text-primary">Required</span>
+                            </div>
+
+                            <div class="bg-gray-100 dark:bg-gray-700 rounded-xl p-4 flex justify-between">
+                                <span>ExportPlus</span>
+                                <span class="text-yellow-500">Optional</span>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <aside class="space-y-6">
+
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+
+                <h3 class="text-xl font-bold mb-4">
+                    Author
+                </h3>
+
+                <div class="flex items-center gap-4">
+
+                    <img
+                            src="https://i.pravatar.cc/100"
+                            class="w-14 h-14 rounded-full"
+                    >
+
+                    <div>
+                        <h4 class="font-semibold">
+                            Julian Weinelt
+                        </h4>
+
+                        <p class="text-sm text-gray-500">
+                            Plugin Developer
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+
+                <h3 class="text-xl font-bold mb-4">
+                    Links
+                </h3>
+
+                <div class="space-y-3">
+
+                    <a href="#"
+                       class="flex items-center gap-3 hover:text-primary transition">
+                        <i class="fa-solid fa-book"></i>
+                        Wiki
+                    </a>
+
+                    <a href="#"
+                       class="flex items-center gap-3 hover:text-primary transition">
+                        <i class="fa-brands fa-discord"></i>
+                        Discord
+                    </a>
+
+                    <a href="#"
+                       class="flex items-center gap-3 hover:text-primary transition">
+                        <i class="fa-brands fa-github"></i>
+                        Source Code
+                    </a>
+
+                </div>
+
+            </div>
+
+        </aside>
+
+    </div>
+
+</main>
+
+<footer></footer>
+
+<script>
+
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+
+        button.addEventListener('click', () => {
+
+            tabButtons.forEach(btn => {
+                btn.classList.remove('border-primary');
+            });
+
+            tabContents.forEach(content => {
+                content.classList.add('hidden');
+            });
+
+            button.classList.add('border-primary');
+
+            document
+                .getElementById(button.dataset.tab)
+                .classList.remove('hidden');
+        });
+
+    });
+
+    const downloadBtn = document.getElementById('downloadBtn');
+    const downloadMenu = document.getElementById('downloadMenu');
+
+    downloadBtn.addEventListener('click', () => {
+        downloadMenu.classList.toggle('hidden');
+    });
+
+    document.addEventListener('click', e => {
+
+        if (
+            !downloadBtn.contains(e.target) &&
+            !downloadMenu.contains(e.target)
+        ) {
+            downloadMenu.classList.add('hidden');
+        }
+
+    });
+
+</script>
+
+</body>
+</html>

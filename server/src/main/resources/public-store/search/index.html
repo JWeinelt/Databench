@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataCat Plugin Search</title>
+    <link rel="icon" href="../img/icon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#1E293B'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 dark:bg-secondary text-gray-900 dark:text-gray-100">
+
+<header id="header"></header>
+
+<section class="max-w-7xl mx-auto px-4 py-12">
+    <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <input type="text" id="searchInput" placeholder="Search plugins..." class="flex-1 px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary">
+        <select id="categoryFilter" class="px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary">
+            <option value="">All Categories</option>
+            <option value="Utility">Utility</option>
+            <option value="Reporting">Reporting</option>
+            <option value="Charts">Charts</option>
+            <option value="Export">Export</option>
+        </select>
+        <select id="sortSelect" class="px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary">
+            <option value="name-asc">Name ↑</option>
+            <option value="name-desc">Name ↓</option>
+            <option value="downloads-desc">Downloads ↓</option>
+            <option value="downloads-asc">Downloads ↑</option>
+        </select>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="pluginGrid">
+
+    </div>
+</section>
+
+<footer></footer>
+
+<script>
+    const plugins = [
+        { name: "AutoReport", description: "Automatic reporting for your datasets", downloads: 1200, author: "Julian Weinelt", category: "Reporting" },
+        { name: "ChartBuilder", description: "Create interactive charts directly in DataCat", downloads: 950, author: "Julian Weinelt", category: "Charts" },
+        { name: "QuickFilter", description: "Filter large datasets lightning fast with one click", downloads: 800, author: "Julian Weinelt", category: "Utility" },
+        { name: "ExportPlus", description: "Advanced export options for CSV & Excel", downloads: 670, author: "Julian Weinelt", category: "Export" }
+    ];
+
+    const grid = document.getElementById('pluginGrid');
+    const searchInput = document.getElementById('searchInput');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const sortSelect = document.getElementById('sortSelect');
+
+    function renderPlugins() {
+        grid.innerHTML = "";
+        let filtered = plugins.filter(p =>
+            p.name.toLowerCase().includes(searchInput.value.toLowerCase()) &&
+            (categoryFilter.value === "" || p.category === categoryFilter.value)
+        );
+
+        const sortValue = sortSelect.value;
+        filtered.sort((a,b) => {
+            if(sortValue === "name-asc") return a.name.localeCompare(b.name);
+            if(sortValue === "name-desc") return b.name.localeCompare(a.name);
+            if(sortValue === "downloads-asc") return a.downloads - b.downloads;
+            if(sortValue === "downloads-desc") return b.downloads - a.downloads;
+        });
+
+        filtered.forEach(plugin => {
+            const card = document.createElement('div');
+            card.className = "bg-white dark:bg-gray-700 shadow-md rounded-md p-4 hover:shadow-lg transition";
+            card.innerHTML = `
+                <h4 class="font-bold text-lg mb-2">${plugin.name}</h4>
+                <p class="text-gray-600 dark:text-gray-300 mb-2">${plugin.description}</p>
+                <span class="text-sm text-gray-500 dark:text-gray-400 mb-2 block">Author: ${plugin.author}</span>
+                <div class="flex justify-between items-center">
+                    <span class="text-sm text-gray-500 dark:text-gray-400">${plugin.downloads} Downloads</span>
+                    <button class="bg-primary text-white px-3 py-1 rounded hover:bg-blue-700 transition">Download</button>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    searchInput.addEventListener('input', renderPlugins);
+    categoryFilter.addEventListener('change', renderPlugins);
+    sortSelect.addEventListener('change', renderPlugins);
+
+    renderPlugins();
+</script>
+<script src="/js/general.js"></script>
+
+</body>
+</html>

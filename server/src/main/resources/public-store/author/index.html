@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Author | DataCat Store</title>
+
+    <link rel="icon" href="../img/favicon.png" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#3B82F6",
+                        secondary: "#1E293B",
+                    },
+                },
+            },
+        };
+    </script>
+
+    <script src="https://kit.fontawesome.com/85182ea83e.js" crossorigin="anonymous"></script>
+    <script src="../js/general.js" defer></script>
+</head>
+
+<body class="bg-gray-100 dark:bg-secondary text-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
+<header id="header"></header>
+
+<main class="max-w-7xl mx-auto px-4 py-10 flex-1">
+    <div class="grid lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2 space-y-8">
+            <section class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
+                <div class="h-40 bg-gradient-to-r from-blue-500 to-purple-600"></div>
+
+                <div class="p-6">
+                    <div class="flex flex-col md:flex-row md:items-end gap-6 -mt-20">
+                        <img
+                                src="https://i.pravatar.cc/200"
+                                class="w-36 h-36 rounded-full border-8 border-white dark:border-gray-800 shadow-lg"
+                        />
+
+                        <div class="mb-3">
+                            <div class="flex items-center gap-2">
+                                <h1 class="text-4xl font-bold">Julian Weinelt</h1>
+
+                                <span class="text-blue-500" title="Verified Author">
+                                            <i class="fa-solid fa-circle-check"></i>
+                                        </span>
+                            </div>
+
+                            <p class="text-gray-500 dark:text-gray-400">Plugin Developer & Software Creator</p>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap gap-6 mt-8 text-sm text-gray-500 dark:text-gray-400">
+                                <span>
+                                    <i class="fa-solid fa-calendar mr-1"></i>
+                                    Member since June 2025
+                                </span>
+
+                        <span>
+                                    <i class="fa-solid fa-box mr-1"></i>
+                                    24 Published Projects
+                                </span>
+
+                        <span>
+                                    <i class="fa-solid fa-star mr-1"></i>
+                                    12.4k Total Downloads
+                                </span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold mb-6">
+                    <i class="fa-solid fa-thumbtack text-primary mr-2"></i>
+                    Pinned Projects
+                </h2>
+
+                <div class="grid md:grid-cols-2 gap-5">
+                    <div class="bg-gray-100 dark:bg-gray-700 rounded-xl p-5">
+                        <h3 class="font-bold text-xl">ChartBuilder</h3>
+
+                        <p class="text-gray-600 dark:text-gray-300 mt-2">
+                            Interactive chart system for DataCat with live previews.
+                        </p>
+
+                        <div class="mt-4 flex justify-between text-sm text-gray-500">
+                                    <span>
+                                        <i class="fa-solid fa-download"></i>
+                                        5200 Downloads
+                                    </span>
+
+                            <span> v2.1.0 </span>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-100 dark:bg-gray-700 rounded-xl p-5">
+                        <h3 class="font-bold text-xl">ExportPlus</h3>
+
+                        <p class="text-gray-600 dark:text-gray-300 mt-2">
+                            Advanced export tools and automation features.
+                        </p>
+
+                        <div class="mt-4 flex justify-between text-sm text-gray-500">
+                                    <span>
+                                        <i class="fa-solid fa-download"></i>
+                                        3900 Downloads
+                                    </span>
+
+                            <span> v1.5.4 </span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold mb-6">
+                    <i class="fa-solid fa-trophy text-yellow-500 mr-2"></i>
+                    Most Successful Projects
+                </h2>
+
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between bg-gray-100 dark:bg-gray-700 rounded-xl p-4">
+                        <div>
+                            <h3 class="font-semibold">ChartBuilder</h3>
+
+                            <p class="text-sm text-gray-500">5200 downloads</p>
+                        </div>
+
+                        <span class="text-primary font-bold"> #1 </span>
+                    </div>
+
+                    <div class="flex items-center justify-between bg-gray-100 dark:bg-gray-700 rounded-xl p-4">
+                        <div>
+                            <h3 class="font-semibold">ExportPlus</h3>
+
+                            <p class="text-sm text-gray-500">3900 downloads</p>
+                        </div>
+
+                        <span class="text-gray-400 font-bold"> #2 </span>
+                    </div>
+
+                    <div class="flex items-center justify-between bg-gray-100 dark:bg-gray-700 rounded-xl p-4">
+                        <div>
+                            <h3 class="font-semibold">DatabaseTools</h3>
+
+                            <p class="text-sm text-gray-500">2100 downloads</p>
+                        </div>
+
+                        <span class="text-orange-500 font-bold"> #3 </span>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <aside class="space-y-6">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+                <h3 class="text-xl font-bold mb-5">About</h3>
+
+                <p class="text-gray-600 dark:text-gray-300">
+                    Developer focused on creating powerful tools, plugins and extensions for DataCat.
+                </p>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+                <h3 class="text-xl font-bold mb-5">Links</h3>
+
+                <div class="space-y-3">
+                    <a href="#" class="flex items-center gap-3 hover:text-primary transition">
+                        <i class="fa-brands fa-github"></i>
+                        GitHub
+                    </a>
+
+                    <a href="#" class="flex items-center gap-3 hover:text-primary transition">
+                        <i class="fa-brands fa-discord"></i>
+                        Discord
+                    </a>
+
+                    <a href="#" class="flex items-center gap-3 hover:text-primary transition">
+                        <i class="fa-solid fa-globe"></i>
+                        Website
+                    </a>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+                <h3 class="text-xl font-bold mb-5">Verification</h3>
+                <div class="flex items-center gap-3 text-blue-500">
+                    <i class="fa-solid fa-circle-check text-2xl"></i>
+                    <div>
+                        <p class="font-semibold text-gray-900 dark:text-white">Verified Author</p>
+
+                        <p class="text-sm text-gray-500">Identity confirmed by DataCat</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+</main>
+<footer></footer>
+</body>
+</html>

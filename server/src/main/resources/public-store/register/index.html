@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | DataCat Store</title>
+    <link rel="icon" href="/img/favicon.png">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#1E293B'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <script src="https://kit.fontawesome.com/85182ea83e.js" crossorigin="anonymous"></script>
+    <script src="/js/general.js" defer></script>
+</head>
+
+<body class="bg-gray-100 dark:bg-secondary text-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
+
+<header id="header"></header>
+
+<main class="flex-1 flex items-center justify-center px-4 py-16">
+
+    <div class="w-full max-w-lg">
+
+        <div class="bg-white dark:bg-gray-800 shadow-xl rounded-2xl p-8">
+
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-primary mb-3">
+                    Create Your Account 🚀
+                </h1>
+
+                <p class="text-gray-600 dark:text-gray-300">
+                    Join the DataCat community and start exploring yarns.
+                </p>
+            </div>
+
+            <form class="space-y-5">
+                <div>
+                    <label class="block mb-2 font-medium">
+                        Username
+                    </label>
+
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                            <i class="fa-solid fa-user"></i>
+                        </span>
+
+                        <input
+                                type="text"
+                                placeholder="Choose a username"
+                                class="w-full bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg py-3 pl-12 pr-4 outline-none focus:ring-2 focus:ring-primary transition"
+                        >
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block mb-2 font-medium">
+                        Email Address
+                    </label>
+
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                            <i class="fa-solid fa-envelope"></i>
+                        </span>
+
+                        <input type="email"
+                                placeholder="Enter your email"
+                                class="w-full bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg py-3 pl-12 pr-4 outline-none focus:ring-2 focus:ring-primary transition">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block mb-2 font-medium">
+                        Password
+                    </label>
+
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                            <i class="fa-solid fa-lock"></i>
+                        </span>
+
+                        <input
+                                type="password"
+                                placeholder="Create a secure password"
+                                class="w-full bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg py-3 pl-12 pr-4 outline-none focus:ring-2 focus:ring-primary transition"
+                        >
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block mb-2 font-medium">
+                        Confirm Password
+                    </label>
+
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </span>
+
+                        <input
+                                type="password"
+                                placeholder="Repeat your password"
+                                class="w-full bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg py-3 pl-12 pr-4 outline-none focus:ring-2 focus:ring-primary transition"
+                        >
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-3">
+
+                    <input
+                            type="checkbox"
+                            id="terms"
+                            class="mt-1 w-4 h-4 accent-blue-500"
+                    >
+
+                    <label for="terms" class="text-sm text-gray-600 dark:text-gray-300">
+                        I agree to the
+                        <a href="/terms" class="text-primary hover:underline">
+                            Terms of Service
+                        </a>
+                        and
+                        <a href="/privacy" class="text-primary hover:underline">
+                            Privacy Policy
+                        </a>
+                    </label>
+
+                </div>
+
+                <button
+                        type="submit"
+                        class="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+                >
+                    Create Account
+                </button>
+
+            </form>
+
+            <div class="flex items-center gap-4 my-6">
+                <div class="flex-1 h-px bg-gray-300 dark:bg-gray-600"></div>
+
+                <span class="text-sm text-gray-500">
+                    OR
+                </span>
+
+                <div class="flex-1 h-px bg-gray-300 dark:bg-gray-600"></div>
+            </div>
+
+            <div class="space-y-4">
+
+                <button
+                        class="w-full flex items-center justify-center gap-3 bg-gray-900 hover:bg-black text-white py-3 rounded-lg transition"
+                >
+                    <i class="fa-brands fa-github text-lg"></i>
+                    Continue with GitHub
+                </button>
+
+                <button
+                        class="w-full flex items-center justify-center gap-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 py-3 rounded-lg transition"
+                >
+                    <i class="fa-brands fa-google text-red-500"></i>
+                    Continue with Google
+                </button>
+
+            </div>
+
+            <div class="mt-8 text-center text-gray-600 dark:text-gray-300">
+                Already have an account?
+                <a
+                        href="/login"
+                        class="text-primary font-semibold hover:underline"
+                >
+                    Sign In
+                </a>
+            </div>
+        </div>
+    </div>
+</main>
+<footer></footer>
+</body>
+</html>

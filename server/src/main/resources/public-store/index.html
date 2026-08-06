@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataCat Store</title>
+    <link rel="icon" href="./img/favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#1E293B'
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="/js/general.js" defer></script>
+    <script src="https://kit.fontawesome.com/85182ea83e.js" crossorigin="anonymous"></script>
+</head>
+<body class="bg-gray-100 dark:bg-secondary text-gray-900 dark:text-gray-100">
+<header id="header"></header>
+
+<section class="bg-gray-200 dark:bg-gray-900 py-20">
+    <div class="max-w-4xl mx-auto text-center">
+        <h2 class="text-4xl font-bold text-primary mb-4">Discover the Best DataCat Yarns 🧶</h2>
+        <p class="text-gray-700 dark:text-gray-300 mb-6">Download yarns, explore new features, or share your own creations with the community.</p>
+        <a href="/search" class="bg-primary text-white px-6 py-3 rounded-md hover:bg-blue-700 transition">Explore Now</a>
+    </div>
+</section>
+
+<section id="plugins" class="max-w-7xl mx-auto px-4 py-12">
+    <h3 class="text-2xl font-bold mb-6">Popular Yarns</h3>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="pluginGrid">
+
+    </div>
+</section>
+
+<footer></footer>
+
+<script>
+    const plugins = [
+        { name: "AutoReport", description: "Automatic reporting for your datasets", downloads: 1200, "author": "Julian Weinelt" },
+        { name: "ChartBuilder", description: "Create interactive charts directly in DataCat", downloads: 950, "author": "Julian Weinelt" },
+        { name: "QuickFilter", description: "Filter large datasets lightning fast with one click", downloads: 800, "author": "Julian Weinelt" },
+        { name: "ExportPlus", description: "Advanced export options for CSV & Excel", downloads: 670, "author": "Julian Weinelt" }
+    ];
+
+    const grid = document.getElementById('pluginGrid');
+
+    plugins.forEach(plugin => {
+        const card = document.createElement('div');
+        card.className = "bg-white dark:bg-gray-700 shadow-md rounded-md p-4 hover:shadow-lg transition";
+
+        card.innerHTML = `
+        <h4 class="font-bold text-lg mb-2">${plugin.name}</h4>
+        <p class="text-gray-600 dark:text-gray-300 mb-4">${plugin.description}</p>
+        <span class="text-sm text-gray-500 dark:text-gray-400">Author: ${plugin.author}</span>
+        <div class="flex justify-between items-center">
+          <span class="text-sm text-gray-500 dark:text-gray-400">${plugin.downloads} Downloads</span>
+          <button class="bg-primary text-white px-3 py-1 rounded hover:bg-blue-700 transition">Get it</button>
+        </div>
+      `;
+
+        grid.appendChild(card);
+    });
+</script>
+
+</body>
+</html>
