@@ -20,9 +20,9 @@ public class UserManagementPanel extends JPanel implements Refreshable {
         JScrollPane left = new JScrollPane(userTable);
 
         detailTabs = new JTabbedPane();
-        detailTabs.addTab("Basic Info", new JPanel());
-        detailTabs.addTab("Roles", new JPanel());
+        detailTabs.addTab("Global Privileges", new JPanel());
         detailTabs.addTab("Schema Privileges", new JPanel());
+        detailTabs.addTab("Roles", new JPanel());
 
         JSplitPane split = new JSplitPane(
                 JSplitPane.HORIZONTAL_SPLIT,
