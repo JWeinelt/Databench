@@ -1,5 +1,8 @@
 package de.julianweinelt.datacat.dbx.database;
 
+import de.julianweinelt.datacat.dbx.api.database.Process;
+import de.julianweinelt.datacat.dbx.api.database.User;
+import de.julianweinelt.datacat.dbx.api.database.UserPrivilege;
 import de.julianweinelt.datacat.dbx.api.exceptions.DatabaseSchemaNotFoundException;
 import de.julianweinelt.datacat.dbx.backup.ColumnDefinition;
 import de.julianweinelt.datacat.dbx.backup.IndexDefinition;
@@ -133,10 +136,43 @@ public abstract class ADatabase {
      * @return A {@link List} of {@link String} objects with the names of the database schemas
      */
     public abstract List<String> getDatabases();
+
+    /**
+     * Get all table names of a specific schema.
+     * @param database The schema name as a {@link String}
+     * @return A {@link List} of {@link String} objects with the names of the tables
+     * @apiNote This will only return <b>tables</b>, no <b>views.</b>
+     */
     public abstract List<String> getTables(String database);
+
+    /**
+     * Get all view names of a specific schema.
+     * @param database The schema name as a {@link String}
+     * @return A {@link List} of {@link String} objects with the names of the views
+     * @apiNote This will only return <b>views</b>, no <b>tables.</b>
+     */
+    public abstract List<String> getViews(String database);
+    public abstract List<String> getStoredProcedures(String database);
+    public abstract List<String> getTriggers(String database);
     public abstract ResultSet getTableData(String database, String table) throws SQLException;
 
     public abstract SchemaInfo getSchemaInfo(String database);
+
+    /**
+     * Loads all processes currently executed by the database server.
+     * @return A list of {@link Process} objects representing all running processes.<br>Returns <code>null</code>
+     * if the database does not support such queries.
+     * @implNote This should return the result of e.g., <code>show processlist;</code> in MariaDB,
+     * just return <code>if it is not supported by the database</code>
+     */
+    public abstract List<Process> getProcessList();
+
+    /**
+     * Loads all users that are registered in the database
+     * @return A List of {@link User} objects
+     */
+    public abstract List<User> getUsers();
+    public abstract UserPrivilege getUserPrivilege(String username, String host);
 
     public abstract String getDatabaseProductName();
     public abstract String getDatabaseProductVersion();
