@@ -50,6 +50,7 @@ public abstract class DatabaseSyntax {
      */
     public abstract String getVersion();
 
+    @Deprecated
     public static DatabaseSyntax MSSQL = new DatabaseSyntax() {
         @Override
         public String showTables() {
@@ -94,10 +95,11 @@ public abstract class DatabaseSyntax {
             return "";
         }
     };
+    @Deprecated
     public static DatabaseSyntax MYSQL = new DatabaseSyntax() {
         @Override
         public String showTables() {
-            return "SHOW FULL TABLES IN ${db} WHERE TABLE_TYPE = 'BASE TABLE';";
+            return "SHOW FULL TABLES IN `${db}` WHERE TABLE_TYPE = 'BASE TABLE';";
         }
 
         @Override
@@ -107,7 +109,7 @@ public abstract class DatabaseSyntax {
 
         @Override
         public String showViews() {
-            return "SHOW FULL TABLES IN ${db} WHERE TABLE_TYPE = 'VIEW';";
+            return "SHOW FULL TABLES IN `${db}` WHERE TABLE_TYPE = 'VIEW';";
         }
 
         @Override
