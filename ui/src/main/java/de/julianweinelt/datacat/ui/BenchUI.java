@@ -225,6 +225,7 @@ public class BenchUI {
             cardsContainer.setOpaque(false);
 
             cardsScroll = new JScrollPane(cardsContainer);
+            cardsScroll.getVerticalScrollBar().setUnitIncrement(20);
             cardsScroll.setBorder(BorderFactory.createEmptyBorder());
             cardsScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
             cardsScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
