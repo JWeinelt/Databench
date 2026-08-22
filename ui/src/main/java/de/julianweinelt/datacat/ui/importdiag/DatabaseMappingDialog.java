@@ -1,6 +1,7 @@
 package de.julianweinelt.datacat.ui.importdiag;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
 import java.awt.*;
@@ -9,6 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class DatabaseMappingDialog extends JDialog {
 
     private static final String CREATE_NEW = "<Neu erstellen>";
@@ -74,8 +76,8 @@ public class DatabaseMappingDialog extends JDialog {
 
             JComboBox<DatabaseMap> targetBox = new JComboBox<>();
 
-            targetBox.addItem(DatabaseMap.createNew());
             targetBox.addItem(DatabaseMap.ignore());
+            targetBox.addItem(DatabaseMap.createNew());
 
             for (String database : existingDatabases) {
                 //targetBox.addItem(new DatabaseMap());
@@ -189,10 +191,10 @@ public class DatabaseMappingDialog extends JDialog {
                 target = row.newNameField()
                         .getText()
                         .trim();
+                log.info("Target new: {}", target);
             } else {
-                target = (String)
-                        row.targetBox()
-                                .getSelectedItem();
+                target = ((DatabaseMap) row.targetBox().getSelectedItem()).targetDatabase();
+                log.info("Target: {}", target);
             }
 
             result.put(

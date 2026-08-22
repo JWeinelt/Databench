@@ -85,7 +85,7 @@ public class ImportDialog extends JDialog implements ImportListener {
 
         initUI();
         wireActions();
-        startButton.setEnabled(false);
+        startButton.setEnabled(true);
     }
 
     private void initUI() {
@@ -133,6 +133,7 @@ public class ImportDialog extends JDialog implements ImportListener {
             if (targetDatabase.connect()) {
                 databasesLoadedFromServer = targetDatabase.getDatabases();
                 makeDBChecks();
+                log.info("Found database");
             } else {
                 log.error("Could not connect to database!");
             }
@@ -301,7 +302,7 @@ public class ImportDialog extends JDialog implements ImportListener {
             return;
         }
 
-        startButton.setEnabled(false);
+        startButton.setEnabled(true);
         browseButton.setEnabled(false);
         logArea.setText("");
         progressBar.setValue(0);

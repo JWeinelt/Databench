@@ -8,6 +8,7 @@ import de.julianweinelt.datacat.dbx.backup.DbxArchiveWriter;
 import de.julianweinelt.datacat.dbx.backup.ExportListener;
 import de.julianweinelt.datacat.dbx.database.ADatabase;
 import de.julianweinelt.datacat.dbx.util.HomeDirectories;
+import de.julianweinelt.datacat.dbx.util.taskbar.DTaskbar;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
@@ -31,7 +32,7 @@ public class ExportDialog extends JDialog {
     private final JTextArea console = new JTextArea();
     private final JButton startButton = new JButton(translate("dialog.export.button.start"));
     private final JButton closeButton = new JButton(translate("dialog.export.button.cancel"));
-    private final Taskbar taskbar;
+    private final DTaskbar dTaskbar;
     private final Frame parent;
 
     private List<String> databasesToExport = new ArrayList<>();
@@ -43,16 +44,16 @@ public class ExportDialog extends JDialog {
         super(owner, translate("dialog.export.title"), true);
         BenchUI.addEscapeKeyBind(this);
         parent = owner;
-        taskbar = Taskbar.getTaskbar();
+        dTaskbar = new DTaskbar(parent);
 
         setSize(700, 500);
         setLocationRelativeTo(owner);
         setLayout(new BorderLayout(8, 8));
         setModal(false);
 
-        if (taskbar.isSupported(Taskbar.Feature.PROGRESS_STATE_WINDOW)) {
+        /*if (taskbar.isSupported(Taskbar.Feature.PROGRESS_STATE_WINDOW)) {
             taskbar.setWindowProgressState(parent, Taskbar.State.INDETERMINATE);
-        }
+        }*/
 
         add(createSettingsPanel(), BorderLayout.NORTH);
         add(createConsolePanel(), BorderLayout.CENTER);
@@ -61,9 +62,9 @@ public class ExportDialog extends JDialog {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosed(WindowEvent e) {
-                if (taskbar.isSupported(Taskbar.Feature.PROGRESS_STATE_WINDOW)) {
+                /*if (taskbar.isSupported(Taskbar.Feature.PROGRESS_STATE_WINDOW)) {
                     taskbar.setWindowProgressState(parent, Taskbar.State.OFF);
-                }
+                }*/
             }
         });
 
@@ -98,14 +99,14 @@ public class ExportDialog extends JDialog {
 
         new Thread(() -> {
             try {
-                DatabaseExporter exporter = new DatabaseExporter(writer, database, listener, this, parent, taskbar);
+                DatabaseExporter exporter = new DatabaseExporter(writer, database, listener, this, parent);
                 exporter.setDatabasesToExport(databasesToExport);
                 exporter.retrieveBasicData();
                 exporter.createManifest();
                 exporter.exportData();
 
                 listener.onLog(translate("dialog.export.console.success"));
-                taskbar.setWindowProgressState(parent, Taskbar.State.OFF);
+                //taskbar.setWindowProgressState(parent, Taskbar.State.OFF);
             } catch (Exception e) {
                 listener.onError(translate("dialog.export.console.failed"), e);
                 log.error("Export failed", e);
@@ -343,9 +344,9 @@ public class ExportDialog extends JDialog {
                     progressBar.setMaximum(total);
                     progressBar.setValue(current);
                     progressBar.setString(message + " (" + current + "/" + total + ")");
-                    if (taskbar.isSupported(Taskbar.Feature.PROGRESS_VALUE_WINDOW)) {
+                    /*if (taskbar.isSupported(Taskbar.Feature.PROGRESS_VALUE_WINDOW)) {
                         taskbar.setWindowProgressValue(parent, percent);
-                    }
+                    }*/
                 });
             }
 
@@ -369,7 +370,7 @@ public class ExportDialog extends JDialog {
             public void save() {
                 try {
                     String name = "export_log_" + Instant.now().toEpochMilli() + ".txt";
-                    try (FileWriter fw = new FileWriter(new File(name))) {
+                    try (FileWriter fw = new FileWriter(name)) {
                         fw.write(console.getText());
                     }
                 } catch (IOException e) {

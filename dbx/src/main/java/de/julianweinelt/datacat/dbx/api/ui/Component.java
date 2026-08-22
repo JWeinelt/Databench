@@ -38,7 +38,7 @@ public abstract class Component<T, C> {
      * @return A new {@link JLabel} containing the text of the component
      */
     @ApiStatus.Internal
-    protected JLabel createLabel() {
+    public JLabel createLabel() {
         if (!hasLabel()) throw new IllegalStateException("label has not been set");
         return new JLabel(label);
     }

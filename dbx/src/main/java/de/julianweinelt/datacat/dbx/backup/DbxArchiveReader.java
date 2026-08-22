@@ -139,12 +139,14 @@ public class DbxArchiveReader implements Closeable {
         String placeholders = columns.stream().map(c -> "?").collect(Collectors.joining(", "));
         String sql = "INSERT INTO " + db + "." + table + " (" + columnList + ") VALUES (" + placeholders + ")";
 
+        log.info(sql);
         try (PreparedStatement ps = targetDatabase.prepareStatement(sql)) {
             for (Map<String, Object> row : batch) {
                 for (int i = 0; i < columns.size(); i++) {
                     Object value = row.get(columns.get(i));
                     if (def.getColumn(columns.get(i)).getType().equalsIgnoreCase("datetime")) value = ((Number) value).longValue();
                     ps.setObject(i + 1, value);
+                    log.info("Index {}, Value: {}", (i+1), value);
                 }
                 ps.addBatch();
             }

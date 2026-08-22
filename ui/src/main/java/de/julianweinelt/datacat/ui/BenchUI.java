@@ -16,6 +16,7 @@ import de.julianweinelt.datacat.service.UpdateChecker;
 import de.julianweinelt.datacat.ui.driver.DriverManagerDialog;
 import de.julianweinelt.datacat.ui.plugins.PluginDialog;
 import de.julianweinelt.datacat.util.SecretManager;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -30,6 +31,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import static de.julianweinelt.datacat.dbx.util.LanguageManager.translate;
 
@@ -360,6 +362,7 @@ public class BenchUI {
     }
 
 
+    @Deprecated
     private void showAddProfilePopup() {
         JDialog popup = new JDialog(frame, translate("screen.main.profile.ui.add"), true);
         addEscapeKeyBind(popup);
