@@ -1,5 +1,6 @@
 package de.julianweinelt.datacat.api;
 
+
 import de.julianweinelt.datacat.data.Project;
 import de.julianweinelt.datacat.data.ProjectManager;
 import de.julianweinelt.datacat.dbx.api.drivers.DriverManagerService;
@@ -67,8 +68,6 @@ public class DConnection implements IFileWatcherListener {
 
     private final boolean lightEdit;
     private final DatabaseMetaData databaseTypeMeta;
-
-    private final TreeFilter treeFilter = new TreeFilter();
 
     public DConnection(Project project, BenchUI benchUI) {
         this.lightEdit = false;
@@ -163,6 +162,8 @@ public class DConnection implements IFileWatcherListener {
         createProjectFolder();
         JScrollPane fileTreeScroll = new JScrollPane(fileTree);
 
+        JPanel flowPanel = new JPanel();
+
         JTabbedPane leftTabs = new JTabbedPane();
         if (!lightEdit) leftTabs.addTab(translate("project.tabs.database"), projectTreeScroll);
         leftTabs.addTab(translate("project.tabs.files"), fileTreeScroll);
@@ -196,6 +197,7 @@ public class DConnection implements IFileWatcherListener {
     }
 
     private void createProjectFolder() {
+        //TODO: Use another folder in users home
         File folder = new File("projects", project.getUuid().toString());
         if (folder.mkdirs()) log.debug("Created workspace folder for project {}", project.getName());
         fileWatcher = new FileWatcher(folder, this);
@@ -322,7 +324,7 @@ public class DConnection implements IFileWatcherListener {
         } else {
             log.warn("Unknown file type: {}", file.getName());
             int val = JOptionPane.showConfirmDialog(benchUI.getFrame(), "Unknown file type: " + file.getName()
-                    + "\n\nShould DataCat try to load it anyway?", "File type mismatch", JOptionPane.YES_NO_OPTION);
+                    + "\n\nShould DataBench try to load it anyway?", "File type mismatch", JOptionPane.YES_NO_OPTION);
             if (val == JOptionPane.YES_OPTION) {
                 addEditorTab(FileUtil.readFile(file));
             }
@@ -331,7 +333,7 @@ public class DConnection implements IFileWatcherListener {
 
     public void addCreateTableTab(String dbContext) {
         log.info("Selected database context: {}", dbContext);
-        addTab(new CreateTableTab(this).newTable(dbContext));
+        addTab(new CreateTableTab(this).newTable());
     }
 
     public void addCreateViewTab() {
@@ -440,10 +442,10 @@ public class DConnection implements IFileWatcherListener {
     }
 
     public void handleWindowClosing(JFrame frame) {
-        log.info("Saving tabs...");
         FileManager.instance().save(editorTabs, project);
         boolean unsaved = hasUnsavedChanges();
         if (!unsaved) {
+            frame.dispose();
             return;
         }
 
@@ -472,6 +474,7 @@ public class DConnection implements IFileWatcherListener {
                 removeTab(tab);
             }
         }
+        frame.dispose();
     }
 
     public boolean hasUnsavedChanges() {
@@ -512,13 +515,9 @@ public class DConnection implements IFileWatcherListener {
                 log.warn("SQL Server (Windows Auth) connection failed: {}", ex.getMessage());
             }
             future.completeExceptionally(ex);
-            return future;
         } finally {
             current.setContextClassLoader(previous);
         }
-
-        String ver = getDatabaseTypeFromDB();
-        log.info("Connected to {} as {}", project.getServer(), ver);
         return future;
     }
 
@@ -538,16 +537,6 @@ public class DConnection implements IFileWatcherListener {
         } catch (SQLException ignored) {
             return false;
         }
-    }
-
-    private String getDatabaseTypeFromDB() {
-        try (ResultSet set = conn.createStatement().executeQuery(databaseTypeMeta.syntax().getType())) {
-            if (set.next()) return set.getString(1);
-        } catch (SQLException e) {
-            log.error(e.getMessage());
-            throw new RuntimeException(e);
-        }
-        return "Unknown";
     }
 
     public List<DBObject> getDatabases() {
@@ -593,6 +582,7 @@ public class DConnection implements IFileWatcherListener {
         } catch (SQLException e) {
             return new SQLAnswer(false, null, -1, e.getMessage(), -1);
         }
+        log.info("Executing SQL: {}", sql);
         SQLAnswer answer;
         try (PreparedStatement pS = conn.prepareStatement(sql)) {
             pS.execute();
@@ -822,14 +812,7 @@ public class DConnection implements IFileWatcherListener {
         else if (name.equals(translate("connection.tree.node.tables.title"))) {
             JMenuItem create = new JMenuItem("Create new Table");
             create.addActionListener(e -> addCreateTableTab(((DefaultMutableTreeNode) node.getParent()).getUserObject().toString()));
-
-            JMenuItem filter = new JMenuItem("Filter...");
-            filter.addActionListener(e -> {
-                treeFilter.showFilterDialog(ui.getFrame());
-            });
-
             menu.add(create);
-            menu.add(filter);
             JMenuItem refresh = new JMenuItem(translate("connection.button.refresh"));
             refresh.addActionListener(e -> getProjectTree());
             menu.add(refresh);
@@ -857,10 +840,6 @@ public class DConnection implements IFileWatcherListener {
                 int result = JOptionPane.showConfirmDialog(ui.getFrame(), "Do you really want to drop (delete) this table? This cannot be undone!");
                 if (result == JOptionPane.YES_OPTION) t.execute();
             });
-            JMenuItem filter = new JMenuItem("Filter...");
-            filter.addActionListener(e -> {
-                treeFilter.showFilterDialog(ui.getFrame());
-            });
             JMenuItem truncate = new JMenuItem("Truncate Table ");
             truncate.addActionListener(e -> {
                 String tableName = node.getUserObject().toString();
@@ -881,7 +860,7 @@ public class DConnection implements IFileWatcherListener {
                 String db = ((DefaultMutableTreeNode) node.getParent().getParent()).getUserObject().toString();
                 String create = getCreateStatement(db, node.getUserObject().toString());
                 addEditorTab("""
-                        /** Script generated by DataCat SQL Generator **/
+                        /** Script generated by DataBench SQL Generator **/
                         %s
                         """.formatted(create));
             });
@@ -889,7 +868,6 @@ public class DConnection implements IFileWatcherListener {
             menu.add(edit);
             menu.add(select);
             menu.add(drop);
-            menu.add(filter);
             menu.add(truncate);
             menu.add(alter);
             menu.add(generatorMenu);
